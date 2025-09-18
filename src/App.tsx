@@ -1,0 +1,60 @@
+import { Routes, Route, Navigate } from 'react-router-dom';
+import LoginPage from './pages/LoginPage';
+import RegisterUserInfoPage from './pages/RegisterUserInfoPage';
+import RegisterBillingPage from './pages/RegisterBillingPage';
+import RegisterConfirmPage from './pages/RegisterConfirmPage';
+import DashboardPage from './pages/DashboardPage';
+import RentReportingPage from './pages/RentReportingPage';
+import BillingPage from './pages/BillingPage';
+import DocumentsPage from './pages/DocumentsPage';
+import AccountPage from './pages/AccountPage';
+import { useState, useEffect } from 'react';
+import { isAuthenticated } from './lib/auth';
+
+function App() {
+  const [loading, setLoading] = useState(true);
+  const [authenticated, setAuthenticated] = useState(false);
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      const authStatus = await isAuthenticated();
+      setAuthenticated(authStatus);
+      setLoading(false);
+    };
+
+    checkAuth();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+      </div>
+    );
+  }
+
+  return (
+    <Routes>
+      <Route
+        path="/"
+        element={
+          <Navigate
+            to={authenticated ? '/dashboard' : '/login'}
+            replace
+          />
+        }
+      />
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/register" element={<RegisterUserInfoPage />} />
+      <Route path="/register/billing" element={<RegisterBillingPage />} />
+      <Route path="/register/confirm" element={<RegisterConfirmPage />} />
+      <Route path="/dashboard" element={<DashboardPage />} />
+      <Route path="/rent-reporting" element={<RentReportingPage />} />
+      <Route path="/billing" element={<BillingPage />} />
+      <Route path="/documents" element={<DocumentsPage />} />
+      <Route path="/account" element={<AccountPage />} />
+    </Routes>
+  );
+}
+
+export default App;
