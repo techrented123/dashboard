@@ -6,8 +6,7 @@ import { useState } from "react";
 import ProtectedRoute from "../components/ProtectedRoute";
 import AppLayout from "../components/AppLayout";
 import Card from "../components/Card";
-import { useAuth } from "../lib/context/authContext";
-import { useRentReports } from "../lib/hooks/useRentReports";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog";
 import {
   Form,
   FormControl,
@@ -30,8 +29,11 @@ import {
 } from "../components/ui/select";
 import { cn } from "../lib/utils";
 import { fetchAuthSession, updateUserAttributes } from "aws-amplify/auth";
+import { getDocumentUrl } from "../lib/documents";
 import { Toast } from "../components/ui/toast";
 import { Skeleton } from "../components/Skeleton";
+import { useAuth } from "../lib/context/authContext";
+import { useRentReports } from "../lib/hooks/useRentReports";
 
 // Form validation schema
 const formSchema = z.object({
@@ -74,6 +76,9 @@ export default function RentReportingPage() {
     type: "success",
     isVisible: false,
   });
+  const [isReceiptDialogOpen, setIsReceiptDialogOpen] = useState(false);
+  const [receiptUrl, setReceiptUrl] = useState<string | null>(null);
+  const [isLoadingReceipt, setIsLoadingReceipt] = useState(false);
 
   // Toast helper functions
   const showToast = (message: string, type: "success" | "error") => {
@@ -117,10 +122,19 @@ export default function RentReportingPage() {
     }
   };
 
-  // Placeholder function for previewing receipts
-  const handlePreview = (docId: string) => {
-    console.log("Preview receipt:", docId);
-    // TODO: Implement receipt preview functionality
+  // Function for previewing receipts
+  const handlePreview = async (docId: string) => {
+    try {
+      setIsLoadingReceipt(true);
+      const response = await getDocumentUrl(docId, false); // false = for viewing, not downloading
+      setReceiptUrl(response.url);
+      setIsReceiptDialogOpen(true);
+    } catch (error) {
+      console.error("Failed to load receipt:", error);
+      showToast("Failed to load receipt", "error");
+    } finally {
+      setIsLoadingReceipt(false);
+    }
   };
 
   //console.log({ user, },user["custom:MonthlyRent"]); // This effect runs whenever the 'user' object changes
@@ -309,6 +323,49 @@ export default function RentReportingPage() {
           isVisible={toast.isVisible}
           onClose={hideToast}
         />
+
+        {/* Receipt Preview Dialog */}
+        <Dialog
+          open={isReceiptDialogOpen}
+          onOpenChange={setIsReceiptDialogOpen}
+        >
+          <DialogContent className="max-w-4xl w-[90vw] h-[90vh] p-0 flex flex-col">
+            <DialogHeader className="p-4 border-b bg-gray-50 flex-shrink-0 dark:text-black">
+              <DialogTitle className="text-lg font-semibold text-gray-800 dark:text-black">
+                Rent Receipt
+              </DialogTitle>
+            </DialogHeader>
+            <div className="flex-1 p-6 pt-0">
+              {isLoadingReceipt ? (
+                <div className="flex items-center justify-center h-full">
+                  <div className="text-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                    <p className="text-slate-600 dark:text-slate-400">
+                      Loading receipt...
+                    </p>
+                  </div>
+                </div>
+              ) : receiptUrl ? (
+                <iframe
+                  src={receiptUrl}
+                  className="w-full h-full border-0 rounded-md"
+                  title="Rent Receipt"
+                  onLoad={() => setIsLoadingReceipt(false)}
+                  onError={() => {
+                    setIsLoadingReceipt(false);
+                    showToast("Failed to load receipt", "error");
+                  }}
+                />
+              ) : (
+                <div className="flex items-center justify-center h-full">
+                  <p className="text-slate-600 dark:text-slate-400">
+                    No receipt available
+                  </p>
+                </div>
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
         <div className="space-y-8">
           <div>
             <h1 className="text-2xl font-bold text-brand dark:text-primary-300 mb-2">
@@ -803,7 +860,7 @@ export default function RentReportingPage() {
                       </tr>
                     ))
                   ) : rentReports.length > 0 ? (
-                    rentReports.map((report, i) => {
+                    rentReports.map((report: any, i: number) => {
                       const paymentDate = new Date(report.paymentDate);
                       const month = paymentDate.toLocaleDateString("en-US", {
                         month: "short",
