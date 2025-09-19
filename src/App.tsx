@@ -1,15 +1,17 @@
-import { Routes, Route, Navigate } from 'react-router-dom';
-import LoginPage from './pages/LoginPage';
-import RegisterUserInfoPage from './pages/RegisterUserInfoPage';
-import RegisterBillingPage from './pages/RegisterBillingPage';
-import RegisterConfirmPage from './pages/RegisterConfirmPage';
-import DashboardPage from './pages/DashboardPage';
-import RentReportingPage from './pages/RentReportingPage';
-import BillingPage from './pages/BillingPage';
-import DocumentsPage from './pages/DocumentsPage';
-import AccountPage from './pages/AccountPage';
-import { useState, useEffect } from 'react';
-import { isAuthenticated } from './lib/auth';
+import { Routes, Route, Navigate } from "react-router-dom";
+import LoginPage from "./pages/LoginPage";
+import RegisterUserInfoPage from "./pages/RegisterUserInfoPage";
+import RegisterBillingPage from "./pages/RegisterBillingPage";
+import RegisterConfirmPage from "./pages/RegisterConfirmPage";
+import DashboardPage from "./pages/DashboardPage";
+import RentReportingPage from "./pages/RentReportingPage";
+import BillingPage from "./pages/BillingPage";
+import DocumentsPage from "./pages/DocumentsPage";
+import AccountPage from "./pages/AccountPage";
+import ForgotPasswordPage from "./pages/ForgotPasswordPage";
+import ConfirmPasswordResetPage from "./pages/ConfirmPasswordResetPage";
+import { useState, useEffect } from "react";
+import { isAuthenticated } from "./lib/auth";
 
 function App() {
   const [loading, setLoading] = useState(true);
@@ -38,13 +40,15 @@ function App() {
       <Route
         path="/"
         element={
-          <Navigate
-            to={authenticated ? '/dashboard' : '/login'}
-            replace
-          />
+          <Navigate to={authenticated ? "/dashboard" : "/login"} replace />
         }
       />
       <Route path="/login" element={<LoginPage />} />
+      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+      <Route
+        path="/confirm-password-reset"
+        element={<ConfirmPasswordResetPage />}
+      />
       <Route path="/register" element={<RegisterUserInfoPage />} />
       <Route path="/register/billing" element={<RegisterBillingPage />} />
       <Route path="/register/confirm" element={<RegisterConfirmPage />} />

@@ -37,6 +37,12 @@ export default defineConfig({
         secure: true,
         rewrite: (path) => path.replace(/^\/api\/billing/, "/prod"),
       },
+      "/api/documents": {
+        target: "https://ruhqb5iww2.execute-api.us-west-2.amazonaws.com",
+        changeOrigin: true,
+        secure: true,
+        rewrite: (path) => path.replace(/^\/api\/documents/, "/prod"),
+      },
     },
   },
 });

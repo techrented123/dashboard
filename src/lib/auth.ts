@@ -26,6 +26,7 @@ import {
   updateUserAttributes,
   type SignInOutput,
 } from "aws-amplify/auth";
+// Add these functions to your existing auth.js file
 
 import {
   CognitoIdentityProviderClient,
@@ -324,6 +325,55 @@ export async function confirmPasswordReset(
       success: false,
       message: err?.message ?? "Password reset failed.",
     };
+  }
+}
+
+// Define a consistent return type for auth operations
+type AuthResult = {
+  success: boolean;
+  message?: string;
+};
+
+/**
+ * Initiates the password reset process by sending a code to the user's email.
+ * @param {string} username - The user's email address.
+ * @returns {Promise<AuthResult>}
+ */
+export async function forgotPassword(username: string): Promise<AuthResult> {
+  try {
+    const output = await resetPassword({ username });
+    console.log(
+      "Password reset code sent to:",
+      output.nextStep.codeDeliveryDetails.destination
+    );
+    return { success: true };
+  } catch (error: any) {
+    console.error("Error sending password reset code:", error);
+    return { success: false, message: error.message };
+  }
+}
+
+/**
+ * Confirms the password reset using the code and sets the new password.
+ * @param {string} username - The user's email address.
+ * @param {string} confirmationCode - The 6-digit code from the email.
+ * @param {string} newPassword - The user's new desired password.
+ * @returns {Promise<AuthResult>}
+ */
+export async function confirmNewPassword(
+  username: string,
+  confirmationCode: string,
+  newPassword: string
+): Promise<AuthResult> {
+  try {
+    await confirmResetPassword({ username, confirmationCode, newPassword });
+    return {
+      success: true,
+      message: "Password has been reset successfully. You can now log in.",
+    };
+  } catch (error: any) {
+    console.error("Error confirming new password:", error);
+    return { success: false, message: error.message };
   }
 }
 

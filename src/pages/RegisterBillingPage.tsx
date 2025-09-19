@@ -90,8 +90,28 @@ async function uploadLeaseAgreement(userInfo: any) {
       size: userInfo.leaseAgreement.size,
     });
 
-    // Use the original filename as-is (file input already validates criteria)
-    const filename = userInfo.leaseAgreement.name;
+    // Ensure filename is not empty and has proper extension
+    let filename = userInfo.leaseAgreement.name;
+    if (!filename || filename.trim() === "") {
+      // Generate a fallback filename with proper extension
+      const fileExtension =
+        userInfo.leaseAgreement.type === "application/pdf" ? ".pdf" : ".pdf";
+      filename = `lease-agreement-${Date.now()}${fileExtension}`;
+    }
+
+    // Ensure filename has proper extension
+    if (!filename.includes(".")) {
+      const fileExtension =
+        userInfo.leaseAgreement.type === "application/pdf" ? ".pdf" : ".pdf";
+      filename = `${filename}${fileExtension}`;
+    }
+
+    console.log("Final filename:", filename);
+
+    // Validate that filename is not empty before proceeding
+    if (!filename || filename.trim() === "") {
+      throw new Error("Filename is required but was empty");
+    }
 
     // Get presigned URL for upload
     const presignedData = await getPresignedUrl({

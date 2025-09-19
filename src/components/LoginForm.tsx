@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { signInUser, submitMfaCode } from "../lib/auth";
+import { Link } from "react-router-dom";
 import logo from "../assets/logo.png";
 
 interface LoginFormProps {
@@ -218,17 +219,17 @@ export default function LoginForm({
           </button>
         </form>
         <div className="mt-6 text-center space-y-3">
-          <a
-            href="/forgot-password"
+          <Link
+            to="/forgot-password"
             className="text-sm text-secondary hover:underline block"
           >
             Forgot your password?
-          </a>
+          </Link>
           <p className="text-sm text-slate-600 dark:text-slate-400">
             Don't have an account?{" "}
-            <a href="/register" className="text-secondary hover:underline">
+            <Link to="/register" className="text-secondary hover:underline">
               Sign up
-            </a>
+            </Link>
           </p>
         </div>{" "}
       </div>

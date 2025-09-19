@@ -9,7 +9,7 @@ export async function fetchDocuments() {
   const token = session.tokens?.idToken?.toString();
 
   const res = await fetch(
-    `${import.meta.env.VITE_DOCS_API_BASE_URL}/documents`, // GET from the /documents path
+    `${import.meta.env.VITE_DOCS_API_BASE_URL || "/api"}/documents`, // GET from the /documents path
     {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -32,7 +32,9 @@ export async function getDocumentUrl(docId: string, forDownload = false) {
   const session = await fetchAuthSession();
   const token = session.tokens?.idToken?.toString();
   // 2. Construct the full API URL (same as before)
-  const apiUrl = `${import.meta.env.VITE_DOCS_API_BASE_URL}/documents/${docId}`;
+  const apiUrl = `${
+    import.meta.env.VITE_DOCS_API_BASE_URL || "/api"
+  }/documents/${docId}`;
 
   // 3. Make an authenticated POST request to the endpoint
   const res = await fetch(apiUrl, {
@@ -99,7 +101,9 @@ export async function deleteDocument(docId: string) {
   const token = session.tokens?.idToken?.toString();
 
   // 2. Construct the full API URL for the specific document
-  const apiUrl = `${import.meta.env.VITE_DOCS_API_BASE_URL}/documents/${docId}`;
+  const apiUrl = `${
+    import.meta.env.VITE_DOCS_API_BASE_URL || "/api"
+  }/documents/${docId}`;
 
   // 3. Make an authenticated DELETE request
   const res = await fetch(apiUrl, {
