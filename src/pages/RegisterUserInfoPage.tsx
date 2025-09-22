@@ -7,9 +7,10 @@ import {
   Upload,
   FileText,
   X,
+  AlertTriangle,
   CheckCircle2,
   XCircle,
-  AlertTriangle,
+  Info,
   Loader2,
 } from "lucide-react";
 import { useForm } from "react-hook-form";
@@ -97,6 +98,12 @@ const formSchema = z
     monthlyRent: z.string().optional(),
     leaseAgreement: z.instanceof(File, {
       message: "Lease agreement is required",
+    }),
+    termsAndConditions: z.boolean().refine((val) => val === true, {
+      message: "You must accept the terms and conditions",
+    }),
+    privacyPolicy: z.boolean().refine((val) => val === true, {
+      message: "You must accept the privacy policy",
     }),
   })
   .refine((data) => data.password === data.confirmPassword, {
@@ -195,6 +202,8 @@ export default function RegisterUserInfoPage() {
       ownership: "tenant",
       monthlyRent: "",
       leaseAgreement: undefined as any,
+      termsAndConditions: false,
+      privacyPolicy: false,
     },
   });
 
@@ -289,7 +298,7 @@ export default function RegisterUserInfoPage() {
   return (
     <main className="min-h-screen bg-gradient-to-b from-white to-primary-50 dark:from-slate-900 dark:to-slate-800 py-8">
       <div className="container-padded">
-        <div className="max-w-2xl mx-auto">
+        <div className="max-w-5xl mx-auto">
           {/* Logo */}
           <div className="text-center mb-8">
             <img src={logo} alt="Rented123 Logo" className="h-16 mx-auto" />
@@ -322,14 +331,21 @@ export default function RegisterUserInfoPage() {
             {/* ID Verification Banner */}
             <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-xl">
               <div className="flex items-center gap-3">
-                <AlertTriangle className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0" />
+                <Info className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0" />
                 <div>
                   <h3 className="font-medium text-blue-800 dark:text-blue-300 mb-1">
                     ID Verification Required
                   </h3>
                   <p className="text-sm text-blue-700 dark:text-blue-400">
-                    All users must complete ID verification before signing up.
-                    Please complete your ID verification check first.
+                    Please complete your ID verification{" "}
+                    <a
+                      href="https://www.rented123.com/id-verification"
+                      target="_blank"
+                      className="text-blue-700 dark:text-blue-400 underline hover:text-blue-800 dark:hover:text-blue-300"
+                    >
+                      here
+                    </a>{" "}
+                    first. If you've already done this, please continue below.
                   </p>
                 </div>
               </div>
@@ -950,6 +966,80 @@ export default function RegisterUserInfoPage() {
                       )}
                     </div>
                   </div>
+                </div>
+
+                {/* Terms and Privacy Policy Checkboxes */}
+                <div className="space-y-4">
+                  <FormField
+                    control={form.control}
+                    name="termsAndConditions"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                        <FormControl>
+                          <input
+                            type="checkbox"
+                            checked={field.value}
+                            onChange={field.onChange}
+                            className="mt-1 h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                          />
+                        </FormControl>
+                        <div className="space-y-1 leading-none">
+                          <FormLabel className="text-sm font-normal">
+                            I agree to the{" "}
+                            <a
+                              href="https://rented123.com/wp-content/uploads/2024/11/Disclosure-of-Referral-Fees-and-Commission.pdf"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-primary-600 hover:text-primary-700 underline"
+                            >
+                              Terms and Conditions
+                            </a>
+                          </FormLabel>
+                          <FormMessage />
+                        </div>
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="privacyPolicy"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                        <FormControl>
+                          <input
+                            type="checkbox"
+                            checked={field.value}
+                            onChange={field.onChange}
+                            className="mt-1 h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                          />
+                        </FormControl>
+                        <div className="space-y-1 leading-none">
+                          <FormLabel className="text-sm font-normal">
+                            I agree to the{" "}
+                            <a
+                              href="https://rented123.com/privacy-policy/"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-primary-600 hover:text-primary-700 underline"
+                            >
+                              Privacy Policy
+                            </a>{" "}
+                            and{" "}
+                            <a
+                              href="https://rented123.com/wp-content/uploads/2025/01/Rented123.com-fees-and-compensation-Anti-spam-acknowledgement-.docx.pdf"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-primary-600 hover:text-primary-700 underline"
+                            >
+                              Disclosure of Referral Fees and Commission
+                            </a>
+                          </FormLabel>
+                          <FormMessage />
+                        </div>
+                      </FormItem>
+                    )}
+                  />
                 </div>
 
                 <Button
