@@ -9,6 +9,8 @@ import {
   X,
   CheckCircle2,
   XCircle,
+  AlertTriangle,
+  Loader2,
 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -24,6 +26,7 @@ import {
 import { Input } from "../ui/input";
 import { Button } from "../components/ui/button";
 import { cn, formatPhoneToE164 } from "../lib/utils";
+import { useIdVerification } from "../lib/hooks/useIdVerification";
 import logo from "../assets/logo.png";
 
 // Helper component for the password validation checklist
@@ -156,6 +159,8 @@ export default function RegisterUserInfoPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
+  const [emailValue, setEmailValue] = useState("");
+  const [shouldCheckId, setShouldCheckId] = useState(false);
 
   // State for password validation
   const [passwordValidation, setPasswordValidation] = useState({
@@ -165,6 +170,10 @@ export default function RegisterUserInfoPage() {
     number: false,
     specialChar: false,
   });
+
+  // ID verification check - only when user blurs from email field
+  const { data: idVerificationData, isLoading: isCheckingId } =
+    useIdVerification(emailValue, shouldCheckId);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -195,11 +204,24 @@ export default function RegisterUserInfoPage() {
       data.phoneNumber = formatPhoneToE164(data.phoneNumber);
     }
 
-    // Handle lease agreement file upload
+    // Handle lease agreement file - store file separately to avoid JSON serialization issues
     if (data.leaseAgreement) {
       console.log("file", data.leaseAgreement);
-      // For now, just assign a placeholder URL
-      (data as any).leaseAgreementUrl = "placeholder-url-for-lease-agreement";
+      // Store the file in sessionStorage as base64 to preserve it
+      const reader = new FileReader();
+      reader.onload = () => {
+        const fileData = {
+          name: data.leaseAgreement.name,
+          type: data.leaseAgreement.type,
+          size: data.leaseAgreement.size,
+          data: reader.result, // base64 data
+        };
+        sessionStorage.setItem("leaseAgreementFile", JSON.stringify(fileData));
+      };
+      reader.readAsDataURL(data.leaseAgreement);
+
+      // Remove the File object from data to avoid serialization issues
+      delete (data as any).leaseAgreement;
     }
 
     // Store user data and navigate to billing preview
@@ -297,6 +319,22 @@ export default function RegisterUserInfoPage() {
           </div>
 
           <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-soft p-8 border dark:border-slate-700">
+            {/* ID Verification Banner */}
+            <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-xl">
+              <div className="flex items-center gap-3">
+                <AlertTriangle className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0" />
+                <div>
+                  <h3 className="font-medium text-blue-800 dark:text-blue-300 mb-1">
+                    ID Verification Required
+                  </h3>
+                  <p className="text-sm text-blue-700 dark:text-blue-400">
+                    All users must complete ID verification before signing up.
+                    Please complete your ID verification check first.
+                  </p>
+                </div>
+              </div>
+            </div>
+
             <div className="text-center mb-8">
               <h1 className="text-2xl font-semibold text-primary-800 dark:text-primary-300 mb-2">
                 Create Your Account
@@ -438,6 +476,18 @@ export default function RegisterUserInfoPage() {
                               type="email"
                               placeholder="Enter your email"
                               {...field}
+                              onChange={(e) => {
+                                field.onChange(e);
+                                setEmailValue(e.target.value);
+                                // Reset check when user types
+                                setShouldCheckId(false);
+                              }}
+                              onBlur={() => {
+                                // Only check if email looks valid
+                                if (emailValue && emailValue.includes("@")) {
+                                  setShouldCheckId(true);
+                                }
+                              }}
                               className={cn(
                                 form.formState.errors.email &&
                                   "border-red-500 focus-visible:ring-red-500"
@@ -445,6 +495,33 @@ export default function RegisterUserInfoPage() {
                             />
                           </FormControl>
                           <FormMessage />
+
+                          {/* ID Verification Status */}
+                          {emailValue && (
+                            <div className="mt-2">
+                              {isCheckingId ? (
+                                <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
+                                  <Loader2 className="w-4 h-4 animate-spin" />
+                                  Checking ID verification...
+                                </div>
+                              ) : idVerificationData?.status === "found" ? (
+                                <div className="flex items-center gap-2 text-sm text-green-600 dark:text-green-400">
+                                  <CheckCircle2 className="w-4 h-4" />
+                                  ID verification report found
+                                </div>
+                              ) : idVerificationData?.status === "not_found" ? (
+                                <div className="flex items-center gap-2 text-sm text-red-600 dark:text-red-400">
+                                  <XCircle className="w-4 h-4" />
+                                  {idVerificationData.message}
+                                </div>
+                              ) : idVerificationData?.status === "error" ? (
+                                <div className="flex items-center gap-2 text-sm text-orange-600 dark:text-orange-400">
+                                  <AlertTriangle className="w-4 h-4" />
+                                  {idVerificationData.message}
+                                </div>
+                              ) : null}
+                            </div>
+                          )}
                         </FormItem>
                       )}
                     />

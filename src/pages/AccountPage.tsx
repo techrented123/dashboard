@@ -294,7 +294,7 @@ export default function AccountPage() {
   }
 
   return (
-    <ProtectedRoute>
+    <ProtectedRoute requireSubscription={false}>
       <AppLayout>
         <Toast
           isVisible={toast.isVisible}

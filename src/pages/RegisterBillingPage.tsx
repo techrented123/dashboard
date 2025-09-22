@@ -90,28 +90,15 @@ async function uploadLeaseAgreement(userInfo: any) {
       size: userInfo.leaseAgreement.size,
     });
 
-    // Ensure filename is not empty and has proper extension
-    let filename = userInfo.leaseAgreement.name;
+    // Use the original filename exactly as provided (like DocumentsPage does)
+    const filename = userInfo.leaseAgreement.name;
+
+    // Validate filename is not empty
     if (!filename || filename.trim() === "") {
-      // Generate a fallback filename with proper extension
-      const fileExtension =
-        userInfo.leaseAgreement.type === "application/pdf" ? ".pdf" : ".pdf";
-      filename = `lease-agreement-${Date.now()}${fileExtension}`;
+      throw new Error("Lease agreement filename is required");
     }
 
-    // Ensure filename has proper extension
-    if (!filename.includes(".")) {
-      const fileExtension =
-        userInfo.leaseAgreement.type === "application/pdf" ? ".pdf" : ".pdf";
-      filename = `${filename}${fileExtension}`;
-    }
-
-    console.log("Final filename:", filename);
-
-    // Validate that filename is not empty before proceeding
-    if (!filename || filename.trim() === "") {
-      throw new Error("Filename is required but was empty");
-    }
+    console.log("Using filename:", filename);
 
     // Get presigned URL for upload
     const presignedData = await getPresignedUrl({
@@ -248,7 +235,30 @@ export default function RegisterBillingPage() {
   useEffect(() => {
     const storedData = localStorage.getItem("registrationUserData");
     if (storedData) {
-      setUserInfo(JSON.parse(storedData));
+      const userData = JSON.parse(storedData);
+
+      // Check if there's a lease agreement file stored separately
+      const fileData = sessionStorage.getItem("leaseAgreementFile");
+      if (fileData) {
+        try {
+          const parsedFileData = JSON.parse(fileData);
+          // Reconstruct the File object from base64 data
+          const byteCharacters = atob(parsedFileData.data.split(",")[1]);
+          const byteNumbers = new Array(byteCharacters.length);
+          for (let i = 0; i < byteCharacters.length; i++) {
+            byteNumbers[i] = byteCharacters.charCodeAt(i);
+          }
+          const byteArray = new Uint8Array(byteNumbers);
+          const file = new File([byteArray], parsedFileData.name, {
+            type: parsedFileData.type,
+          });
+          userData.leaseAgreement = file;
+        } catch (error) {
+          console.error("Failed to reconstruct lease agreement file:", error);
+        }
+      }
+
+      setUserInfo(userData);
     } else {
       // If there's no user info, we can't proceed. Send them back.
       navigate("/register");

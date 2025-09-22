@@ -3,6 +3,7 @@ import LoginPage from "./pages/LoginPage";
 import RegisterUserInfoPage from "./pages/RegisterUserInfoPage";
 import RegisterBillingPage from "./pages/RegisterBillingPage";
 import RegisterConfirmPage from "./pages/RegisterConfirmPage";
+import SubscribePage from "./pages/SubscribePage";
 import DashboardPage from "./pages/DashboardPage";
 import RentReportingPage from "./pages/RentReportingPage";
 import BillingPage from "./pages/BillingPage";
@@ -52,6 +53,7 @@ function App() {
       <Route path="/register" element={<RegisterUserInfoPage />} />
       <Route path="/register/billing" element={<RegisterBillingPage />} />
       <Route path="/register/confirm" element={<RegisterConfirmPage />} />
+      <Route path="/subscribe" element={<SubscribePage />} />
       <Route path="/dashboard" element={<DashboardPage />} />
       <Route path="/rent-reporting" element={<RentReportingPage />} />
       <Route path="/billing" element={<BillingPage />} />

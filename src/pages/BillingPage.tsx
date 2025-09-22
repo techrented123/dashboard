@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { ExternalLink, Loader2, AlertCircle } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { ExternalLink, Loader2, AlertCircle, CreditCard } from "lucide-react";
 import { Skeleton, SkeletonText, SkeletonButton } from "../components/Skeleton";
 import ProtectedRoute from "../components/ProtectedRoute";
 import AppLayout from "../components/AppLayout";
@@ -41,6 +42,7 @@ const getCardBrandLabel = (brand: string) => {
 export default function BillingPage() {
   const { data: billingData, isLoading, error } = useBillingData();
   const [portalLoading, setPortalLoading] = useState(false);
+  const navigate = useNavigate();
   console.log({ billingData });
 
   const onManagePortal = async () => {
@@ -122,9 +124,23 @@ export default function BillingPage() {
 
   const renderNoSubscription = () => (
     <div className="p-6 bg-white dark:bg-slate-800 rounded-lg">
-      <p className="text-sm text-slate-600 dark:text-slate-300">
-        You do not have an active subscription.
-      </p>
+      <div className="text-center space-y-4">
+        <div className="p-4 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-xl">
+          <h3 className="font-medium text-blue-800 dark:text-blue-300 mb-2">
+            No Active Subscription
+          </h3>
+          <p className="text-sm text-blue-700 dark:text-blue-400 mb-4">
+            You need an active subscription to access all features.
+          </p>
+          <button
+            onClick={() => navigate("/subscribe")}
+            className="inline-flex items-center gap-2 bg-secondary text-white px-4 py-2 rounded-lg hover:opacity-90 transition-opacity"
+          >
+            <CreditCard className="w-4 h-4" />
+            Start Subscription
+          </button>
+        </div>
+      </div>
     </div>
   );
 
@@ -317,7 +333,7 @@ export default function BillingPage() {
 
   // --- Main render ---
   return (
-    <ProtectedRoute>
+    <ProtectedRoute requireSubscription={false}>
       <AppLayout>
         <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-7 space-y-6 ">
           {renderHeader()}

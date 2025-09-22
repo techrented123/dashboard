@@ -10,6 +10,7 @@ import App from "./App.tsx";
 import "./index.css";
 import "./styles/design-system.css";
 import { AuthProvider } from "./lib/context/authContext";
+import { SubscriptionProvider } from "./lib/context/subscriptionContext";
 
 // Create a client
 const queryClient = new QueryClient({
@@ -38,8 +39,10 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
     <BrowserRouter>
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
-          <App />
-          <ReactQueryDevtools initialIsOpen={false} />
+          <SubscriptionProvider>
+            <App />
+            <ReactQueryDevtools initialIsOpen={false} />
+          </SubscriptionProvider>
         </AuthProvider>
       </QueryClientProvider>
     </BrowserRouter>

@@ -1,12 +1,17 @@
-import { useState, useEffect } from 'react';
-import { Navigate, useLocation } from 'react-router-dom';
-import { isAuthenticated } from '../lib/auth';
+import { useState, useEffect } from "react";
+import { Navigate, useLocation } from "react-router-dom";
+import { isAuthenticated } from "../lib/auth";
+import SubscriptionGuard from "./SubscriptionGuard";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
+  requireSubscription?: boolean;
 }
 
-export default function ProtectedRoute({ children }: ProtectedRouteProps) {
+export default function ProtectedRoute({
+  children,
+  requireSubscription = true,
+}: ProtectedRouteProps) {
   const [loading, setLoading] = useState(true);
   const [authenticated, setAuthenticated] = useState(false);
   const location = useLocation();
@@ -31,6 +36,11 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
 
   if (!authenticated) {
     return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+  // If subscription is required, wrap with SubscriptionGuard
+  if (requireSubscription) {
+    return <SubscriptionGuard>{children}</SubscriptionGuard>;
   }
 
   return <>{children}</>;
