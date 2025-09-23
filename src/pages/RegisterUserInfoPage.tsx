@@ -313,7 +313,7 @@ export default function RegisterUserInfoPage() {
         <div className="max-w-5xl mx-auto">
           {/* Logo */}
           <div className="text-center mb-8">
-            <img src={logo} alt="Rented123 Logo" className="h-16 mx-auto" />
+            <img src={logo} alt="Rented123 Logo" className="h-20 mx-auto" />
           </div>
 
           {/* Progress Indicator */}

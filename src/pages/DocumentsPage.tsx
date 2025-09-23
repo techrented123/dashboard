@@ -609,7 +609,7 @@ export default function DocumentsPage() {
                   <Trash2 className="w-4 h-4 text-slate-400" />
                   {/* Tooltip - only show for lease agreements, not ID Verification */}
                   {doc.source !== "ID Verification" && (
-                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-[9999] pointer-events-none">
+                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-[99999] pointer-events-none">
                       {doc.source === "Lease Agreement"
                         ? "Upload a new one to replace"
                         : isMostRecentLeaseAgreement(doc)

@@ -416,7 +416,7 @@ export default function RegisterConfirmPage() {
     <main className="min-h-screen grid place-items-center p-4 bg-gradient-to-b from-white to-primary-50 dark:from-slate-900 dark:to-slate-800">
       <div className="w-full max-w-md bg-white dark:bg-slate-800 rounded-2xl shadow-soft p-6 border dark:border-slate-700">
         <div className="text-center mb-6">
-          <img src={logo} alt="Rented123 Logo" className="h-12 mx-auto mb-4" />
+          <img src={logo} alt="Rented123 Logo" className="h-20 mx-auto mb-4" />
           <h1 className="text-2xl font-semibold text-primary-800 dark:text-primary-300 mb-2">
             Verify Your Email
           </h1>
