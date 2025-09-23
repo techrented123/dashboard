@@ -384,17 +384,17 @@ export default function RegisterBillingPage() {
 
       // Step 5: Create the Stripe session (no auth token needed for registration)
       console.log("Step 5: Creating Stripe checkout session...");
-      /* const checkoutResult = await createCheckoutSession(checkoutData);
+      const checkoutResult = await createCheckoutSession(checkoutData);
       if (!checkoutResult.success) {
         throw new Error(
           checkoutResult.error || "Could not initiate payment session."
         );
-      } */
+      }
       console.log("Step 5: Checkout session created successfully");
 
       // Step 6: Redirect to Stripe Checkout
       // User will be signed in after successful payment via webhook
-      //window.location.href = checkoutResult.url;
+      window.location.href = checkoutResult.url;
     } catch (err: any) {
       // Any failure in the multi-step process will be caught and displayed here.
       console.error("Registration process failed:", err);
