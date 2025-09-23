@@ -89,7 +89,7 @@ function App() {
       <Route
         path="/documents"
         element={
-          <ProtectedRoute>
+          <ProtectedRoute requireSubscription={false}>
             <DocumentsPage />
           </ProtectedRoute>
         }

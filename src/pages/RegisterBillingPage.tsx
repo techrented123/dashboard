@@ -7,6 +7,7 @@ import {
   signIn,
   updateUserAttributes,
 } from "aws-amplify/auth";
+import { getPresignedUrl } from "../lib/documents";
 import logo from "../assets/logo.png";
 
 // --- PLACEHOLDER DEPENDENCIES (for a complete file) ---
@@ -89,52 +90,37 @@ async function uploadLeaseAgreement(userInfo: any) {
       size: userInfo.leaseAgreement.size,
     });
 
-    // Convert file to base64
-    const reader = new FileReader();
-    const base64Promise = new Promise<string>((resolve, reject) => {
-      reader.onload = () => {
-        const result = reader.result as string;
-        // Remove data URL prefix to get just the base64 data
-        const base64Data = result.split(",")[1];
-        resolve(base64Data);
-      };
-      reader.onerror = reject;
+    // Use the same API as DocumentsPage for consistency
+    const { uploadUrl, docId, key } = await getPresignedUrl({
+      filename: userInfo.leaseAgreement.name,
+      mime: userInfo.leaseAgreement.type,
+      selectValue: "tenants-lease-agreements", // S3 bucket
+      source: "Lease Agreement",
+      firstName: userInfo.firstName,
+      lastName: userInfo.lastName,
+      email: userInfo.email,
+      phone: userInfo.phoneNumber,
     });
-    reader.readAsDataURL(userInfo.leaseAgreement);
 
-    const base64Data = await base64Promise;
+    console.log("Got presigned URL and docId:", { docId, key });
 
-    // Upload to S3 via Lambda with email prefix
-    const uploadResponse = await fetch(
-      "https://k1ecgi0bxf.execute-api.us-west-2.amazonaws.com/upload",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          fileName: userInfo.leaseAgreement.name,
-          fileData: base64Data,
-          firstName: userInfo.firstName,
-          lastName: userInfo.lastName,
-          email: userInfo.email,
-          phone: userInfo.phoneNumber, // Already in E.164 format
-          useEmailPrefix: true, // Flag to use email prefix in Lambda
-        }),
-      }
-    );
+    // Upload to S3 using the presigned URL
+    const uploadResponse = await fetch(uploadUrl, {
+      method: "PUT",
+      headers: { "Content-Type": userInfo.leaseAgreement.type },
+      body: userInfo.leaseAgreement,
+    });
 
     if (!uploadResponse.ok) {
-      throw new Error(`Upload failed: ${uploadResponse.statusText}`);
+      throw new Error(`S3 upload failed: ${uploadResponse.statusText}`);
     }
 
-    const uploadResult = await uploadResponse.json();
-    console.log("Lease agreement uploaded successfully:", uploadResult);
+    console.log("Lease agreement uploaded successfully to S3");
 
     return {
       success: true,
-      docId: uploadResult.fileName, // Use the S3 key as docId
-      key: uploadResult.fileName, // S3 key for DynamoDB storage
+      docId: docId,
+      key: key,
     };
   } catch (error: any) {
     console.error("Lease upload error:", error);
@@ -398,12 +384,12 @@ export default function RegisterBillingPage() {
 
       // Step 5: Create the Stripe session (no auth token needed for registration)
       console.log("Step 5: Creating Stripe checkout session...");
-      const checkoutResult = await createCheckoutSession(checkoutData);
+      /* const checkoutResult = await createCheckoutSession(checkoutData);
       if (!checkoutResult.success) {
         throw new Error(
           checkoutResult.error || "Could not initiate payment session."
         );
-      }
+      } */
       console.log("Step 5: Checkout session created successfully");
 
       // Step 6: Redirect to Stripe Checkout

@@ -287,26 +287,17 @@ export default function DocumentsPage() {
   const [documentToDelete, setDocumentToDelete] = useState<any>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  const handlePreview = async (docId: string, doc?: any) => {
+  const handlePreview = async (docId: string) => {
     try {
       setIsPreviewLoading(true);
       setIsPreviewOpen(true);
       setPreviewUrl(null); // Clear previous URL
       console.log("Getting preview URL for docId:", docId);
 
-      // Check if this is a lease agreement from Cognito
-      if (doc?.s3Key && doc?.source === "Lease Agreement") {
-        // For lease agreements, we need to get a presigned URL directly from S3
-        // You'll need to implement this in your documents API
-        const { url } = await getDocumentUrl(docId);
-        console.log("Got lease agreement preview URL:", url);
-        setPreviewUrl(url);
-      } else {
-        // Regular document from DynamoDB
-        const { url } = await getDocumentUrl(docId);
-        console.log("Got preview URL:", url);
-        setPreviewUrl(url);
-      }
+      // Regular document from DynamoDB
+      const { url } = await getDocumentUrl(docId);
+      console.log("Got preview URL:", url);
+      setPreviewUrl(url);
     } catch (err) {
       console.error("Failed to get preview URL", err);
       showToast("error", "Failed to load document preview. Please try again.");
@@ -581,7 +572,7 @@ export default function DocumentsPage() {
             <div className="flex items-center gap-2 flex-shrink-0">
               <button
                 className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-600 rounded-lg transition-colors"
-                onClick={() => handlePreview(doc.docId, doc)}
+                onClick={() => handlePreview(doc.docId)}
               >
                 <Eye className="w-4 h-4 text-slate-600 dark:text-slate-400" />
               </button>
@@ -637,7 +628,7 @@ export default function DocumentsPage() {
   };
 
   return (
-    <ProtectedRoute>
+    <ProtectedRoute requireSubscription={false}>
       <AppLayout>
         <Toast
           isVisible={toast.isVisible}

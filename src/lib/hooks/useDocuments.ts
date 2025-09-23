@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { fetchAuthSession, fetchUserAttributes } from "aws-amplify/auth";
+import { fetchAuthSession } from "aws-amplify/auth";
 
 // Interface for document data
 export interface Document {
@@ -52,27 +52,8 @@ async function fetchDocuments(): Promise<Document[]> {
     apiDocs = [];
   }
 
-  // Fetch lease agreement from Cognito if present
-  try {
-    const userAttrs = await fetchUserAttributes();
-    const leaseS3Key = userAttrs["custom:lease-agreement-url"];
-    if (leaseS3Key && typeof leaseS3Key === "string") {
-      // Create a synthetic document entry for the lease agreement
-      const leaseDoc: Document = {
-        docId: `lease-${leaseS3Key}`, // Use a stable, unique ID
-        filename: leaseS3Key.split("/").pop() || "lease-agreement.pdf",
-        createdAt: new Date().toISOString(), // We don't have the real date from Cognito
-        updatedAt: new Date().toISOString(),
-        source: "Lease Agreement",
-        // Store the S3 key for preview/download
-        s3Key: leaseS3Key,
-      };
-      // Prepend the lease document to the list
-      apiDocs.unshift(leaseDoc);
-    }
-  } catch (err) {
-    console.warn("Failed to fetch lease agreement from Cognito:", err);
-  }
+  // Lease agreements are now stored in DynamoDB and will be included in the API response
+  // No need for separate Cognito handling
 
   return apiDocs;
 }
