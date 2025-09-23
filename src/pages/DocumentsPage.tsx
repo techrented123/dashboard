@@ -278,6 +278,7 @@ export default function DocumentsPage() {
   const isDocumentTypeDisabled = (typeLabel: string) => {
     if (typeLabel === "ID Verification" && hasIdVerification) return true;
     if (typeLabel === "Background Check" && hasBackgroundCheck) return true;
+    // Lease Agreement can always be replaced, so never disable it
     return false;
   };
 
@@ -286,16 +287,26 @@ export default function DocumentsPage() {
   const [documentToDelete, setDocumentToDelete] = useState<any>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  const handlePreview = async (docId: string) => {
+  const handlePreview = async (docId: string, doc?: any) => {
     try {
       setIsPreviewLoading(true);
       setIsPreviewOpen(true);
       setPreviewUrl(null); // Clear previous URL
       console.log("Getting preview URL for docId:", docId);
-      // Call the API function to get the secure, temporary URL
-      const { url } = await getDocumentUrl(docId);
-      console.log("Got preview URL:", url);
-      setPreviewUrl(url); // Set the URL in state to show the modal
+
+      // Check if this is a lease agreement from Cognito
+      if (doc?.s3Key && doc?.source === "Lease Agreement") {
+        // For lease agreements, we need to get a presigned URL directly from S3
+        // You'll need to implement this in your documents API
+        const { url } = await getDocumentUrl(docId);
+        console.log("Got lease agreement preview URL:", url);
+        setPreviewUrl(url);
+      } else {
+        // Regular document from DynamoDB
+        const { url } = await getDocumentUrl(docId);
+        console.log("Got preview URL:", url);
+        setPreviewUrl(url);
+      }
     } catch (err) {
       console.error("Failed to get preview URL", err);
       showToast("error", "Failed to load document preview. Please try again.");
@@ -389,6 +400,23 @@ export default function DocumentsPage() {
       );
     }
 
+    // Handle lease agreement replacement
+    if (selectedType?.label === "Lease Agreement") {
+      const hasExistingLease = documents.some(
+        (doc) => doc.source === "Lease Agreement"
+      );
+      if (hasExistingLease) {
+        // Show confirmation for replacement
+        const confirmed = window.confirm(
+          "You already have a lease agreement uploaded. This will replace your existing lease agreement. Continue?"
+        );
+        if (!confirmed) {
+          setIsUploading(false);
+          return;
+        }
+      }
+    }
+
     setIsUploading(true);
 
     try {
@@ -446,6 +474,12 @@ export default function DocumentsPage() {
 
       // Invalidate and refetch documents
       queryClient.invalidateQueries({ queryKey: ["documents"] });
+
+      // If this was a lease agreement replacement, also invalidate user attributes
+      if (selectedType?.label === "Lease Agreement") {
+        // Force a page refresh to get updated Cognito attributes
+        window.location.reload();
+      }
     } catch (err: any) {
       showToast("error", err?.message || "Upload failed. Please try again.");
       setFile(null); // Clear file input on error
@@ -547,7 +581,7 @@ export default function DocumentsPage() {
             <div className="flex items-center gap-2 flex-shrink-0">
               <button
                 className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-600 rounded-lg transition-colors"
-                onClick={() => handlePreview(doc.docId)}
+                onClick={() => handlePreview(doc.docId, doc)}
               >
                 <Eye className="w-4 h-4 text-slate-600 dark:text-slate-400" />
               </button>
@@ -559,6 +593,7 @@ export default function DocumentsPage() {
               </button>
               {doc.source !== "ID Verification" &&
               doc.source !== "Background Check" &&
+              doc.source !== "Lease Agreement" &&
               !isMostRecentLeaseAgreement(doc) ? (
                 <button
                   className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-600 rounded-lg transition-colors"
@@ -573,6 +608,8 @@ export default function DocumentsPage() {
                   title={
                     doc.source === "ID Verification"
                       ? undefined
+                      : doc.source === "Lease Agreement"
+                      ? "Upload a new one to replace"
                       : isMostRecentLeaseAgreement(doc)
                       ? "Upload a new one first"
                       : "Cannot delete this document type"
@@ -582,7 +619,9 @@ export default function DocumentsPage() {
                   {/* Tooltip - only show for lease agreements, not ID Verification */}
                   {doc.source !== "ID Verification" && (
                     <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-[9999] pointer-events-none">
-                      {isMostRecentLeaseAgreement(doc)
+                      {doc.source === "Lease Agreement"
+                        ? "Upload a new one to replace"
+                        : isMostRecentLeaseAgreement(doc)
                         ? "Upload a new one first"
                         : "Cannot delete this document type"}
                       <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-800"></div>

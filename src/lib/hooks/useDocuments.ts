@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { fetchAuthSession } from "aws-amplify/auth";
+import { fetchAuthSession, fetchUserAttributes } from "aws-amplify/auth";
 
 // Interface for document data
 export interface Document {
@@ -9,9 +9,10 @@ export interface Document {
   updatedAt: string;
   size?: number;
   source?: string;
+  s3Key?: string; // For lease agreement from Cognito
 }
 
-// Function to fetch documents from API
+// Function to fetch documents from API and include lease agreement from Cognito
 async function fetchDocuments(): Promise<Document[]> {
   const session = await fetchAuthSession();
   const token = session.tokens?.idToken?.toString();
@@ -39,16 +40,41 @@ async function fetchDocuments(): Promise<Document[]> {
   console.log("Documents API response:", data);
 
   // Handle different response structures
+  let apiDocs: Document[] = [];
   if (Array.isArray(data)) {
-    return data;
+    apiDocs = data;
   } else if (data.documents && Array.isArray(data.documents)) {
-    return data.documents;
+    apiDocs = data.documents;
   } else if (data.data && Array.isArray(data.data)) {
-    return data.data;
+    apiDocs = data.data;
   } else {
     console.warn("Unexpected documents API response structure:", data);
-    return [];
+    apiDocs = [];
   }
+
+  // Fetch lease agreement from Cognito if present
+  try {
+    const userAttrs = await fetchUserAttributes();
+    const leaseS3Key = userAttrs["custom:lease-agreement-url"];
+    if (leaseS3Key && typeof leaseS3Key === "string") {
+      // Create a synthetic document entry for the lease agreement
+      const leaseDoc: Document = {
+        docId: `lease-${leaseS3Key}`, // Use a stable, unique ID
+        filename: leaseS3Key.split("/").pop() || "lease-agreement.pdf",
+        createdAt: new Date().toISOString(), // We don't have the real date from Cognito
+        updatedAt: new Date().toISOString(),
+        source: "Lease Agreement",
+        // Store the S3 key for preview/download
+        s3Key: leaseS3Key,
+      };
+      // Prepend the lease document to the list
+      apiDocs.unshift(leaseDoc);
+    }
+  } catch (err) {
+    console.warn("Failed to fetch lease agreement from Cognito:", err);
+  }
+
+  return apiDocs;
 }
 
 // Hook for fetching documents

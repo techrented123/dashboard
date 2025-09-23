@@ -113,14 +113,22 @@ export default function BillingPage() {
     </div>
   );
 
-  const renderError = () => (
-    <div className="p-4 rounded-lg bg-rose-50 text-rose-800 border border-rose-100 flex items-start gap-3">
-      <AlertCircle className="w-5 h-5" />
-      <div className="text-sm">
-        {error?.message || "Unable to load billing information"}
+  const renderError = () => {
+    // Don't show error banner for API failures when user has no subscription
+    // The "No Active Subscription" card already handles this case
+    if (!billingData || !billingData.subscription) {
+      return null;
+    }
+
+    return (
+      <div className="p-4 rounded-lg bg-rose-50 text-rose-800 border border-rose-100 flex items-start gap-3">
+        <AlertCircle className="w-5 h-5" />
+        <div className="text-sm">
+          {error?.message || "Unable to load billing information"}
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   const renderNoSubscription = () => (
     <div className="p-6 bg-white dark:bg-slate-800 rounded-lg">

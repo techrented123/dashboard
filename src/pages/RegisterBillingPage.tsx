@@ -7,19 +7,12 @@ import {
   signIn,
   updateUserAttributes,
 } from "aws-amplify/auth";
-import { getPresignedUrl } from "../lib/documents";
 import logo from "../assets/logo.png";
 
 // --- PLACEHOLDER DEPENDENCIES (for a complete file) ---
 
 // Placeholder for your Plan types and data
 const PLANS = [
-  {
-    id: "gold",
-    name: "Gold",
-    price: "29.99",
-    stripeId: import.meta.env.VITE_STRIPE_GOLD_PRICE_ID,
-  },
   {
     id: "silver",
     name: "Silver",
@@ -31,6 +24,12 @@ const PLANS = [
     name: "Bronze",
     price: "4.99",
     stripeId: import.meta.env.VITE_STRIPE_BRONZE_PRICE_ID,
+  },
+  {
+    id: "gold",
+    name: "Gold",
+    price: "29.99",
+    stripeId: import.meta.env.VITE_STRIPE_GOLD_PRICE_ID,
   },
 ];
 const getPlanFromUrl = () => PLANS[0]; // Default to first plan
@@ -90,48 +89,52 @@ async function uploadLeaseAgreement(userInfo: any) {
       size: userInfo.leaseAgreement.size,
     });
 
-    // Use the original filename exactly as provided (like DocumentsPage does)
-    const filename = userInfo.leaseAgreement.name;
-
-    // Validate filename is not empty
-    if (!filename || filename.trim() === "") {
-      throw new Error("Lease agreement filename is required");
-    }
-
-    console.log("Using filename:", filename);
-
-    // Get presigned URL for upload
-    const presignedData = await getPresignedUrl({
-      filename: filename,
-      mime: userInfo.leaseAgreement.type || "application/pdf",
-      selectValue: "tenants-lease-agreements",
-      source: "Lease Agreement", // Pass the correct source name
-      firstName: userInfo.firstName,
-      lastName: userInfo.lastName,
-      phone: userInfo.phoneNumber,
-      email: userInfo.email,
+    // Convert file to base64
+    const reader = new FileReader();
+    const base64Promise = new Promise<string>((resolve, reject) => {
+      reader.onload = () => {
+        const result = reader.result as string;
+        // Remove data URL prefix to get just the base64 data
+        const base64Data = result.split(",")[1];
+        resolve(base64Data);
+      };
+      reader.onerror = reject;
     });
+    reader.readAsDataURL(userInfo.leaseAgreement);
 
-    console.log("Got presigned URL:", presignedData);
+    const base64Data = await base64Promise;
 
-    // Upload file to S3 using presigned URL
-    const uploadResponse = await fetch(presignedData.uploadUrl, {
-      method: "PUT",
-      body: userInfo.leaseAgreement,
-      headers: {
-        "Content-Type": userInfo.leaseAgreement.type || "application/pdf",
-      },
-    });
+    // Upload to S3 via Lambda with email prefix
+    const uploadResponse = await fetch(
+      "https://k1ecgi0bxf.execute-api.us-west-2.amazonaws.com/upload",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          fileName: userInfo.leaseAgreement.name,
+          fileData: base64Data,
+          firstName: userInfo.firstName,
+          lastName: userInfo.lastName,
+          email: userInfo.email,
+          phone: userInfo.phoneNumber, // Already in E.164 format
+          useEmailPrefix: true, // Flag to use email prefix in Lambda
+        }),
+      }
+    );
 
     if (!uploadResponse.ok) {
       throw new Error(`Upload failed: ${uploadResponse.statusText}`);
     }
 
-    console.log("Lease agreement uploaded successfully");
+    const uploadResult = await uploadResponse.json();
+    console.log("Lease agreement uploaded successfully:", uploadResult);
+
     return {
       success: true,
-      docId: presignedData.docId,
-      key: presignedData.key,
+      docId: uploadResult.fileName, // Use the S3 key as docId
+      key: uploadResult.fileName, // S3 key for DynamoDB storage
     };
   } catch (error: any) {
     console.error("Lease upload error:", error);
@@ -239,9 +242,16 @@ export default function RegisterBillingPage() {
 
       // Check if there's a lease agreement file stored separately
       const fileData = sessionStorage.getItem("leaseAgreementFile");
+      console.log(
+        "File data from sessionStorage:",
+        fileData ? "Found" : "Not found"
+      );
+
       if (fileData) {
         try {
           const parsedFileData = JSON.parse(fileData);
+          console.log("Parsed file data:", parsedFileData);
+
           // Reconstruct the File object from base64 data
           const byteCharacters = atob(parsedFileData.data.split(",")[1]);
           const byteNumbers = new Array(byteCharacters.length);
@@ -253,9 +263,12 @@ export default function RegisterBillingPage() {
             type: parsedFileData.type,
           });
           userData.leaseAgreement = file;
+          console.log("Lease agreement file reconstructed successfully:", file);
         } catch (error) {
           console.error("Failed to reconstruct lease agreement file:", error);
         }
+      } else {
+        console.log("No lease agreement file found in sessionStorage");
       }
 
       setUserInfo(userData);
@@ -264,6 +277,40 @@ export default function RegisterBillingPage() {
       navigate("/register");
     }
   }, [navigate]);
+
+  // Additional useEffect to check for file after component mounts
+  useEffect(() => {
+    // Small delay to allow sessionStorage to be populated
+    const timer = setTimeout(() => {
+      const fileData = sessionStorage.getItem("leaseAgreementFile");
+      if (fileData && userInfo && !userInfo.leaseAgreement) {
+        console.log("File found after delay, reconstructing...");
+        try {
+          const parsedFileData = JSON.parse(fileData);
+          const byteCharacters = atob(parsedFileData.data.split(",")[1]);
+          const byteNumbers = new Array(byteCharacters.length);
+          for (let i = 0; i < byteCharacters.length; i++) {
+            byteNumbers[i] = byteCharacters.charCodeAt(i);
+          }
+          const byteArray = new Uint8Array(byteNumbers);
+          const file = new File([byteArray], parsedFileData.name, {
+            type: parsedFileData.type,
+          });
+
+          // Update userInfo with the file
+          setUserInfo((prev: any) => ({ ...prev, leaseAgreement: file }));
+          console.log("Lease agreement file reconstructed after delay:", file);
+        } catch (error) {
+          console.error(
+            "Failed to reconstruct lease agreement file after delay:",
+            error
+          );
+        }
+      }
+    }, 100); // 100ms delay
+
+    return () => clearTimeout(timer);
+  }, [userInfo]);
 
   const handlePlanSelect = (planId: string) => {
     const plan = PLANS.find((p) => p.id === planId);
@@ -361,7 +408,7 @@ export default function RegisterBillingPage() {
 
       // Step 6: Redirect to Stripe Checkout
       // User will be signed in after successful payment via webhook
-      window.location.href = checkoutResult.url;
+      //window.location.href = checkoutResult.url;
     } catch (err: any) {
       // Any failure in the multi-step process will be caught and displayed here.
       console.error("Registration process failed:", err);

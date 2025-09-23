@@ -84,7 +84,7 @@ export async function getPresignedUrl(params: {
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
       body: JSON.stringify(params),
-    }
+    } 
   );
   if (!res.ok) throw new Error(await res.text());
   return res.json();

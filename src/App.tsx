@@ -11,6 +11,7 @@ import DocumentsPage from "./pages/DocumentsPage";
 import AccountPage from "./pages/AccountPage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import ConfirmPasswordResetPage from "./pages/ConfirmPasswordResetPage";
+import ProtectedRoute from "./components/ProtectedRoute";
 import { useState, useEffect } from "react";
 import { isAuthenticated } from "./lib/auth";
 
@@ -53,12 +54,54 @@ function App() {
       <Route path="/register" element={<RegisterUserInfoPage />} />
       <Route path="/register/billing" element={<RegisterBillingPage />} />
       <Route path="/register/confirm" element={<RegisterConfirmPage />} />
-      <Route path="/subscribe" element={<SubscribePage />} />
-      <Route path="/dashboard" element={<DashboardPage />} />
-      <Route path="/rent-reporting" element={<RentReportingPage />} />
-      <Route path="/billing" element={<BillingPage />} />
-      <Route path="/documents" element={<DocumentsPage />} />
-      <Route path="/account" element={<AccountPage />} />
+      <Route
+        path="/subscribe"
+        element={
+          <ProtectedRoute requireSubscription={false}>
+            <SubscribePage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/dashboard"
+        element={
+          <ProtectedRoute>
+            <DashboardPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/rent-reporting"
+        element={
+          <ProtectedRoute>
+            <RentReportingPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/billing"
+        element={
+          <ProtectedRoute requireSubscription={false}>
+            <BillingPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/documents"
+        element={
+          <ProtectedRoute>
+            <DocumentsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/account"
+        element={
+          <ProtectedRoute requireSubscription={false}>
+            <AccountPage />
+          </ProtectedRoute>
+        }
+      />
     </Routes>
   );
 }

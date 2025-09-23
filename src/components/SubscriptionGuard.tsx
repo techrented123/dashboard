@@ -24,9 +24,9 @@ export default function SubscriptionGuard({
   );
   if (isOnSubscriptionPage) return <>{children}</>;
 
-  // If status is definitively inactive, redirect; otherwise allow render (no blocking spinners)
+  // If status is definitively inactive or unknown, redirect; otherwise allow render (no blocking spinners)
   const isActive = status === "active" || status === "trialing";
-  if (!isActive && status !== "unknown") {
+  if (!isActive) {
     return <Navigate to="/subscribe" state={{ from: location }} replace />;
   }
 

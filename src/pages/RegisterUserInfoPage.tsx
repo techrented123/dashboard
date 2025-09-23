@@ -208,6 +208,13 @@ export default function RegisterUserInfoPage() {
   });
 
   const onSubmit = async (data: FormValues) => {
+    // Check ID verification status before proceeding
+    if (idVerificationData?.status === "not_found") {
+      // Scroll to top to show the warning
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return; // Prevent form submission
+    }
+
     // Format phone number to E.164 format if provided
     if (data.phoneNumber && data.phoneNumber.trim()) {
       data.phoneNumber = formatPhoneToE164(data.phoneNumber);
@@ -216,18 +223,23 @@ export default function RegisterUserInfoPage() {
     // Handle lease agreement file - store file separately to avoid JSON serialization issues
     if (data.leaseAgreement) {
       console.log("file", data.leaseAgreement);
-      // Store the file in sessionStorage as base64 to preserve it
+
+      // Capture file reference before async operation
+      const leaseFile = data.leaseAgreement;
+
+      // Store the file in sessionStorage as base64 to preserve it for billing page upload
       const reader = new FileReader();
       reader.onload = () => {
         const fileData = {
-          name: data.leaseAgreement.name,
-          type: data.leaseAgreement.type,
-          size: data.leaseAgreement.size,
+          name: leaseFile.name,
+          type: leaseFile.type,
+          size: leaseFile.size,
           data: reader.result, // base64 data
         };
         sessionStorage.setItem("leaseAgreementFile", JSON.stringify(fileData));
+        console.log("Lease agreement file stored in sessionStorage");
       };
-      reader.readAsDataURL(data.leaseAgreement);
+      reader.readAsDataURL(leaseFile);
 
       // Remove the File object from data to avoid serialization issues
       delete (data as any).leaseAgreement;
@@ -350,6 +362,31 @@ export default function RegisterUserInfoPage() {
                 </div>
               </div>
             </div>
+
+            {/* ID Verification Error Warning */}
+            {idVerificationData?.status === "not_found" && (
+              <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-xl">
+                <div className="flex items-center gap-3">
+                  <AlertTriangle className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0" />
+                  <div>
+                    <h3 className="font-medium text-red-800 dark:text-red-300 mb-1">
+                      ID Verification Required
+                    </h3>
+                    <p className="text-sm text-red-700 dark:text-red-400">
+                      Please get your ID verification report from the{" "}
+                      <a
+                        href="https://www.rented123.com/id-verification"
+                        target="_blank"
+                        className="text-red-700 dark:text-red-400 underline hover:text-red-800 dark:hover:text-red-300 font-medium"
+                      >
+                        link here
+                      </a>{" "}
+                      before proceeding with registration.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
 
             <div className="text-center mb-8">
               <h1 className="text-2xl font-semibold text-primary-800 dark:text-primary-300 mb-2">
