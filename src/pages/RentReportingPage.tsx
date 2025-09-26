@@ -34,6 +34,7 @@ import { Toast } from "../components/ui/toast";
 import { Skeleton } from "../components/Skeleton";
 import { useAuth } from "../lib/context/authContext";
 import { useRentReports } from "../lib/hooks/useRentReports";
+import { submitTenantData } from "../lib/submit-tenant-data";
 
 // Form validation schema
 const formSchema = z.object({
@@ -213,7 +214,7 @@ export default function RentReportingPage() {
     console.log("Receipt uploaded successfully, S3 key:", key);
     return key;
   };
-
+  console.log({ user });
   // Main form submission handler
   const onSubmit = async (data: FormValues) => {
     console.log("Form submitted:", data);
@@ -237,16 +238,51 @@ export default function RentReportingPage() {
       // Determine status based on current date
       const today = new Date();
       const currentDay = today.getDate();
-      const status = currentDay > 5 ? "Late" : "Reported";
+      const status = currentDay > 7 ? "Late" : "Reported";
 
       // Prepare form data for submission
+      const metro2Data = {
+        "Portfolio Type": "O",
+        "Account Type": 29,
+        "Date Opened": "", //
+        "Highest Credit": data.rentAmount,
+        "Terms Duration": "001",
+        "Terms Frequency": "M",
+        "Scheduled Monthly Payment Amount": user?.["custom:MonthlyRent"], //
+        "Actual Payment Amount": data.rentAmount,
+        "Account Status": "11",
+        "Payment History Profile": "BBBBBBBBBBBBBBBBBBBBBBBB",
+        "Current Balance": Math.floor(
+          user?.["custom:MonthlyRent"] - data.rentAmount
+        ),
+        "Date of Account Information": data.paymentDate, //chech this
+        "Date of Last Payment": "",
+        Surname: user?.family_name, //cognito last name
+        "First Name": user?.given_name,
+        "Middle Name": user?.middle_name,
+        "Social Security Number": data.sin,
+        "Date of Birth": user?.birthdate, //cognito birthdate
+        "Telephone Number": data.phoneNumber,
+        "Country Code":
+          data.newAddress?.countryCode || user?.["custom:country"],
+        "First Line of Address": data.addressChanged
+          ? data.newAddress?.address1
+          : user?.address,
+        "Second Line of Address": data.addressChanged
+          ? data.newAddress?.address2
+          : user?.["custom:address_2"],
+        City: data.addressChanged
+          ? data.newAddress?.city
+          : user?.["custom:city"],
+        "State / Province Code": data.addressChanged
+          ? data.newAddress?.provinceState
+          : user?.["custom:province"],
+        "Zip Code": data.addressChanged
+          ? data.newAddress?.postalZipCode
+          : user?.["custom:postal_code"],
+      };
       const formData = {
-        sin: data.sin,
-        confirmationNumber: data.confirmationNumber,
-        phoneNumber: data.phoneNumber,
         rentAmount: data.rentAmount,
-        addressChanged: data.addressChanged,
-        newAddress: data.newAddress,
         paymentDate: data.paymentDate.toISOString(),
         receiptS3Key: s3Key, // Include S3 key for later use
         status: status, // 'Late' if after 5th of month, 'Reported' otherwise
@@ -270,6 +306,25 @@ export default function RentReportingPage() {
 
       const submitResult = await submitResponse.json();
       console.log("Form submitted successfully!", submitResult);
+
+      // Submit tenant data to Lambda
+      try {
+        const tenantDataResult = await submitTenantData(metro2Data);
+        if (tenantDataResult.success) {
+          console.log(
+            "Tenant data submitted successfully:",
+            tenantDataResult.message
+          );
+        } else {
+          console.error(
+            "Failed to submit tenant data:",
+            tenantDataResult.message
+          );
+        }
+      } catch (tenantDataError) {
+        console.error("Error submitting tenant data:", tenantDataError);
+        // Don't fail the entire submission if tenant data submission fails
+      }
 
       // Update Cognito address if address was changed
       if (data.addressChanged && data.newAddress) {
@@ -296,6 +351,9 @@ export default function RentReportingPage() {
         : `Rent Report for ${currentMonth} Successful`;
       showToast(successMessage, "success");
 
+      // Clear form fields after successful submission
+      form.reset();
+
       // Refresh rent reports after successful submission
       // Add a small delay to ensure backend has processed the data
       setTimeout(async () => {
@@ -315,7 +373,7 @@ export default function RentReportingPage() {
   };
 
   return (
-    <ProtectedRoute>
+    <ProtectedRoute requireSubscription={false}>
       <AppLayout>
         <Toast
           message={toast.message}
@@ -420,10 +478,10 @@ export default function RentReportingPage() {
                     name="confirmationNumber"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Payment Confirmation Number</FormLabel>
+                        <FormLabel>Payment Confirmation Number </FormLabel>
                         <FormControl>
                           <Input
-                            placeholder="Enter confirmation number"
+                            placeholder="Enter confirmation number (Cheque Number or E-transfer ID)"
                             {...field}
                             maxLength={32}
                             className={cn(
@@ -708,6 +766,15 @@ export default function RentReportingPage() {
                                 : undefined;
                               field.onChange(dateValue);
                             }}
+                            min={(() => {
+                              const today = new Date();
+                              const lastMonth = new Date(
+                                today.getFullYear(),
+                                today.getMonth() - 1,
+                                15
+                              );
+                              return lastMonth.toISOString().split("T")[0];
+                            })()}
                             max={new Date().toISOString().split("T")[0]}
                             className="w-full px-3 py-2 border-2 border-gray-300 dark:border-slate-400 rounded-md bg-white dark:bg-slate-800 text-black dark:text-black focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                             placeholder="Pick a date"
@@ -805,7 +872,6 @@ export default function RentReportingPage() {
                         (report) => report.status === "Reported"
                       ).length
                     }
-                    /{rentReports.length}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
@@ -813,14 +879,6 @@ export default function RentReportingPage() {
                     Credit bureaus receiving data
                   </span>
                   <span className="font-semibold dark:text-white">1</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm dark:text-slate-300">
-                    Estimated credit impact
-                  </span>
-                  <span className="font-semibold text-primary-600">
-                    +25 points
-                  </span>
                 </div>
               </div>
             </Card>
