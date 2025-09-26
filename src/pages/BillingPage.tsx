@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ExternalLink, Loader2, AlertCircle, CreditCard } from "lucide-react";
 import { Skeleton, SkeletonText, SkeletonButton } from "../components/Skeleton";
@@ -10,6 +10,7 @@ import AmexLogo from "../assets/cards/amex.svg";
 import DiscoverLogo from "../assets/cards/discover.svg";
 import DefaultCardLogo from "../assets/cards/defaultCard.svg";
 import { useBillingData } from "../lib/hooks/useBillingData";
+import { updateUserPlanInCognito } from "../lib/plan-update";
 import {
   createCustomerPortalSession,
   formatDate,
@@ -44,6 +45,31 @@ export default function BillingPage() {
   const [portalLoading, setPortalLoading] = useState(false);
   const navigate = useNavigate();
   console.log({ billingData });
+
+  // Update plan in Cognito when billing data loads (in case user changed plan via Stripe portal)
+  useEffect(() => {
+    const updatePlanIfNeeded = async () => {
+      if (billingData?.subscription?.plan_name) {
+        try {
+          const result = await updateUserPlanInCognito(
+            billingData.subscription.plan_name
+          );
+          if (result.success) {
+            console.log(
+              "Plan updated in Cognito after billing data load:",
+              result.message
+            );
+          } else {
+            console.warn("Failed to update plan in Cognito:", result.error);
+          }
+        } catch (error) {
+          console.error("Error updating plan in Cognito:", error);
+        }
+      }
+    };
+
+    updatePlanIfNeeded();
+  }, [billingData]);
 
   const onManagePortal = async () => {
     if (!billingData?.manageSubscriptionUrl) {

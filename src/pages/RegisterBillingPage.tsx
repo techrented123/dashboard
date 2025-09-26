@@ -129,8 +129,7 @@ async function uploadLeaseAgreement(userInfo: any) {
 }
 
 // --- AUTH HELPER FUNCTIONS (Corrected Versions) ---
-async function signUpUser(userData: any) {
-  console.log({ userData });
+async function signUpUser(userData: any, selectedPlan: any) {
 
   try {
     const signUpResponse = await signUp({
@@ -155,6 +154,7 @@ async function signUpUser(userData: any) {
           "custom:country": userData.country || "Canada",
           "custom:lease-agreement-url": userData.leaseAgreementUrl || "",
           "custom:stripe_customer_id_2": "a",
+          "custom:plan_name": selectedPlan.name || "",
         },
       },
     });
@@ -327,7 +327,7 @@ export default function RegisterBillingPage() {
     try {
       // Step 1: Sign up the user (auto-confirmed by Lambda)
       console.log("Step 1: Creating user account...");
-      const signUpResult = await signUpUser(userInfo);
+      const signUpResult = await signUpUser(userInfo, selectedPlan);
       if (!signUpResult.success) {
         throw new Error(
           signUpResult.message || "Could not create your account."

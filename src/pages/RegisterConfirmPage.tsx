@@ -8,6 +8,7 @@ import {
   submitMfaCode,
 } from "../lib/auth";
 import { useEffect } from "react";
+import { updateUserPlanFromPriceId } from "../lib/plan-update";
 import logo from "../assets/logo.png";
 
 export default function RegisterConfirmPage() {
@@ -28,8 +29,8 @@ export default function RegisterConfirmPage() {
   const message = location.state?.message;
   const sessionId = searchParams.get("session_id");
 
-  // Function to retrieve Stripe customer ID from checkout session
-  const getStripeCustomerId = async (sessionId: string) => {
+  // Function to retrieve Stripe session data from checkout session
+  const getStripeSessionData = async (sessionId: string) => {
     try {
       const response = await fetch(
         `https://zwigvjvyub.execute-api.us-west-2.amazonaws.com/prod/stripe-webhook?session_id=${sessionId}`,
@@ -46,9 +47,9 @@ export default function RegisterConfirmPage() {
       }
 
       const sessionData = await response.json();
-      return sessionData.customer_id;
+      return sessionData;
     } catch (error) {
-      console.error("Error retrieving Stripe customer ID:", error);
+      console.error("Error retrieving Stripe session data:", error);
       return null;
     }
   };
@@ -77,29 +78,28 @@ export default function RegisterConfirmPage() {
           );
 
           if (signInResult.kind === "DONE") {
-            // Update user attribute with Stripe customer ID
-            /*try {
-              const stripeCustomerId = await getStripeCustomerId(sessionId!);
-              console.log({ stripeCustomerId });
-              if (stripeCustomerId) {
-                const updateResult = await updateStripeCustomerId(
-                  stripeCustomerId
+            // Update user plan in Cognito based on Stripe session
+            try {
+              const sessionData = await getStripeSessionData(sessionId!);
+              if (sessionData?.price_id) {
+                const planUpdateResult = await updateUserPlanFromPriceId(
+                  sessionData.price_id
                 );
-                if (updateResult.success) {
+                if (planUpdateResult.success) {
                   console.log(
-                    "Stripe customer ID updated successfully:",
-                    stripeCustomerId
+                    "Plan updated successfully in Cognito:",
+                    planUpdateResult.message
                   );
                 } else {
-                  console.error(
-                    "Failed to update Stripe customer ID:",
-                    updateResult.message
+                  console.warn(
+                    "Failed to update plan in Cognito:",
+                    planUpdateResult.error
                   );
                 }
               }
             } catch (error) {
-              console.error("Error updating Stripe customer ID:", error);
-            } */
+              console.error("Error updating plan in Cognito:", error);
+            }
 
             // Clear stored data and redirect to dashboard
             localStorage.removeItem("registrationUserData");
@@ -138,25 +138,27 @@ export default function RegisterConfirmPage() {
     const result = await submitMfaCode(mfaCode);
 
     if (result.kind === "DONE") {
-      // Update user attribute with Stripe customer ID
+      // Update user plan in Cognito based on Stripe session
       try {
-        const stripeCustomerId = await getStripeCustomerId(sessionId!);
-        if (stripeCustomerId) {
-          const updateResult = await updateStripeCustomerId(stripeCustomerId);
-          if (updateResult.success) {
+        const sessionData = await getStripeSessionData(sessionId!);
+        if (sessionData?.price_id) {
+          const planUpdateResult = await updateUserPlanFromPriceId(
+            sessionData.price_id
+          );
+          if (planUpdateResult.success) {
             console.log(
-              "Stripe customer ID updated successfully:",
-              stripeCustomerId
+              "Plan updated successfully in Cognito:",
+              planUpdateResult.message
             );
           } else {
-            console.error(
-              "Failed to update Stripe customer ID:",
-              updateResult.message
+            console.warn(
+              "Failed to update plan in Cognito:",
+              planUpdateResult.error
             );
           }
         }
       } catch (error) {
-        console.error("Error updating Stripe customer ID:", error);
+        console.error("Error updating plan in Cognito:", error);
       }
 
       // Clear stored data and redirect to dashboard
@@ -346,7 +348,8 @@ export default function RegisterConfirmPage() {
           // Update user attribute with Stripe customer ID if sessionId exists
           if (sessionId) {
             try {
-              const stripeCustomerId = await getStripeCustomerId(sessionId!);
+              const sessionData = await getStripeSessionData(sessionId!);
+              const stripeCustomerId = sessionData?.customer_id;
               if (stripeCustomerId) {
                 const updateResult = await updateStripeCustomerId(
                   stripeCustomerId

@@ -148,6 +148,26 @@ export default function SubscribePage() {
     getUserInfo();
   }, []);
 
+  // Check for successful checkout return and update plan
+  useEffect(() => {
+    const checkForSuccessfulCheckout = async () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const sessionId = urlParams.get("session_id");
+
+      if (sessionId && userInfo) {
+        // User returned from successful Stripe checkout
+        // The plan will be updated when they navigate to billing page
+        // But we can also update it here if needed
+        console.log(
+          "User returned from successful checkout, session ID:",
+          sessionId
+        );
+      }
+    };
+
+    checkForSuccessfulCheckout();
+  }, [userInfo]);
+
   const handlePlanSelect = (planId: string) => {
     const plan = PLANS.find((p) => p.id === planId);
     if (plan) {
