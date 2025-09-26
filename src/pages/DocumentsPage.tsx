@@ -628,7 +628,7 @@ export default function DocumentsPage() {
   };
 
   return (
-    <ProtectedRoute requireSubscription={false}>
+    <ProtectedRoute>
       <AppLayout>
         <Toast
           isVisible={toast.isVisible}
