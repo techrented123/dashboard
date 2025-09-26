@@ -214,7 +214,7 @@ export default function DashboardPage() {
                     window.open("https://rented123.com/pricing-2/", "_blank")
                   }
                 >
-                  Get More Rewards <ExternalLinkIcon className="w-4 h-4" />
+                  Upgrade to Gold <ExternalLinkIcon className="w-4 h-4" />
                 </Button>{" "}
               </div>
             </Card>
