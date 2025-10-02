@@ -242,6 +242,7 @@ export default function RentReportingPage() {
 
       // Prepare form data for submission
       const metro2Data = {
+        "email":user?.email,
         "Portfolio Type": "O",
         "Account Type": 29,
         "Date Opened": "", //
