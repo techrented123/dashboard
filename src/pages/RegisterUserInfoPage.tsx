@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   ArrowRight,
@@ -28,6 +28,7 @@ import { Input } from "../ui/input";
 import { Button } from "../components/ui/button";
 import { cn, formatPhoneToE164 } from "../lib/utils";
 import { useIdVerification } from "../lib/hooks/useIdVerification";
+import { verifyPDF } from "../lib/upload";
 import logo from "../assets/logo.png";
 
 // Helper component for the password validation checklist
@@ -99,6 +100,8 @@ const formSchema = z
     leaseAgreement: z.instanceof(File, {
       message: "Lease agreement is required",
     }),
+    idVerificationUpload: z.instanceof(File).optional(),
+    idVerificationEmailRequired: z.boolean().optional(),
     termsAndConditions: z.boolean().refine((val) => val === true, {
       message: "You must accept the terms and conditions",
     }),
@@ -182,6 +185,20 @@ export default function RegisterUserInfoPage() {
   const { data: idVerificationData, isLoading: isCheckingId } =
     useIdVerification(emailValue, shouldCheckId);
 
+  // State for ID verification upload validation
+  const [idVerificationUploadStatus, setIdVerificationUploadStatus] = useState<{
+    isValid: boolean | null;
+    message: string;
+    isVerifying: boolean;
+  }>({
+    isValid: null,
+    message: "",
+    isVerifying: false,
+  });
+
+  // Hover state for ID verification dropzone
+  const [isIdDragOver, setIsIdDragOver] = useState(false);
+
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -202,17 +219,77 @@ export default function RegisterUserInfoPage() {
       ownership: "tenant",
       monthlyRent: "",
       leaseAgreement: undefined as any,
+      idVerificationUpload: undefined as any,
+      idVerificationEmailRequired: false,
       termsAndConditions: false,
       privacyPolicy: false,
     },
   });
 
+  // Reset ID verification upload state when email verification status changes
+  useEffect(() => {
+    // If email verification found a report, clear any uploaded file and validation status
+    if (idVerificationData?.status === "found") {
+      setIdVerificationUploadStatus({
+        isValid: null,
+        message: "",
+        isVerifying: false,
+      });
+      // Clear any uploaded file from form data
+      form.setValue("idVerificationUpload", undefined as any);
+    }
+  }, [idVerificationData?.status, form]);
+
+  // Function to validate ID verification PDF upload
+  const validateIdVerificationUpload = async (file: File) => {
+    setIdVerificationUploadStatus({
+      isValid: null,
+      message: "",
+      isVerifying: true,
+    });
+
+    try {
+      const result = await verifyPDF(
+        file,
+        ["ID Verification Result"], // expectedTitles
+        3 // keywordsLength
+      );
+
+      setIdVerificationUploadStatus({
+        isValid: result.isValid,
+        message: result.message,
+        isVerifying: false,
+      });
+
+      // Set form field
+      form.setValue("idVerificationUpload", file);
+
+      // Mark that email requirement is satisfied
+      if (result.isValid) {
+        form.setValue("idVerificationEmailRequired", true);
+      }
+
+      return result.isValid;
+    } catch (error) {
+      console.error("Error validating ID verification upload:", error);
+      setIdVerificationUploadStatus({
+        isValid: false,
+        message: "Could not verify this PDF file",
+        isVerifying: false,
+      });
+      return false;
+    }
+  };
+
   const onSubmit = async (data: FormValues) => {
     // Check ID verification status before proceeding
     if (idVerificationData?.status === "not_found") {
-      // Scroll to top to show the warning
-      window.scrollTo({ top: 0, behavior: "smooth" });
-      return; // Prevent form submission
+      // If no upload provided, prevent submission
+      if (!data.idVerificationUpload || !idVerificationUploadStatus.isValid) {
+        // Scroll to top to show the warning
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        return; // Prevent form submission
+      }
     }
 
     // Format phone number to E.164 format if provided
@@ -220,29 +297,58 @@ export default function RegisterUserInfoPage() {
       data.phoneNumber = formatPhoneToE164(data.phoneNumber);
     }
 
-    // Handle lease agreement file - store file separately to avoid JSON serialization issues
+    // Handle lease agreement file - store only metadata to avoid quota issues
     if (data.leaseAgreement) {
       console.log("file", data.leaseAgreement);
 
-      // Capture file reference before async operation
-      const leaseFile = data.leaseAgreement;
-
-      // Store the file in sessionStorage as base64 to preserve it for billing page upload
-      const reader = new FileReader();
-      reader.onload = () => {
-        const fileData = {
-          name: leaseFile.name,
-          type: leaseFile.type,
-          size: leaseFile.size,
-          data: reader.result, // base64 data
-        };
-        sessionStorage.setItem("leaseAgreementFile", JSON.stringify(fileData));
-        console.log("Lease agreement file stored in sessionStorage");
+      // Store only metadata in sessionStorage, store the actual file globally
+      const fileMetadata = {
+        name: data.leaseAgreement.name,
+        type: data.leaseAgreement.type,
+        size: data.leaseAgreement.size,
+        uploaded: true,
       };
-      reader.readAsDataURL(leaseFile);
+
+      // Store metadata only (no base64 data to avoid quote issues)
+      sessionStorage.setItem(
+        "leaseAgreementMetadata",
+        JSON.stringify(fileMetadata)
+      );
+
+      // Store the actual file globally so it can be accessed by billing page
+      (window as any).leaseAgreementFileBuffer = data.leaseAgreement;
+
+      console.log("Lease agreement file metadata stored in sessionStorage");
 
       // Remove the File object from data to avoid serialization issues
       delete (data as any).leaseAgreement;
+    }
+
+    // Handle ID verification upload file - store only metadata to avoid quota issues
+    if (data.idVerificationUpload) {
+      console.log("ID verification file", data.idVerificationUpload);
+
+      // Store only metadata in sessionStorage, store the actual file globally
+      const fileMetadata = {
+        name: data.idVerificationUpload.name,
+        type: data.idVerificationUpload.type,
+        size: data.idVerificationUpload.size,
+        uploaded: true,
+      };
+
+      // Store metadata only (no base64 data to avoid quota issues)
+      sessionStorage.setItem(
+        "idVerificationUploadMetadata",
+        JSON.stringify(fileMetadata)
+      );
+
+      // Store the actual file globally so it can be accessed by billing page
+      (window as any).idVerificationFileBuffer = data.idVerificationUpload;
+
+      console.log("ID verification file metadata stored in sessionStorage");
+
+      // Remove the File object from data to avoid serialization issues
+      delete (data as any).idVerificationUpload;
     }
 
     // Store user data and navigate to billing preview
@@ -362,31 +468,6 @@ export default function RegisterUserInfoPage() {
                 </div>
               </div>
             </div>
-
-            {/* ID Verification Error Warning */}
-            {idVerificationData?.status === "not_found" && (
-              <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-xl">
-                <div className="flex items-center gap-3">
-                  <AlertTriangle className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0" />
-                  <div>
-                    <h3 className="font-medium text-red-800 dark:text-red-300 mb-1">
-                      ID Verification Required
-                    </h3>
-                    <p className="text-sm text-red-700 dark:text-red-400">
-                      Please get your ID verification report from the{" "}
-                      <a
-                        href="https://www.rented123.com/id-verification"
-                        target="_blank"
-                        className="text-red-700 dark:text-red-400 underline hover:text-red-800 dark:hover:text-red-300 font-medium"
-                      >
-                        link here
-                      </a>{" "}
-                      before proceeding with registration.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
 
             <div className="text-center mb-8">
               <h1 className="text-2xl font-semibold text-primary-800 dark:text-primary-300 mb-2">
@@ -857,6 +938,127 @@ export default function RegisterUserInfoPage() {
                         >
                           Passwords match
                         </PasswordRequirement>
+                      </div>
+                    )}
+
+                    {/* ID Verification Upload - dynamically shows/hides based on email verification status */}
+                    {idVerificationData?.status === "not_found" && (
+                      <div className="space-y-2">
+                        <FormLabel>ID Verification Report (PDF)</FormLabel>
+                        <div
+                          className={cn(
+                            "border-2 border-dashed rounded-lg p-6 text-center transition-colors",
+                            isIdDragOver
+                              ? "border-gray-400 bg-gray-50 dark:bg-slate-800/40"
+                              : "border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500"
+                          )}
+                          onDragOver={(e) => {
+                            e.preventDefault();
+                            setIsIdDragOver(true);
+                          }}
+                          onDragLeave={(e) => {
+                            e.preventDefault();
+                            setIsIdDragOver(false);
+                          }}
+                          onDrop={async (e) => {
+                            e.preventDefault();
+                            setIsIdDragOver(false);
+                            const file = e.dataTransfer.files?.[0];
+                            if (file) {
+                              await validateIdVerificationUpload(file);
+                            }
+                          }}
+                        >
+                          <input
+                            type="file"
+                            accept=".pdf"
+                            onChange={async (e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                await validateIdVerificationUpload(file);
+                              }
+                            }}
+                            className="hidden"
+                            id="id-verification-upload"
+                          />
+                          {form.watch("idVerificationUpload") ? (
+                            <div className="flex items-center justify-center gap-3">
+                              <FileText className="w-8 h-8 text-green-600" />
+                              <div className="text-left">
+                                <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                                  {form.watch("idVerificationUpload")?.name}
+                                </p>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  form.setValue(
+                                    "idVerificationUpload",
+                                    undefined as any
+                                  )
+                                }
+                                className="ml-2 p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full"
+                              >
+                                <X className="w-4 h-4 text-gray-500" />
+                              </button>
+                            </div>
+                          ) : (
+                            <label
+                              htmlFor="id-verification-upload"
+                              className="cursor-pointer flex flex-col items-center gap-2"
+                            >
+                              <Upload className="w-8 h-8 text-gray-400" />
+                              <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">
+                                Drag and drop your ID verification PDF here, or{" "}
+                                <span className="text-blue-600 hover:text-blue-500">
+                                  browse files
+                                </span>
+                              </p>
+                              <p className="text-xs text-gray-500 dark:text-gray-400">
+                                Accepts PDF • Maximum 10MB
+                              </p>
+                            </label>
+                          )}
+                        </div>
+
+                        {/* Upload Status */}
+                        {idVerificationUploadStatus.isVerifying && (
+                          <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400 mt-2">
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            Verifying document...
+                          </div>
+                        )}
+
+                        {idVerificationUploadStatus.isValid === true && (
+                          <div className="flex items-center gap-2 text-sm text-green-600 dark:text-green-400 mt-2">
+                            <CheckCircle2 className="w-4 h-4" />
+                            Valid ID verification document
+                          </div>
+                        )}
+
+                        {idVerificationUploadStatus.isValid === false && (
+                          <div className="flex items-center gap-2 text-sm text-red-600 dark:text-red-400 mt-2">
+                            <XCircle className="w-4 h-4" />
+                            {idVerificationUploadStatus.message}
+                          </div>
+                        )}
+
+                        {/* Optional: Link to complete new verification */}
+                        <div className="text-xs text-slate-600 dark:text-slate-400 mt-2">
+                          Don’t have the PDF?{" "}
+                          <button
+                            type="button"
+                            className="underline"
+                            onClick={() =>
+                              window.open(
+                                "https://www.rented123.com/id-verification",
+                                "_blank"
+                              )
+                            }
+                          >
+                            Complete new verification
+                          </button>
+                        </div>
                       </div>
                     )}
                   </div>

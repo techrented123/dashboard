@@ -6,6 +6,7 @@ import RegisterConfirmPage from "./pages/RegisterConfirmPage";
 import SubscribePage from "./pages/SubscribePage";
 import DashboardPage from "./pages/DashboardPage";
 import RentReportingPage from "./pages/RentReportingPage";
+import RentReportingMagicLinkPage from "./pages/RentReportingMagicLinkPage";
 import BillingPage from "./pages/BillingPage";
 import DocumentsPage from "./pages/DocumentsPage";
 import AccountPage from "./pages/AccountPage";
@@ -79,6 +80,10 @@ function App() {
         }
       />
       <Route
+        path="/rent-reporting-magic-link"
+        element={<RentReportingMagicLinkPage />}
+      />
+      <Route
         path="/billing"
         element={
           <ProtectedRoute requireSubscription={false}>
@@ -89,7 +94,7 @@ function App() {
       <Route
         path="/documents"
         element={
-          <ProtectedRoute requireSubscription={false}>
+          <ProtectedRoute requireSubscription={true}>
             <DocumentsPage />
           </ProtectedRoute>
         }
@@ -97,7 +102,7 @@ function App() {
       <Route
         path="/account"
         element={
-          <ProtectedRoute requireSubscription={false}>
+          <ProtectedRoute requireSubscription={true}>
             <AccountPage />
           </ProtectedRoute>
         }

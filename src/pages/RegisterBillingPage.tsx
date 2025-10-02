@@ -75,25 +75,110 @@ async function updateCognitoLeaseUrl(leaseKey: string) {
   }
 }
 
+
+
+// Function to convert email to S3 prefix
+function emailToS3Prefix(email: string | undefined) {
+  if (!email) return "";
+  return email
+    .toLowerCase()
+    .replace(/@/g, "_at_")
+    .replace(/\+/g, "_plus_")
+    .replace(/\./g, "_dot_")
+    .replace(/-/g, "_dash_")
+    .replace(/[^a-zA-Z0-9_]/g, "_"); // Same logic as your app
+}
+
+// --- DIRECT S3 UPLOAD FOR ID VERIFICATION ---
+async function uploadIdVerificationReportDirect(userInfo: any) {
+  // Check if ID verification file exists in global buffer
+  const idVerificationFile = (window as any).idVerificationFileBuffer;
+  const metadata = sessionStorage.getItem("idVerificationUploadMetadata");
+
+  if (!idVerificationFile || !metadata) {
+    console.log("No ID verification report to upload");
+    return { success: true, docId: null, key: null };
+  }
+
+  try {
+    console.log("Uploading ID verification report directly to S3...");
+
+    // Create email-based folder prefix
+    const emailPrefix = emailToS3Prefix(userInfo.email);
+    const fileName = `${emailPrefix}/id_verification_report.pdf`;
+    const bucketName = "verified-id-reports";
+
+    console.log("Email prefix:", emailPrefix);
+    console.log("S3 key:", fileName);
+    console.log("Bucket:", bucketName);
+
+    // Convert file to base64 for direct S3 upload
+    const base64Promise = new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(idVerificationFile);
+    });
+
+    const base64Data = await base64Promise;
+    const pdfBuffer = base64Data.split(",")[1]; // Remove data:application/pdf;base64, prefix
+
+    // Upload directly to Lambda function (similar to your Next.js app)
+    const uploadResponse = await fetch(
+      "https://crkk275x3e.execute-api.us-west-2.amazonaws.com/id-verification-upload",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          PDFfile: pdfBuffer,
+          fileName: fileName,
+          email: userInfo.email,
+        }),
+      }
+    );
+
+    if (!uploadResponse.ok) {
+      const errorText = await uploadResponse.text();
+      throw new Error(`ID verification upload failed: ${errorText}`);
+    }
+
+    const result = await uploadResponse.json();
+    console.log("ID verification report uploaded successfully:", result);
+
+    return {
+      success: true,
+      docId: fileName, // Use fileName as docId for consistency
+      key: fileName, // Use fileName as key
+    };
+  } catch (error) {
+    console.error("Error uploading ID verification report:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown error",
+    };
+  }
+}
+
 // --- LEASE UPLOAD HELPER FUNCTION ---
 async function uploadLeaseAgreement(userInfo: any) {
-  if (!userInfo.leaseAgreement) {
+  // Check if lease agreement file exists in global buffer
+  const leaseFile = (window as any).leaseAgreementFileBuffer;
+  const metadata = sessionStorage.getItem("leaseAgreementMetadata");
+
+  if (!leaseFile || !metadata) {
     console.log("No lease agreement to upload");
     return { success: true, docId: null, key: null };
   }
 
   try {
     console.log("Uploading lease agreement...");
-    console.log("File details:", {
-      name: userInfo.leaseAgreement.name,
-      type: userInfo.leaseAgreement.type,
-      size: userInfo.leaseAgreement.size,
-    });
 
     // Use the same API as DocumentsPage for consistency
     const { uploadUrl, docId, key } = await getPresignedUrl({
-      filename: userInfo.leaseAgreement.name,
-      mime: userInfo.leaseAgreement.type,
+      filename: leaseFile.name,
+      mime: leaseFile.type,
       selectValue: "tenants-lease-agreements", // S3 bucket
       source: "Lease Agreement",
       firstName: userInfo.firstName,
@@ -107,8 +192,8 @@ async function uploadLeaseAgreement(userInfo: any) {
     // Upload to S3 using the presigned URL
     const uploadResponse = await fetch(uploadUrl, {
       method: "PUT",
-      headers: { "Content-Type": userInfo.leaseAgreement.type },
-      body: userInfo.leaseAgreement,
+      headers: { "Content-Type": leaseFile.type },
+      body: leaseFile,
     });
 
     if (!uploadResponse.ok) {
@@ -130,7 +215,6 @@ async function uploadLeaseAgreement(userInfo: any) {
 
 // --- AUTH HELPER FUNCTIONS (Corrected Versions) ---
 async function signUpUser(userData: any, selectedPlan: any) {
-
   try {
     const signUpResponse = await signUp({
       username: userData.username,
@@ -354,9 +438,22 @@ export default function RegisterBillingPage() {
       }
       console.log("Step 3: Lease agreement uploaded successfully");
 
-      // Step 3.5: Update Cognito with lease agreement URL if uploaded
+      // Step 4: Upload ID verification report if provided
+      console.log("Step 4: Uploading ID verification report...");
+      const idVerificationResult = await uploadIdVerificationReportDirect(
+        userInfo
+      );
+      if (!idVerificationResult.success) {
+        throw new Error(
+          idVerificationResult.error ||
+            "Could not upload ID verification report."
+        );
+      }
+      console.log("Step 4: ID verification report uploaded successfully");
+
+      // Step 4.5: Update Cognito with lease agreement URL if uploaded
       if (uploadResult.key) {
-        console.log("Step 3.5: Updating Cognito with lease agreement URL...");
+        console.log("Step 4.5: Updating Cognito with lease agreement URL...");
         const cognitoUpdateResult = await updateCognitoLeaseUrl(
           uploadResult.key
         );
@@ -366,12 +463,15 @@ export default function RegisterBillingPage() {
             cognitoUpdateResult.error
           );
         } else {
-          console.log("Step 3.5: Cognito updated with lease agreement URL");
+          console.log("Step 4.5: Cognito updated with lease agreement URL");
         }
       }
 
-      // Step 4: Prepare checkout data (no authentication needed for registration flow)
-      console.log("Step 4: Preparing checkout data...");
+      // Note: ID verification reports are stored in S3 with email-based folders and don't need Cognito updates
+      // They're verified via email-based S3 lookup in the ID verification service
+
+      // Step 5: Prepare checkout data (no authentication needed for registration flow)
+      console.log("Step 5: Preparing checkout data...");
       const checkoutData = {
         priceId: selectedPlan.stripeId,
         customerEmail: userInfo.email,

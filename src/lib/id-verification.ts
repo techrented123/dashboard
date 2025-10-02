@@ -37,7 +37,7 @@ export async function checkIdVerification(
           status: "not_found",
           lastChecked: new Date().toISOString(),
           message:
-            "ID verification report not found. Please complete ID verification first.",
+            "ID verification report not found. Please upload your ID verification PDF below.",
         };
       }
 
