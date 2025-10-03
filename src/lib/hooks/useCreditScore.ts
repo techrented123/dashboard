@@ -1,9 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { fetchCreditScore } from "../credit-score";
+import type { CreditScoreData } from "../credit-score";
 
 // Hook for fetching credit score
 export const useCreditScore = () => {
-  return useQuery({
+  return useQuery<CreditScoreData>({
     queryKey: ["creditScore"],
     queryFn: fetchCreditScore,
     staleTime: 10 * 60 * 1000, // 10 minutes
@@ -22,7 +23,7 @@ export const useCreditScore = () => {
       max: 850,
       lastUpdated: new Date().toISOString(),
       bureau: "Equifax",
-      status: "pending" as const,
+      status: "pending" as "active" | "pending" | "error" | "no_score",
     },
   });
 };

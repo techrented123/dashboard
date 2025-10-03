@@ -1,10 +1,10 @@
-import React from "react";
 import { useNavigate } from "react-router-dom";
 import ProtectedRoute from "../components/ProtectedRoute";
 import AppLayout from "../components/AppLayout";
 import Card from "../components/Card";
 import { useRentReports } from "../lib/hooks/useRentReports";
 import { useCreditScore } from "../lib/hooks/useCreditScore";
+import type { CreditScoreData } from "../lib/credit-score";
 import { useDocuments } from "../lib/hooks/useDocuments";
 import { useBillingData } from "../lib/hooks/useBillingData";
 import { ExternalLinkIcon, FileText } from "lucide-react";
@@ -14,6 +14,7 @@ import {
   SkeletonCircle,
   SkeletonButton,
 } from "../components/Skeleton";
+import { Button } from "../components/ui/button";
 
 export default function DashboardPage() {
   const navigate = useNavigate();
@@ -22,7 +23,12 @@ export default function DashboardPage() {
     data: creditScoreData,
     isLoading: isLoadingCreditScore,
     error: creditScoreError,
-  } = useCreditScore();
+  } = useCreditScore() as {
+    data: CreditScoreData | undefined;
+    isLoading: boolean;
+    error: Error | null;
+  };
+
   const { data: documents = [], isLoading: isLoadingDocuments } =
     useDocuments();
   const { data: billingData, isLoading: isLoadingBilling } = useBillingData();
@@ -51,9 +57,28 @@ export default function DashboardPage() {
                   <p className="text-center text-2xl font-semibold text-slate-400 dark:text-slate-500">
                     --
                   </p>
-
+                  <p className="text-center text-sm text-slate-500 dark:text-slate-400 mt-2">
+                    Error loading credit score
+                  </p>
                   <Button
-                    className="mt-5 !bg-[#077BFB]"
+                    className="flex items-center gap-2 mt-5 !bg-[#077BFB]"
+                    onClick={() =>
+                      window.open("https://rented123.com/gold/", "_blank")
+                    }
+                  >
+                    Get More Rewards <ExternalLinkIcon className="w-4 h-4" />
+                  </Button>
+                </div>
+              ) : !creditScoreData ? (
+                <div className="">
+                  <p className="text-center text-2xl font-semibold text-slate-400 dark:text-slate-500">
+                    --
+                  </p>
+                  <p className="text-center text-sm text-slate-500 dark:text-slate-400 mt-2">
+                    No data returned
+                  </p>
+                  <Button
+                    className="flex items-center gap-2 mt-5 !bg-[#077BFB]"
                     onClick={() =>
                       window.open("https://rented123.com/gold/", "_blank")
                     }
@@ -66,11 +91,9 @@ export default function DashboardPage() {
                   <p className="text-center text-2xl font-semibold text-slate-400 dark:text-slate-500">
                     --
                   </p>
-                  <p className="text-center text-sm text-slate-500 dark:text-slate-400 mt-2">
-                    No credit score available yet
-                  </p>
+
                   <Button
-                    className="mt-5 !bg-[#077BFB]"
+                    className="flex items-center gap-2 mt-5 !bg-[#077BFB] text-white"
                     onClick={() =>
                       window.open(
                         "https://rented123.com/product/credit-check/",
@@ -79,6 +102,27 @@ export default function DashboardPage() {
                     }
                   >
                     Check My Credit Score{" "}
+                    <ExternalLinkIcon className="w-4 h-4" />
+                  </Button>
+                </div>
+              ) : (creditScoreData?.status as string) === "no_score" ? (
+                <div className="">
+                  <p className="text-center text-2xl font-semibold text-slate-400 dark:text-slate-500">
+                    --
+                  </p>
+                  <p className="text-center text-sm text-slate-500 dark:text-slate-400 mt-2">
+                    Credit score not available yet
+                  </p>
+                  <p className="text-center text-xs text-slate-400 mt-1">
+                    Subscribe to view your credit score
+                  </p>
+                  <Button
+                    className="mt-4 !bg-[#077BFB]"
+                    onClick={() =>
+                      window.open("https://rented123.com/gold/", "_blank")
+                    }
+                  >
+                    Get Credit Monitoring{" "}
                     <ExternalLinkIcon className="w-4 h-4" />
                   </Button>
                 </div>
@@ -133,7 +177,7 @@ export default function DashboardPage() {
                 We&apos;ll remind you 3 days before.
               </p>
               <Button
-                className="mt-5 !bg-[#077BFB]"
+                className="mt-5 !bg-[#077BFB] text-white"
                 onClick={() => navigate("/rent-reporting")}
               >
                 Report Now
@@ -209,7 +253,7 @@ export default function DashboardPage() {
               </div>
               <div className="mt-3">
                 <Button
-                  className="mt-5 !bg-[#077BFB]"
+                  className="text-white mt-5 !bg-[#077BFB] flex items-center gap-2"
                   onClick={() =>
                     window.open("https://rented123.com/pricing-2/", "_blank")
                   }
@@ -269,6 +313,7 @@ export default function DashboardPage() {
               <div className="mt-4">
                 <Button
                   variant="link"
+                  className="text-white"
                   onClick={() => navigate("/rent-reporting")}
                 >
                   View full history →
@@ -320,7 +365,7 @@ export default function DashboardPage() {
                 <Button
                   variant="link"
                   onClick={() => navigate("/documents")}
-                  className="hover:no-underline px-4"
+                  className="hover:underline px-4 dark:text-white bg-white dark:bg-slate-800"
                 >
                   Open Documents →
                 </Button>
@@ -367,7 +412,8 @@ export default function DashboardPage() {
                   </div>
                   <div className="mt-4 flex gap-2">
                     <Button
-                      variant="primary"
+                      variant="default"
+                      className="text-white !bg-[#077BFB]"
                       onClick={() => navigate("/billing")}
                     >
                       Upgrade
@@ -505,37 +551,7 @@ export default function DashboardPage() {
   );
 }
 
-function Button({
-  children,
-  variant = "primary",
-  size = "sm",
-  className = "",
-  onClick,
-}: {
-  children: React.ReactNode;
-  variant?: "primary" | "outline" | "link";
-  size?: "sm" | "md";
-  className?: string;
-  onClick?: () => void;
-}) {
-  const base =
-    "inline-flex items-center gap-1 font-medium rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2";
-  const sizes = size === "sm" ? "text-sm px-3 py-1.5" : "text-sm px-4 py-2";
-  const variants =
-    variant === "primary"
-      ? "btn-primary text-white hover:shadow-md focus:ring-brand-primary"
-      : variant === "outline"
-      ? "btn-secondary border border-brand-primary text-brand-primary hover:bg-brand-primary hover:text-white focus:ring-brand-primary"
-      : "btn-link text-brand-primary hover:text-brand-primary-dark hover:underline px-0 py-0 font-medium";
-  return (
-    <button
-      className={`${base} ${sizes} ${variants} ${className}`}
-      onClick={onClick}
-    >
-      {children}
-    </button>
-  );
-}
+// Button component is imported from ../components/ui/button
 
 function ScoreGauge({
   value,
