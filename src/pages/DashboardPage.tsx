@@ -254,9 +254,17 @@ export default function DashboardPage() {
               <div className="mt-3">
                 <Button
                   className="text-white mt-5 !bg-[#077BFB] flex items-center gap-2"
-                  onClick={() =>
-                    window.open("https://rented123.com/pricing-2/", "_blank")
-                  }
+                  onClick={() => {
+                    if (billingData?.manageSubscriptionUrl) {
+                      window.open(
+                        billingData.manageSubscriptionUrl,
+                        "_blank",
+                        "noopener,noreferrer"
+                      );
+                    } else {
+                      window.open("https://rented123.com/pricing-2/", "_blank");
+                    }
+                  }}
                 >
                   Upgrade to Gold <ExternalLinkIcon className="w-4 h-4" />
                 </Button>{" "}
@@ -304,21 +312,23 @@ export default function DashboardPage() {
                         );
                       })
                   ) : (
-                    <div className="text-slate-500 dark:text-slate-400 text-sm">
+                    <div className="text-[rgb(50,66,155)] dark:text-slate-400 text-sm py-4 px-2">
                       No rent reports found
                     </div>
                   )}
                 </div>
               )}
-              <div className="mt-4">
-                <Button
-                  variant="link"
-                  className="text-white"
-                  onClick={() => navigate("/rent-reporting")}
-                >
-                  View full history →
-                </Button>
-              </div>
+              {rentReports.length > 0 && (
+                <div className="mt-4">
+                  <Button
+                    variant="link"
+                    className="text-white"
+                    onClick={() => navigate("/rent-reporting")}
+                  >
+                    View full history →
+                  </Button>
+                </div>
+              )}
             </div>
           </section>
 
