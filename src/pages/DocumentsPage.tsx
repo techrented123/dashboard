@@ -302,6 +302,7 @@ export default function DocumentsPage() {
       setPreviewUrl(url);
     } catch (err) {
       console.error("Failed to get preview URL", err);
+      console.error("Error details:", err);
       showToast("error", "Failed to load document preview. Please try again.");
       setIsPreviewOpen(false);
     } finally {
@@ -537,9 +538,14 @@ export default function DocumentsPage() {
         {displayDocuments.map((doc: any) => (
           <div
             key={doc.docId}
-            className="flex items-center p-3 rounded-xl border dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors w-full min-w-0"
+            className="flex flex-col sm:flex-row items-start sm:items-center p-3 rounded-xl border dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors w-full min-w-0 gap-3"
+            style={{
+              width: "100% !important",
+              maxWidth: "100% !important",
+              overflow: "hidden !important",
+            }}
           >
-            <div className="flex items-center gap-3 flex-1 min-w-0">
+            <div className="flex items-center gap-3 flex-1 min-w-0 w-full sm:w-auto">
               <FileText className="w-5 h-5 text-slate-400 flex-shrink-0" />
               <div className="flex-1 min-w-0">
                 <div className="font-medium text-sm dark:text-slate-200 truncate">
@@ -553,66 +559,62 @@ export default function DocumentsPage() {
               </div>
             </div>
 
-            {/* Source type chip - centered */}
-            <div className="flex justify-center flex-1">
-              {(() => {
-                const detectedSource = detectDocumentSource(doc);
-                return (
-                  detectedSource &&
-                  detectedSource.trim() && (
-                    <span
-                      className={`px-2 py-1 rounded-full text-xs font-medium ${getSourceTypeColor(
-                        detectedSource
-                      )}`}
-                    >
-                      {formatSource(detectedSource)}
-                    </span>
-                  )
-                );
-              })()}
-            </div>
+            {/* Source type chip and action buttons - mobile layout */}
+            <div className="flex items-center justify-between w-full sm:w-auto gap-3">
+              {/* Source type chip */}
+              <div className="flex justify-center">
+                {(() => {
+                  const detectedSource = detectDocumentSource(doc);
+                  return (
+                    detectedSource &&
+                    detectedSource.trim() && (
+                      <span
+                        className={`px-2 py-1 rounded-full text-xs font-medium ${getSourceTypeColor(
+                          detectedSource
+                        )}`}
+                      >
+                        {formatSource(detectedSource)}
+                      </span>
+                    )
+                  );
+                })()}
+              </div>
 
-            {/* Action buttons */}
-            <div className="flex items-center gap-2 flex-shrink-0">
-              <button
-                className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-600 rounded-lg transition-colors"
-                onClick={() => handlePreview(doc.docId)}
-              >
-                <Eye className="w-4 h-4 text-slate-600 dark:text-slate-400" />
-              </button>
-              <button
-                className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-600 rounded-lg transition-colors"
-                onClick={() => handleDownload(doc)}
-              >
-                <Download className="w-4 h-4 text-slate-600 dark:text-slate-400" />
-              </button>
-              {doc.source !== "ID Verification" &&
-              doc.source !== "Background Check" &&
-              doc.source !== "Lease Agreement" &&
-              !isMostRecentLeaseAgreement(doc) ? (
+              {/* Action buttons */}
+              <div className="flex items-center gap-2 flex-shrink-0">
                 <button
                   className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-600 rounded-lg transition-colors"
-                  onClick={() => handleDeleteClick(doc)}
+                  onClick={() => handlePreview(doc.docId)}
                 >
-                  <Trash2 className="w-4 h-4 text-red-600 dark:text-red-400" />
+                  <Eye className="w-4 h-4 text-slate-600 dark:text-slate-400" />
                 </button>
-              ) : (
-                <button
-                  className="p-1.5 cursor-not-allowed opacity-50 relative group"
-                  disabled
-                  title={
-                    doc.source === "ID Verification"
-                      ? undefined
-                      : doc.source === "Lease Agreement"
-                      ? "Upload a new one to replace"
-                      : isMostRecentLeaseAgreement(doc)
-                      ? "Upload a new one first"
-                      : "Cannot delete this document type"
-                  }
-                >
-                  <Trash2 className="w-4 h-4 text-slate-400" />
-                  {/* Tooltip - only show for lease agreements, not ID Verification */}
-                  {doc.source !== "ID Verification" && (
+                {doc.source !== "ID Verification" &&
+                doc.source !== "Background Check" &&
+                doc.source !== "Lease Agreement" &&
+                !isMostRecentLeaseAgreement(doc) ? (
+                  <button
+                    className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-600 rounded-lg transition-colors"
+                    onClick={() => handleDeleteClick(doc)}
+                  >
+                    <Trash2 className="w-4 h-4 text-red-600 dark:text-red-400" />
+                  </button>
+                ) : (
+                  <button
+                    className="p-1.5 cursor-not-allowed opacity-50 relative group"
+                    disabled
+                    title={
+                      doc.source === "ID Verification"
+                        ? undefined
+                        : doc.source === "Lease Agreement"
+                        ? "Upload a new one to replace"
+                        : isMostRecentLeaseAgreement(doc)
+                        ? "Upload a new one first"
+                        : "Cannot delete this document type"
+                    }
+                  >
+                    <Trash2 className="w-4 h-4 text-slate-400" />
+                    {/* Tooltip - only show for lease agreements, not ID Verification */}
+                    {/* {doc.source !== "ID Verification" && (
                     <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-[99999] pointer-events-none">
                       {doc.source === "Lease Agreement"
                         ? "Upload a new one first"
@@ -621,9 +623,10 @@ export default function DocumentsPage() {
                         : "Cannot delete this document type"}
                       <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-800"></div>
                     </div>
-                  )}
-                </button>
-              )}
+                  )} */}
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         ))}
@@ -653,17 +656,17 @@ export default function DocumentsPage() {
           cancelButtonText="Cancel"
           isLoading={isDeleting}
         />
-        <div className="space-y-8 px-4 sm:px-6 lg:px-8 max-w-full overflow-hidden">
+        <div className="space-y-8">
           <div>
-            <h1 className="text-2xl font-bold text-brand dark:text-primary-300 mb-2">
+            <h1 className="text-xl sm:text-2xl font-bold text-brand dark:text-primary-300 mb-2">
               Documents
             </h1>
-            <p className="text-base text-slate-600 dark:text-slate-400 font-medium">
+            <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400 font-medium">
               Manage your uploaded documents and files
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
             <Card title="Total Documents">
               <div className="text-2xl font-bold dark:text-white">
                 {documents.length}/{MAX_DOCUMENTS}
