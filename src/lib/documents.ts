@@ -9,7 +9,7 @@ export async function fetchDocuments() {
   const token = session.tokens?.idToken?.toString();
 
   const res = await fetch(
-    `${import.meta.env.VITE_DOCS_API_BASE_URL || "/api"}/documents`, // GET from the /documents path
+    `${import.meta.env.VITE_DOCS_API_BASE_URL || "/api"}/documents`,
     {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -28,35 +28,59 @@ export async function fetchDocuments() {
 
 /** Fetches a presigned URL for viewing/downloading a specific document.*/
 export async function getDocumentUrl(docId: string, forDownload = false) {
-  // 1. Get the current user's session token for authorization (same as before)
+  // Check if this is an S3 document (starts with "s3-")
+  if (docId.startsWith("s3-")) {
+    // For S3 documents, we need to create a presigned URL directly
+    // This would require a separate Lambda function or we can use the existing one
+    // For now, let's use the existing API and let the backend handle S3 documents
+    const session = await fetchAuthSession();
+    const token = session.tokens?.idToken?.toString();
+
+    const apiUrl = `${
+      import.meta.env.VITE_DOCS_API_BASE_URL || "/api"
+    }/documents/${docId}`;
+
+    const res = await fetch(apiUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ download: forDownload }),
+    });
+
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error("API Error (getDocumentUrl):", errorText);
+      throw new Error("Failed to get document URL");
+    }
+
+    return res.json();
+  }
+
+  // For DynamoDB documents, use the existing flow
   const session = await fetchAuthSession();
   const token = session.tokens?.idToken?.toString();
-  // 2. Construct the full API URL (same as before)
+
   const apiUrl = `${
     import.meta.env.VITE_DOCS_API_BASE_URL || "/api"
   }/documents/${docId}`;
 
-  // 3. Make an authenticated POST request to the endpoint
   const res = await fetch(apiUrl, {
-    method: "POST", // CHANGED: from GET to POST to allow a request body
+    method: "POST",
     headers: {
-      // ADDED: Content-Type header is required for a JSON body
       "Content-Type": "application/json",
-      // The Authorization header is the same
       Authorization: `Bearer ${token}`,
     },
-    // ADDED: The body of the request, sending the download flag
     body: JSON.stringify({ download: forDownload }),
   });
 
-  // 4. Handle the response (same as before)
   if (!res.ok) {
     const errorText = await res.text();
     console.error("API Error (getDocumentUrl):", errorText);
     throw new Error("Failed to get document URL");
   }
 
-  // 5. Return the JSON payload (same as before)
   return res.json();
 }
 
@@ -84,7 +108,7 @@ export async function getPresignedUrl(params: {
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
       body: JSON.stringify(params),
-    } 
+    }
   );
   if (!res.ok) throw new Error(await res.text());
   return res.json();

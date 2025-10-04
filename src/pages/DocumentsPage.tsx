@@ -171,7 +171,9 @@ export default function DocumentsPage() {
 
   // Sort documents by creation date (most recent first) and get the latest
   const sortedDocuments = [...documents].sort(
-    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    (a, b) =>
+      new Date(b.createdAt || (b.uploadedAt as string)).getTime() -
+      new Date(a.createdAt || (a.uploadedAt as string)).getTime()
   );
   const lastUpload = sortedDocuments.length > 0 ? sortedDocuments[0] : null;
 
@@ -544,7 +546,9 @@ export default function DocumentsPage() {
                   {doc.filename}
                 </div>
                 <div className="text-xs text-slate-600 dark:text-slate-400">
-                  {new Date(doc.createdAt).toLocaleDateString()}
+                  {new Date(
+                    doc.createdAt || doc.uploadedAt
+                  ).toLocaleDateString()}
                 </div>
               </div>
             </div>

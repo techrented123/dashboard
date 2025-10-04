@@ -7,6 +7,7 @@ export interface Document {
   filename: string;
   createdAt: string;
   updatedAt: string;
+  uploadedAt?: string | number | Date;
   size?: number;
   source?: string;
   s3Key?: string; // For lease agreement from Cognito
