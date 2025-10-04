@@ -3,7 +3,7 @@ import { useEffect } from "react";
 import ProtectedRoute from "../components/ProtectedRoute";
 import AppLayout from "../components/AppLayout";
 import Card from "../components/Card";
-import { FileText, Download, Eye, AlertCircle, Trash2 } from "lucide-react";
+import { FileText, Eye, AlertCircle, Trash2 } from "lucide-react";
 import { Skeleton } from "../components/Skeleton";
 import { getPresignedUrl, getDocumentUrl } from "../lib/documents";
 import { useDocuments, useDeleteDocument } from "../lib/hooks/useDocuments";
@@ -332,7 +332,7 @@ export default function DocumentsPage() {
     }
   };
 
-  const handleDownload = async (doc: any) => {
+ /*  const handleDownload = async (doc: any) => {
     try {
       // 1. Get the special download URL from the API (this part is correct)
       const { url } = await getDocumentUrl(doc.docId, true);
@@ -353,7 +353,7 @@ export default function DocumentsPage() {
       // Optionally, set an error message to display to the user
     }
   };
-
+ */
   // Auto-hide message after 3 seconds
   useEffect(() => {
     if (msg) {
