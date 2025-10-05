@@ -209,8 +209,12 @@ export default function RentReportingMagicLinkPage() {
       throw new Error("No valid userSub provided");
     }
 
+    const uploadBaseUrl =
+    import.meta.env.VITE_UPLOAD_API_BASE_URL ||
+    "https://rbzn5e69oa.execute-api.us-west-2.amazonaws.com";
+
     // Get presigned URL from API
-    const response = await fetch("/api/upload", {
+    const response = await fetch(uploadBaseUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -321,7 +325,11 @@ export default function RentReportingMagicLinkPage() {
       console.log("Submitting form data:", formData);
 
       // Submit form data to main API endpoint
-      const submitResponse = await fetch("/api/submit", {
+      const submitBaseUrl =
+      import.meta.env.VITE_RENT_REPORTS_API_BASE_URL ||
+      "https://yipdy0po78.execute-api.us-west-2.amazonaws.com/rent-reports";
+
+      const submitResponse = await fetch(submitBaseUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
