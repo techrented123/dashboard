@@ -56,10 +56,6 @@ const DOCUMENT_TYPES = [
     },
   },
   {
-    value: "rent-reporting-csv/proof-of-rent-payment",
-    label: "Rent Receipt",
-  },
-  {
     value: "other-user-uploads",
     label: "Other",
   },
@@ -85,12 +81,6 @@ function detectDocumentSource(doc: any): string {
 const getSourceTypeColor = (source: string) => {
   const normalizedSource = source.toLowerCase().replace(/[_-]/g, " ");
 
-  if (
-    normalizedSource.includes("rent receipt") ||
-    normalizedSource.includes("proof of rent")
-  ) {
-    return "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300";
-  }
   if (normalizedSource.includes("lease agreement")) {
     return "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300";
   }
@@ -98,7 +88,7 @@ const getSourceTypeColor = (source: string) => {
     return "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300";
   }
   if (normalizedSource.includes("id verification")) {
-    return "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300";
+    return "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300";
   }
   if (normalizedSource.includes("background check")) {
     return "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300";
