@@ -100,17 +100,6 @@ const getSourceTypeColor = (source: string) => {
   // Default color for unknown types
   return "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300";
 };
-/* function parseBucketAndPrefix(value: string): {
-  bucket: string;
-  prefix?: string;
-} {
-  const [bucket, ...rest] = value.split("/");
-  const prefix = rest.length ? rest.join("/") : undefined;
-  return { bucket, prefix };
-}
-function toSelectValue(bucket: string, prefix?: string) {
-  return prefix ? `${bucket}/${prefix}` : bucket;
-} */
 
 export default function DocumentsPage() {
   const { data: documents = [], isLoading, error } = useDocuments();
