@@ -352,7 +352,7 @@ export default function DashboardPage() {
                     )
                     .slice(0, 3)
                     .map((doc: any) => (
-                      <li key={doc.docId} className="">
+                      <li key={doc.docId} className="break-words">
                         {doc.filename}
                       </li>
                     ))}

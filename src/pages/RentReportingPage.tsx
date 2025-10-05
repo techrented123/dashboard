@@ -35,6 +35,7 @@ import { Skeleton } from "../components/Skeleton";
 import { useAuth } from "../lib/context/authContext";
 import { useRentReports } from "../lib/hooks/useRentReports";
 import { submitTenantData } from "../lib/submit-tenant-data";
+import { Pagination } from "../components/Pagination";
 
 // Form validation schema
 const formSchema = z.object({
@@ -63,9 +64,18 @@ export default function RentReportingPage() {
   const { user, isLoading: loadingUser } = useAuth();
   const {
     rentReports,
+    pagination,
     isLoading: isRefreshingReports,
-    refreshRentReports,
+    fetchRentReports,
   } = useRentReports();
+
+  // Pagination state
+  const [pageSize] = useState(10);
+
+  // Handle page changes
+  const handlePageChange = async (page: number, lastEvaluatedKey?: string) => {
+    await fetchRentReports(page, pageSize, lastEvaluatedKey);
+  };
 
   const [isLoading, setIsLoading] = useState(false);
   const [toast, setToast] = useState<{
@@ -359,7 +369,7 @@ export default function RentReportingPage() {
       // Add a small delay to ensure backend has processed the data
       setTimeout(async () => {
         console.log("Refreshing rent reports after successful submission...");
-        await refreshRentReports(); // Use cached hook to refresh
+        await fetchRentReports(1, pageSize); // Refresh first page
       }, 1000);
     } catch (error) {
       console.error("Error submitting form:", error);
@@ -971,6 +981,18 @@ export default function RentReportingPage() {
                 </tbody>
               </table>
             </div>
+
+            {/* Pagination */}
+            {pagination && rentReports.length > 0 && (
+              <Pagination
+                currentPage={pagination.currentPage}
+                hasNextPage={pagination.hasNextPage}
+                itemCount={pagination.itemCount}
+                limit={pagination.limit}
+                onPageChange={handlePageChange}
+                isLoading={isRefreshingReports}
+              />
+            )}
           </Card>
         </div>
       </AppLayout>
