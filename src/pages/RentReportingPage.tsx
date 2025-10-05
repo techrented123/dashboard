@@ -283,6 +283,7 @@ export default function RentReportingPage() {
           : user?.["custom:postal_code"],
       };
       const formData = {
+        userSub: user?.sub, // Include userSub for signed-in users
         rentAmount: data.rentAmount,
         paymentDate: data.paymentDate.toISOString(),
         receiptS3Key: s3Key, // Include S3 key for later use
@@ -296,7 +297,7 @@ export default function RentReportingPage() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+          // Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(formData),
       });
