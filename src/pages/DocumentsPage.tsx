@@ -160,8 +160,16 @@ export default function DocumentsPage() {
     setToast((prev) => ({ ...prev, isVisible: false }));
   };
 
-  // Limit documents to 20 for display
-  const displayDocuments = documents.slice(0, 20);
+  // Filter out rent receipts and limit documents to 20 for display
+  const displayDocuments = documents
+    .filter((doc) => {
+      const source = detectDocumentSource(doc);
+      return (
+        !source.toLowerCase().includes("rent receipt") &&
+        !source.toLowerCase().includes("proof of rent")
+      );
+    })
+    .slice(0, 20);
 
   // Calculate stats from documents data
   const totalSize = documents.reduce(
@@ -332,7 +340,7 @@ export default function DocumentsPage() {
     }
   };
 
- /*  const handleDownload = async (doc: any) => {
+  /*  const handleDownload = async (doc: any) => {
     try {
       // 1. Get the special download URL from the API (this part is correct)
       const { url } = await getDocumentUrl(doc.docId, true);
@@ -545,8 +553,78 @@ export default function DocumentsPage() {
               overflow: "hidden !important",
             }}
           >
-            <div className="flex items-center gap-3 flex-1 min-w-0 w-full sm:w-auto">
-              <FileText className="w-5 h-5 text-slate-400 flex-shrink-0" />
+            {/* Mobile layout: title and actions on same line */}
+            <div className="flex items-center justify-between w-full sm:hidden gap-2">
+              <div className="flex items-center gap-2 flex-1 min-w-0">
+                <div className="font-medium text-sm dark:text-slate-200 truncate">
+                  {doc?.filename?.length > 15
+                    ? `${doc.filename.substring(0, 12)}...`
+                    : doc.filename}
+                </div>
+              </div>
+              <div className="flex items-center gap-1 flex-shrink-0">
+                <button
+                  className="p-1 hover:bg-slate-100 dark:hover:bg-slate-600 rounded-lg transition-colors"
+                  onClick={() => handlePreview(doc.docId)}
+                >
+                  <Eye className="w-4 h-4 text-slate-600 dark:text-slate-400" />
+                </button>
+                {doc.source !== "ID Verification" &&
+                doc.source !== "Background Check" &&
+                doc.source !== "Lease Agreement" &&
+                !isMostRecentLeaseAgreement(doc) ? (
+                  <button
+                    className="p-1 hover:bg-slate-100 dark:hover:bg-slate-600 rounded-lg transition-colors"
+                    onClick={() => handleDeleteClick(doc)}
+                  >
+                    <Trash2 className="w-4 h-4 text-red-600 dark:text-red-400" />
+                  </button>
+                ) : (
+                  <button
+                    className="p-1 cursor-not-allowed opacity-50 relative group"
+                    disabled
+                    title={
+                      doc.source === "ID Verification"
+                        ? undefined
+                        : doc.source === "Lease Agreement"
+                        ? "Upload a new one to replace"
+                        : isMostRecentLeaseAgreement(doc)
+                        ? "Upload a new one first"
+                        : "Cannot delete this document type"
+                    }
+                  >
+                    <Trash2 className="w-4 h-4 text-slate-400" />
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Mobile layout: date and source chip on second line */}
+            <div className="flex items-center justify-between w-full sm:hidden">
+              <div className="flex justify-center">
+                {(() => {
+                  const detectedSource = detectDocumentSource(doc);
+                  return (
+                    detectedSource &&
+                    detectedSource.trim() && (
+                      <span
+                        className={`px-2 py-1 rounded-full text-xs font-medium ${getSourceTypeColor(
+                          detectedSource
+                        )}`}
+                      >
+                        {formatSource(detectedSource)}
+                      </span>
+                    )
+                  );
+                })()}
+              </div>
+              <div className="text-xs text-slate-600 dark:text-slate-400">
+                {new Date(doc.createdAt || doc.uploadedAt).toLocaleDateString()}
+              </div>
+            </div>
+
+            {/* Desktop layout: document info */}
+            <div className="hidden sm:flex items-center gap-3 flex-1 min-w-0 w-full sm:w-auto">
               <div className="flex-1 min-w-0">
                 <div className="font-medium text-sm dark:text-slate-200 truncate">
                   {doc.filename}
@@ -559,10 +637,10 @@ export default function DocumentsPage() {
               </div>
             </div>
 
-            {/* Source type chip and action buttons - mobile layout */}
-            <div className="flex items-center justify-between w-full sm:w-auto gap-3">
-              {/* Source type chip */}
-              <div className="flex justify-center">
+            {/* Desktop layout: source type chip and action buttons */}
+            <div className="hidden sm:flex items-center justify-between w-full sm:w-auto gap-3">
+              {/* Source type chip - positioned in the middle */}
+              <div className="flex justify-center flex-1">
                 {(() => {
                   const detectedSource = detectDocumentSource(doc);
                   return (
@@ -715,58 +793,58 @@ export default function DocumentsPage() {
               )}
             </Card>
           </div>
+          <div className="grid grid-cols-1 gap-4 items-start">
+            <Card title="Your Documents">
+              <div className="space-y-3 max-w-full w-full ">
+                {renderDocumentList()}
 
-          <Card title="Your Documents">
-            <div className="space-y-3">
-              {renderDocumentList()}
-
-              <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
-                <DialogContent className="max-w-6xl w-[90vw] h-[90vh] p-0 flex flex-col">
-                  <DialogHeader className="p-4 border-b bg-gray-50 flex-shrink-0 dark:text-black">
-                    <DialogTitle className="text-lg font-semibold text-gray-800 dark:text-black">
-                      Document Preview
-                    </DialogTitle>
-                  </DialogHeader>
-                  <div className="flex-1 p-4 bg-gray-100 min-h-0">
-                    <div className="w-full h-full bg-white rounded-lg shadow-inner overflow-hidden relative">
-                      {isPreviewLoading ? (
-                        <div className="flex items-center justify-center h-full">
-                          <div className="text-center">
-                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                            <p className="text-gray-600">
-                              Loading document preview...
-                            </p>
+                <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
+                  <DialogContent className="max-w-6xl w-[90vw] h-[90vh] p-0 flex flex-col">
+                    <DialogHeader className="p-4 border-b bg-gray-50 flex-shrink-0 dark:text-black">
+                      <DialogTitle className="text-lg font-semibold text-gray-800 dark:text-black">
+                        Document Preview
+                      </DialogTitle>
+                    </DialogHeader>
+                    <div className="flex-1 p-4 bg-gray-100 min-h-0">
+                      <div className="w-full h-full bg-white rounded-lg shadow-inner overflow-hidden relative">
+                        {isPreviewLoading ? (
+                          <div className="flex items-center justify-center h-full">
+                            <div className="text-center">
+                              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                              <p className="text-gray-600">
+                                Loading document preview...
+                              </p>
+                            </div>
                           </div>
-                        </div>
-                      ) : previewUrl ? (
-                        <iframe
-                          src={previewUrl}
-                          className="w-full h-full border-0"
-                          title="Document Preview"
-                          style={{
-                            minHeight: "600px",
-                            height: "100%",
-                            width: "100%",
-                          }}
-                          onLoad={() => {
-                            console.log("Iframe loaded successfully");
-                          }}
-                          onError={() => {
-                            console.error("Iframe failed to load");
-                            showToast(
-                              "error",
-                              "Failed to load document preview."
-                            );
-                          }}
-                        />
-                      ) : null}
+                        ) : previewUrl ? (
+                          <iframe
+                            src={previewUrl}
+                            className="w-full h-full border-0"
+                            title="Document Preview"
+                            style={{
+                              minHeight: "600px",
+                              height: "100%",
+                              width: "100%",
+                            }}
+                            onLoad={() => {
+                              console.log("Iframe loaded successfully");
+                            }}
+                            onError={() => {
+                              console.error("Iframe failed to load");
+                              showToast(
+                                "error",
+                                "Failed to load document preview."
+                              );
+                            }}
+                          />
+                        ) : null}
+                      </div>
                     </div>
-                  </div>
-                </DialogContent>
-              </Dialog>
-            </div>
-          </Card>
-
+                  </DialogContent>
+                </Dialog>
+              </div>
+            </Card>
+          </div>
           <Card title="Upload New Document">
             <form className="space-y-4" onSubmit={onSubmit}>
               <div>
