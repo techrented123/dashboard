@@ -199,7 +199,11 @@ export default function RentReportingPage() {
     console.log("Uploading rent receipt:", file.name);
 
     // Get presigned URL from API
-    const response = await fetch("/api/upload", {
+    const uploadBaseUrl =
+      import.meta.env.VITE_UPLOAD_API_BASE_URL ||
+      "https://rbzn5e69oa.execute-api.us-west-2.amazonaws.com";
+
+    const response = await fetch(uploadBaseUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -313,7 +317,11 @@ export default function RentReportingPage() {
       console.log("Submitting form data:", formData);
 
       // Submit form data to main API endpoint
-      const submitResponse = await fetch("/api/submit", {
+      const submitBaseUrl =
+        import.meta.env.VITE_RENT_REPORTS_API_BASE_URL ||
+        "https://yipdy0po78.execute-api.us-west-2.amazonaws.com/rent-reports";
+
+      const submitResponse = await fetch(submitBaseUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

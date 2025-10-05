@@ -45,7 +45,11 @@ export const useRentReports = (autoFetch = true) => {
         return [];
       }
 
-      const response = await fetch("/api/rent-reports", {
+      const baseUrl =
+        import.meta.env.VITE_RENT_REPORTS_API_BASE_URL ||
+        "https://yipdy0po78.execute-api.us-west-2.amazonaws.com/rent-reports";
+
+      const response = await fetch(baseUrl, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",

@@ -11,6 +11,10 @@ interface ImportMetaEnv {
   readonly VITE_COGNITO_IDENTITY_POOL_ID: string;
   readonly VITE_API_GATEWAY_URL: string;
   readonly VITE_S3_BUCKET_NAME: string;
+  readonly VITE_RENT_REPORTS_API_BASE_URL: string;
+  readonly VITE_UPLOAD_API_BASE_URL: string;
+  readonly VITE_BILLING_API_BASE_URL: string;
+  readonly VITE_DOCUMENTS_API_BASE_URL: string;
   // more env variables...
 }
 

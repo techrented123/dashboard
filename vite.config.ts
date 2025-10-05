@@ -45,4 +45,10 @@ export default defineConfig({
       },
     },
   },
+  build: {
+    // Ensure environment variables are available in production build
+    rollupOptions: {
+      external: [],
+    },
+  },
 });
