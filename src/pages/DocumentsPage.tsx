@@ -389,7 +389,7 @@ export default function DocumentsPage() {
       if (hasExistingLease) {
         // Show confirmation for replacement
         const confirmed = window.confirm(
-          "You already have a lease agreement uploaded. This will replace your existing lease agreement. Continue?"
+          "You already have a lease agreement uploaded. Continue?"
         );
         if (!confirmed) {
           setIsUploading(false);
@@ -550,8 +550,8 @@ export default function DocumentsPage() {
                 </button>
                 {doc.source !== "ID Verification" &&
                 doc.source !== "Background Check" &&
-                doc.source !== "Lease Agreement" &&
-                !isMostRecentLeaseAgreement(doc) ? (
+                (doc.source !== "Lease Agreement" ||
+                  !isMostRecentLeaseAgreement(doc)) ? (
                   <button
                     className="p-1 hover:bg-slate-100 dark:hover:bg-slate-600 rounded-lg transition-colors"
                     onClick={() => handleDeleteClick(doc)}
@@ -647,8 +647,8 @@ export default function DocumentsPage() {
                 </button>
                 {doc.source !== "ID Verification" &&
                 doc.source !== "Background Check" &&
-                doc.source !== "Lease Agreement" &&
-                !isMostRecentLeaseAgreement(doc) ? (
+                (doc.source !== "Lease Agreement" ||
+                  !isMostRecentLeaseAgreement(doc)) ? (
                   <button
                     className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-600 rounded-lg transition-colors"
                     onClick={() => handleDeleteClick(doc)}

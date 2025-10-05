@@ -15,7 +15,6 @@ export default function SubscriptionBanner() {
     rawSubscription?.cancel_at_period_end &&
     rawSubscription?.current_period_end &&
     new Date(rawSubscription.current_period_end) > new Date();
-  console.log({ rawSubscription, isCanceledButActive });
 
   if (!isCanceledButActive || isDismissed) {
     return null;
@@ -28,7 +27,6 @@ export default function SubscriptionBanner() {
   const handleResumeSubscription = () => {
     navigate("/billing");
   };
-  console.log({ rawSubscription, isCanceledButActive });
   return (
     <div className="fixed inset-x-0 top-16 z-50 flex justify-center px-3 sm:px-4">
       <div className="w-full max-w-[92%] sm:max-w-3xl rounded-xl border shadow-lg bg-yellow-100/95 dark:bg-slate-800/95 border-yellow-200 dark:border-slate-700">

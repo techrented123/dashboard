@@ -4,7 +4,7 @@ import { fetchAuthSession } from "aws-amplify/auth";
 // Global cache for rent reports with pagination
 let rentReportsCache: { [key: string]: any } = {};
 let cacheTimestamp: number | null = null;
-const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes in milliseconds
+const CACHE_DURATION = 30 * 60 * 1000; // 30 minutes in milliseconds
 
 // Cache invalidation function that can be called from anywhere
 export const invalidateRentReportsCache = () => {

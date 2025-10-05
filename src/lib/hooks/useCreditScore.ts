@@ -7,8 +7,8 @@ export const useCreditScore = () => {
   return useQuery<CreditScoreData>({
     queryKey: ["creditScore"],
     queryFn: fetchCreditScore,
-    staleTime: 10 * 60 * 1000, // 10 minutes
-    gcTime: 30 * 60 * 1000, // 30 minutes
+    staleTime: 30 * 60 * 1000, // 30 minutes
+    gcTime: 60 * 60 * 1000, // 60 minutes
     retry: (failureCount, error) => {
       // Don't retry on auth errors or 404 (no credit score)
       if (error instanceof Error && error.message.includes("401")) return false;
