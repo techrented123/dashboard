@@ -872,7 +872,7 @@ export default function RentReportingMagicLinkPage() {
                             }
                           }}
                           className={cn(
-                            "file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200 file:cursor-pointer file:dark:text-black text-white dark:text-white h-15",
+                            "file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200 file:cursor-pointer file:dark:text-black text-gray-900 dark:text-white h-15",
                             form.formState.errors.rentReceipt &&
                               "border-red-500 focus-visible:ring-red-500"
                           )}
