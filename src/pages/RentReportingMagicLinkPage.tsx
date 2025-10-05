@@ -31,35 +31,55 @@ import { Toast } from "../components/ui/toast";
 import { submitTenantData } from "../lib/submit-tenant-data";
 
 // Form validation schema
-const formSchema = z.object({
-  sin: z.string().min(9, "SIN must be 9 digits").max(9, "SIN must be 9 digits"),
-  confirmationNumber: z.string().min(1, "Confirmation number is required"),
-  phoneNumber: z.string().min(10, "Phone number must be at least 10 digits"),
-  rentAmount: z.number().min(0, "Rent amount must be positive"),
-  addressChanged: z.boolean(),
-  newAddress: z
-    .object({
-      address1: z.string().optional(),
-      address2: z.string().optional(),
-      city: z.string().optional(),
-      provinceState: z.string().optional(),
-      postalZipCode: z.string().optional(),
-      countryCode: z.string().optional(),
-    })
-    .nullable(),
-  paymentDate: z.date(),
-  rentReceipt: z.instanceof(File).optional(),
-});
+const formSchema = z
+  .object({
+    sin: z
+      .string()
+      .min(9, "SIN must be 9 digits")
+      .max(9, "SIN must be 9 digits"),
+    confirmationNumber: z.string().min(1, "Confirmation number is required"),
+    phoneNumber: z.string().min(10, "Phone number must be at least 10 digits"),
+    rentAmount: z
+      .number({ message: "Please enter a valid rent amount" })
+      .min(100, "Rent amount must be at least $100"),
+    addressChanged: z.boolean(),
+    newAddress: z
+      .object({
+        address1: z.string().min(1, "Address line 1 is required"),
+        address2: z.string().optional(),
+        city: z.string().min(1, "City is required"),
+        provinceState: z.string().min(1, "Province/State is required"),
+        postalZipCode: z.string().min(1, "Postal/ZIP code is required"),
+        countryCode: z.string().min(1, "Country code is required"),
+      })
+      .nullable(),
+    paymentDate: z.date({ message: "Please select a valid payment date" }),
+    rentReceipt: z.instanceof(File).optional(),
+  })
+  .refine(
+    (data) => {
+      // If address changed is true, newAddress must not be null
+      if (data.addressChanged && !data.newAddress) {
+        return false;
+      }
+      return true;
+    },
+    {
+      message: "New address is required when address has changed",
+      path: ["newAddress"],
+    }
+  );
 
 type FormValues = z.infer<typeof formSchema>;
 
 export default function RentReportingMagicLinkPage() {
   const [searchParams] = useSearchParams();
-  const token = searchParams.get("token");
+  const maskedToken = searchParams.get("token");
 
   const [isLoading, setIsLoading] = useState(false);
   const [isValidToken, setIsValidToken] = useState<boolean | null>(null);
   const [userData, setUserData] = useState<any>(null);
+  const [userSub, setUserSub] = useState<string | null>(null);
   const [toast, setToast] = useState<{
     message: string;
     type: "success" | "error";
@@ -70,40 +90,6 @@ export default function RentReportingMagicLinkPage() {
     isVisible: false,
   });
 
-  // Validate token and fetch user data on component mount
-  useEffect(() => {
-    const validateTokenAndFetchData = async () => {
-      if (!token) {
-        setIsValidToken(false);
-        return;
-      }
-
-      try {
-        // Verify token with backend API
-        const response = await fetch("/api/validate-magic-token", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          setUserData(data.userData);
-          setIsValidToken(true);
-        } else {
-          setIsValidToken(false);
-        }
-      } catch (error) {
-        console.error("Error validating token:", error);
-        setIsValidToken(false);
-      }
-    };
-
-    validateTokenAndFetchData();
-  }, [token]);
-
   // Toast helper functions
   const showToast = (message: string, type: "success" | "error") => {
     setToast({ message, type, isVisible: true });
@@ -112,6 +98,72 @@ export default function RentReportingMagicLinkPage() {
   const hideToast = () => {
     setToast((prev) => ({ ...prev, isVisible: false }));
   };
+
+  // Validate token and fetch user data on component mount
+  useEffect(() => {
+    const validateTokenAndFetchData = async () => {
+      if (!maskedToken) {
+        setIsValidToken(false);
+        showToast("Invalid or missing token", "error");
+        return;
+      }
+
+      try {
+        // Decode the masked token
+        const tokenData = JSON.parse(atob(maskedToken));
+
+        // Check expiry
+        if (Date.now() > tokenData.exp) {
+          setIsValidToken(false);
+          showToast(
+            "This link has expired. Please request a new one.",
+            "error"
+          );
+          return;
+        }
+
+        // Set userSub and mark token as valid
+        setUserSub(tokenData.userSub);
+        setIsValidToken(true);
+
+        // Fetch real user data from Cognito via API
+        try {
+          const response = await fetch(
+            `https://y1klul5kx1.execute-api.us-west-2.amazonaws.com/user-data?userSub=${encodeURIComponent(
+              tokenData.userSub
+            )}`
+          );
+
+          if (!response.ok) {
+            throw new Error("Failed to fetch user data");
+          }
+
+          const { userData: fetchedUserData } = await response.json();
+          setUserData(fetchedUserData);
+        } catch (fetchError) {
+          console.error("Error fetching user data:", fetchError);
+          // Fallback to mock data if API fails
+          setUserData({
+            userSub: tokenData.userSub,
+            phone_number: "+1234567890", // Mock data
+            custom: {
+              MonthlyRent: 1500, // Mock data
+            },
+          });
+          showToast(
+            "Using default data - some fields may need manual entry",
+            "error"
+          );
+        }
+      } catch (error) {
+        console.error("Error validating token:", error);
+        setIsValidToken(false);
+        showToast("Invalid token format", "error");
+      }
+    };
+
+    validateTokenAndFetchData();
+  }, [maskedToken]);
 
   // Note: No Cognito address updates for magic link users since they're not logged in
 
@@ -153,8 +205,8 @@ export default function RentReportingMagicLinkPage() {
   const uploadRentReceipt = async (file: File): Promise<string | null> => {
     console.log("Uploading rent receipt:", file.name);
 
-    if (!token) {
-      throw new Error("No valid token provided");
+    if (!userSub) {
+      throw new Error("No valid userSub provided");
     }
 
     // Get presigned URL from API
@@ -162,9 +214,9 @@ export default function RentReportingMagicLinkPage() {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({
+        userSub: userSub, // Include userSub for magic link uploads
         filename: file.name,
         contentType: file.type,
       }),
@@ -197,8 +249,8 @@ export default function RentReportingMagicLinkPage() {
   const onSubmit = async (data: FormValues) => {
     console.log("Form submitted:", data);
 
-    if (!token || !isValidToken) {
-      showToast("Invalid or missing authentication token", "error");
+    if (!userSub || !isValidToken) {
+      showToast("Invalid or missing user data", "error");
       return;
     }
 
@@ -259,6 +311,7 @@ export default function RentReportingMagicLinkPage() {
           : userData?.custom?.postal_code,
       };
       const formData = {
+        userSub: userSub, // Include userSub for magic link submissions
         rentAmount: data.rentAmount,
         paymentDate: data.paymentDate.toISOString(),
         receiptS3Key: s3Key, // Include S3 key for later use
@@ -272,7 +325,6 @@ export default function RentReportingMagicLinkPage() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(formData),
       });
@@ -283,6 +335,38 @@ export default function RentReportingMagicLinkPage() {
 
       const submitResult = await submitResponse.json();
       console.log("Form submitted successfully!", submitResult);
+
+      // Update address in Cognito if changed
+      if (data.addressChanged && data.newAddress) {
+        try {
+          const updateResponse = await fetch(
+            "https://y1klul5kx1.execute-api.us-west-2.amazonaws.com/user-data",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                userSub: userSub,
+                newAddress: data.newAddress,
+              }),
+            }
+          );
+
+          if (updateResponse.ok) {
+            const updateResult = await updateResponse.json();
+            console.log("Address updated successfully:", updateResult);
+          } else {
+            console.error(
+              "Failed to update address:",
+              await updateResponse.text()
+            );
+          }
+        } catch (addressError) {
+          console.error("Error updating address:", addressError);
+          // Don't fail the entire submission if address update fails
+        }
+      }
 
       // Submit tenant data to Lambda
       try {
@@ -302,9 +386,6 @@ export default function RentReportingMagicLinkPage() {
         console.error("Error submitting tenant data:", tenantDataError);
         // Don't fail the entire submission if tenant data submission fails
       }
-
-      // Note: Address changes are handled by the Lambda function, not Cognito
-      // since the user is not logged in through magic link
 
       // Show success toast with current month
       const currentMonth = new Date().toLocaleString("default", {
@@ -398,7 +479,7 @@ export default function RentReportingMagicLinkPage() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
+        <div className="grid grid-cols-1 gap-4 items-start">
           <Card title="Submit Rent Payment Proof">
             <Form {...form}>
               <form

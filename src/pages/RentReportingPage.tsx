@@ -37,25 +37,44 @@ import { useRentReports } from "../lib/hooks/useRentReports";
 import { submitTenantData } from "../lib/submit-tenant-data";
 
 // Form validation schema
-const formSchema = z.object({
-  sin: z.string().min(9, "SIN must be 9 digits").max(9, "SIN must be 9 digits"),
-  confirmationNumber: z.string().min(1, "Confirmation number is required"),
-  phoneNumber: z.string().min(10, "Phone number must be at least 10 digits"),
-  rentAmount: z.number().min(0, "Rent amount must be positive"),
-  addressChanged: z.boolean(),
-  newAddress: z
-    .object({
-      address1: z.string().optional(),
-      address2: z.string().optional(),
-      city: z.string().optional(),
-      provinceState: z.string().optional(),
-      postalZipCode: z.string().optional(),
-      countryCode: z.string().optional(),
-    })
-    .nullable(),
-  paymentDate: z.date(),
-  rentReceipt: z.instanceof(File).optional(),
-});
+const formSchema = z
+  .object({
+    sin: z
+      .string()
+      .min(9, "SIN must be 9 digits")
+      .max(9, "SIN must be 9 digits"),
+    confirmationNumber: z.string().min(1, "Confirmation number is required"),
+    phoneNumber: z.string().min(10, "Phone number must be at least 10 digits"),
+    rentAmount: z
+      .number({ message: "Please enter a valid rent amount" })
+      .min(100, "Rent amount must be at least $100"),
+    addressChanged: z.boolean(),
+    newAddress: z
+      .object({
+        address1: z.string().min(1, "Address line 1 is required"),
+        address2: z.string().optional(),
+        city: z.string().min(1, "City is required"),
+        provinceState: z.string().min(1, "Province/State is required"),
+        postalZipCode: z.string().min(1, "Postal/ZIP code is required"),
+        countryCode: z.string().min(1, "Country code is required"),
+      })
+      .nullable(),
+    paymentDate: z.date({ message: "Please select a valid payment date" }),
+    rentReceipt: z.instanceof(File).optional(),
+  })
+  .refine(
+    (data) => {
+      // If address changed is true, newAddress must not be null
+      if (data.addressChanged && !data.newAddress) {
+        return false;
+      }
+      return true;
+    },
+    {
+      message: "New address is required when address has changed",
+      path: ["newAddress"],
+    }
+  );
 
 type FormValues = z.infer<typeof formSchema>;
 
@@ -189,6 +208,7 @@ export default function RentReportingPage() {
       body: JSON.stringify({
         filename: file.name,
         contentType: file.type,
+        userSub: user?.sub,
       }),
     });
 
