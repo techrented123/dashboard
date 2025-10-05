@@ -1,138 +1,99 @@
 import { useState, useEffect, useCallback } from "react";
 import { fetchAuthSession } from "aws-amplify/auth";
 
-// Global cache for rent reports with pagination
-let rentReportsCache: { [key: string]: any } = {};
+// Global cache for rent reports
+let rentReportsCache: any[] | null = null;
 let cacheTimestamp: number | null = null;
 const CACHE_DURATION = 30 * 60 * 1000; // 30 minutes in milliseconds
 
 // Cache invalidation function that can be called from anywhere
 export const invalidateRentReportsCache = () => {
-  rentReportsCache = {};
+  rentReportsCache = null;
   cacheTimestamp = null;
 };
 
-// Pagination interface
-export interface PaginationInfo {
-  currentPage: number;
-  limit: number;
-  hasNextPage: boolean;
-  lastEvaluatedKey: string | null;
-  itemCount: number;
-}
-
-// Custom hook for managing rent reports with pagination and caching
+// Custom hook for managing rent reports with caching
 export const useRentReports = (autoFetch = true) => {
   const [rentReports, setRentReports] = useState<any[]>([]);
-  const [pagination, setPagination] = useState<PaginationInfo | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchRentReports = useCallback(
-    async (
-      page = 1,
-      limit = 10,
-      lastEvaluatedKey?: string,
-      showLoading = true
-    ) => {
-      try {
-        // Create cache key for this specific page
-        const cacheKey = `${page}-${limit}-${lastEvaluatedKey || "first"}`;
-        const now = Date.now();
+  const fetchRentReports = useCallback(async (showLoading = true) => {
+    try {
+      const now = Date.now();
 
-        // Check if we have valid cached data for this page
-        if (
-          rentReportsCache[cacheKey] &&
-          cacheTimestamp &&
-          now - cacheTimestamp < CACHE_DURATION
-        ) {
-          console.log("Using cached rent reports data for page", page);
-          const cachedData = rentReportsCache[cacheKey];
-          setRentReports(cachedData.reports);
-          setPagination(cachedData.pagination);
-          return cachedData;
-        }
-
-        if (showLoading) {
-          setIsLoading(true);
-        }
-        setError(null);
-
-        const session = await fetchAuthSession();
-        const token = session.tokens?.idToken?.toString();
-        if (!token) {
-          console.log("User not authenticated, skipping rent reports fetch");
-          return { reports: [], pagination: null };
-        }
-
-        // Build query parameters
-        const queryParams = new URLSearchParams({
-          page: page.toString(),
-          limit: limit.toString(),
-        });
-
-        if (lastEvaluatedKey) {
-          queryParams.append("lastEvaluatedKey", lastEvaluatedKey);
-        }
-
-        const response = await fetch(`/api/rent-reports?${queryParams}`, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        if (!response.ok) {
-          throw new Error("Failed to fetch rent reports");
-        }
-
-        const data = await response.json();
-        console.log("Rent reports fetched from API:", data);
-
-        // Update cache for this page
-        rentReportsCache[cacheKey] = data;
-        cacheTimestamp = now;
-
-        setRentReports(data.reports || []);
-        setPagination(data.pagination || null);
-        return data;
-      } catch (error) {
-        console.error("Error fetching rent reports:", error);
-        setError(
-          error instanceof Error
-            ? error.message
-            : "Failed to fetch rent reports"
-        );
-        return { reports: [], pagination: null };
-      } finally {
-        if (showLoading) {
-          setIsLoading(false);
-        }
+      // Check if we have valid cached data
+      if (
+        rentReportsCache &&
+        cacheTimestamp &&
+        now - cacheTimestamp < CACHE_DURATION
+      ) {
+        console.log("Using cached rent reports data");
+        setRentReports(rentReportsCache);
+        return rentReportsCache;
       }
-    },
-    []
-  );
 
-  const refreshRentReports = useCallback(
-    async (page = 1, limit = 10) => {
-      // Force refresh by invalidating cache first
-      invalidateRentReportsCache();
-      return await fetchRentReports(page, limit, undefined, true);
-    },
-    [fetchRentReports]
-  );
+      if (showLoading) {
+        setIsLoading(true);
+      }
+      setError(null);
+
+      const session = await fetchAuthSession();
+      const token = session.tokens?.idToken?.toString();
+      if (!token) {
+        console.log("User not authenticated, skipping rent reports fetch");
+        return [];
+      }
+
+      const response = await fetch("/api/rent-reports", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch rent reports");
+      }
+
+      const data = await response.json();
+      console.log("Rent reports fetched from API:", data);
+
+      // Update cache
+      rentReportsCache = data.reports || [];
+      cacheTimestamp = now;
+
+      setRentReports(data.reports || []);
+      return data.reports || [];
+    } catch (error) {
+      console.error("Error fetching rent reports:", error);
+      setError(
+        error instanceof Error ? error.message : "Failed to fetch rent reports"
+      );
+      return [];
+    } finally {
+      if (showLoading) {
+        setIsLoading(false);
+      }
+    }
+  }, []);
+
+  const refreshRentReports = useCallback(async () => {
+    // Force refresh by invalidating cache first
+    invalidateRentReportsCache();
+    return await fetchRentReports(true);
+  }, [fetchRentReports]);
 
   // Auto-fetch on mount if enabled
   useEffect(() => {
     if (autoFetch) {
-      fetchRentReports(1, 10);
+      fetchRentReports();
     }
   }, [autoFetch, fetchRentReports]);
 
   return {
     rentReports,
-    pagination,
     isLoading,
     error,
     fetchRentReports,
