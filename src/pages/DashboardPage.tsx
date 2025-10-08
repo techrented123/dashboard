@@ -258,20 +258,21 @@ export default function DashboardPage() {
               })()}
             </Card>
 
-            <Card title="Rent to Own">
-              <div className="flex items-center justify-between mb-4">
-                <span className="text-lg font-semibold text-slate-800 dark:text-slate-200">
-                  Rent to Own
-                </span>
-                <div className="group relative">
-                  <Info className="w-4 h-4 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 cursor-help" />
-                  <div className="absolute bottom-full left-0 mb-2 w-64 p-3 bg-slate-900 dark:bg-slate-700 text-white text-sm rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10">
-                    Earn points with each rent payment and purchase your dream
-                    home quicker
-                    <div className="absolute top-full left-4 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-slate-900 dark:border-t-slate-700"></div>
+            <Card
+              title={
+                <div className="flex items-center justify-between">
+                  <span>Rent to Own</span>
+                  <div className="group relative">
+                    <Info className="w-4 h-4 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 cursor-help" />
+                    <div className="absolute bottom-full left-0 mb-2 w-64 p-3 bg-slate-900 dark:bg-slate-700 text-white text-sm rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10">
+                      Earn points with each rent payment and purchase your dream
+                      home quicker
+                      <div className="absolute top-full left-4 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-slate-900 dark:border-t-slate-700"></div>
+                    </div>
                   </div>
                 </div>
-              </div>
+              }
+            >
               <div className="text-2xl font-extrabold dark:text-white">
                 {Math.round(goldMemberPoints)} pts
               </div>
