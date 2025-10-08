@@ -2,7 +2,7 @@ import React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import ProtectedRoute from "../components/ProtectedRoute";
 import AppLayout from "../components/AppLayout";
 import Card from "../components/Card";
@@ -99,6 +99,26 @@ export default function RentReportingPage() {
   const [isReceiptDialogOpen, setIsReceiptDialogOpen] = useState(false);
   const [receiptUrl, setReceiptUrl] = useState<string | null>(null);
   const [isLoadingReceipt, setIsLoadingReceipt] = useState(false);
+
+  // Check if user has already reported rent for current month
+  const hasReportedCurrentMonth = useMemo(() => {
+    const currentDate = new Date();
+    const currentMonth = currentDate.getMonth();
+    const currentYear = currentDate.getFullYear();
+
+    return rentReports.some((report: any) => {
+      const reportDate = new Date(report.paymentDate);
+      return (
+        reportDate.getMonth() === currentMonth &&
+        reportDate.getFullYear() === currentYear
+      );
+    });
+  }, [rentReports]);
+
+  // Get current month name for tooltip
+  const currentMonthName = useMemo(() => {
+    return new Date().toLocaleDateString("en-US", { month: "long" });
+  }, []);
 
   // Toast helper functions
   const showToast = (message: string, type: "success" | "error") => {
@@ -871,13 +891,27 @@ export default function RentReportingPage() {
                     )}
                   />
 
-                  <Button
-                    type="submit"
-                    className="w-full bg-[#077BFB] hover:bg-[#077BFB]/90 text-white font-medium py-3 rounded-lg transition-colors"
-                    disabled={isLoading}
-                  >
-                    {isLoading ? "Submitting..." : "Submit"}
-                  </Button>
+                  <div className="group relative">
+                    <Button
+                      type="submit"
+                      className={cn(
+                        "w-full font-medium py-3 rounded-lg transition-colors",
+                        hasReportedCurrentMonth
+                          ? "bg-gray-400 text-gray-600 cursor-not-allowed"
+                          : "bg-[#077BFB] hover:bg-[#077BFB]/90 text-white"
+                      )}
+                      disabled={isLoading || hasReportedCurrentMonth}
+                    >
+                      {isLoading ? "Submitting..." : "Submit"}
+                    </Button>
+                    {hasReportedCurrentMonth && (
+                      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-64 p-3 bg-slate-900 dark:bg-slate-700 text-white text-sm rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10">
+                        You have already reported your rent for{" "}
+                        {currentMonthName}
+                        <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-slate-900 dark:border-t-slate-700"></div>
+                      </div>
+                    )}
+                  </div>
                 </form>
               </Form>
             </Card>
