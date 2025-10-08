@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import { useMemo } from "react";
 import ProtectedRoute from "../components/ProtectedRoute";
 import AppLayout from "../components/AppLayout";
 import Card from "../components/Card";
@@ -7,7 +8,7 @@ import { useCreditScore } from "../lib/hooks/useCreditScore";
 import type { CreditScoreData } from "../lib/credit-score";
 import { useDocuments } from "../lib/hooks/useDocuments";
 import { useBillingData } from "../lib/hooks/useBillingData";
-import { ExternalLinkIcon, FileText } from "lucide-react";
+import { ExternalLinkIcon, FileText, Info } from "lucide-react";
 import {
   Skeleton,
   SkeletonText,
@@ -32,6 +33,22 @@ export default function DashboardPage() {
   const { data: documents = [], isLoading: isLoadingDocuments } =
     useDocuments();
   const { data: billingData, isLoading: isLoadingBilling } = useBillingData();
+
+  // Memoized calculation for Gold member points
+  const goldMemberPoints = useMemo(() => {
+    if (billingData?.subscription?.plan_name !== "Gold") {
+      return 0;
+    }
+
+    // Only count first 48 rent reports for points calculation
+    const eligibleReports = rentReports.slice(0, 48);
+
+    return eligibleReports.reduce((totalPoints, report) => {
+      const rentAmount = report.rentAmount || 0;
+      const pointsForReport = Math.min(rentAmount * 0.015, 37.5);
+      return totalPoints + pointsForReport;
+    }, 0);
+  }, [rentReports, billingData?.subscription?.plan_name]);
 
   return (
     <ProtectedRoute>
@@ -241,33 +258,56 @@ export default function DashboardPage() {
               })()}
             </Card>
 
-            <Card title="Rewards">
+            <Card title="Rent to Own">
+              <div className="flex items-center justify-between mb-4">
+                <span className="text-lg font-semibold text-slate-800 dark:text-slate-200">
+                  Rent to Own
+                </span>
+                <div className="group relative">
+                  <Info className="w-4 h-4 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 cursor-help" />
+                  <div className="absolute bottom-full left-0 mb-2 w-64 p-3 bg-slate-900 dark:bg-slate-700 text-white text-sm rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10">
+                    Earn points with each rent payment and purchase your dream
+                    home quicker
+                    <div className="absolute top-full left-4 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-slate-900 dark:border-t-slate-700"></div>
+                  </div>
+                </div>
+              </div>
               <div className="text-2xl font-extrabold dark:text-white">
-                0 pts
+                {Math.round(goldMemberPoints)} pts
               </div>
-              <div className="text-sm text-slate-600 dark:text-slate-400">
+              {/*   <div className="text-sm text-slate-600 dark:text-slate-400">
                 300 pts to next perk
-              </div>
+              </div> */}
               <div className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-full mt-3 overflow-hidden">
-                <div className="h-full bg-[#077BFB]" style={{ width: "0%" }} />
+                <div
+                  className="h-full bg-[#077BFB]"
+                  style={{
+                    width: `${Math.min((goldMemberPoints / 1800) * 100, 100)}%`,
+                  }}
+                />
               </div>
               <div className="mt-3">
-                <Button
-                  className="text-white mt-5 !bg-[#077BFB] flex items-center gap-2"
-                  onClick={() => {
-                    if (billingData?.manageSubscriptionUrl) {
-                      window.open(
-                        billingData.manageSubscriptionUrl,
-                        "_blank",
-                        "noopener,noreferrer"
-                      );
-                    } else {
-                      window.open("https://rented123.com/pricing-2/", "_blank");
-                    }
-                  }}
-                >
-                  Upgrade to Gold <ExternalLinkIcon className="w-4 h-4" />
-                </Button>{" "}
+                {billingData?.subscription?.plan_name !== "Gold" && (
+                  <Button
+                    className="text-white mt-5 !bg-[#077BFB] flex items-center gap-2"
+                    onClick={() => {
+                      if (billingData?.manageSubscriptionUrl) {
+                        window.open(
+                          billingData.manageSubscriptionUrl,
+                          "_blank",
+                          "noopener,noreferrer"
+                        );
+                      } else {
+                        window.open(
+                          "https://rented123.com/pricing-2/",
+                          "_blank"
+                        );
+                      }
+                    }}
+                  >
+                    Upgrade to Gold <ExternalLinkIcon className="w-4 h-4" />
+                  </Button>
+                )}
               </div>
             </Card>
           </div>
@@ -322,7 +362,7 @@ export default function DashboardPage() {
                 <div className="mt-4">
                   <Button
                     variant="link"
-                    className="text-white"
+                    className="hover:underline px-4 dark:text-white bg-white dark:bg-slate-800"
                     onClick={() => navigate("/rent-reporting")}
                   >
                     View full history →
@@ -420,21 +460,13 @@ export default function DashboardPage() {
                         : "No payment method"}
                     </span>
                   </div>
-                  <div className="mt-4 flex gap-2">
-                    <Button
-                      variant="default"
-                      className="text-white !bg-[#077BFB]"
-                      onClick={() => navigate("/billing")}
-                    >
-                      Upgrade
-                    </Button>
-                    <Button
-                      variant="outline"
-                      onClick={() => navigate("/billing")}
-                    >
-                      Update Card
-                    </Button>
-                  </div>
+                  <Button
+                    variant="link"
+                    onClick={() => navigate("/billing")}
+                    className="hover:underline px-0 mt-2 dark:text-white bg-white dark:bg-slate-800"
+                  >
+                    Manage Billing →
+                  </Button>
                 </>
               ) : (
                 <div className="flex flex-col justify-between min-h-[100px]">
