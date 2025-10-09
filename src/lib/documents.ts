@@ -28,43 +28,16 @@ export async function fetchDocuments() {
 
 /** Fetches a presigned URL for viewing/downloading a specific document.*/
 export async function getDocumentUrl(docId: string, forDownload = false) {
-  // Check if this is an S3 document (starts with "s3-")
-  if (docId.startsWith("s3-")) {
-    // For S3 documents, we need to create a presigned URL directly
-    // This would require a separate Lambda function or we can use the existing one
-    // For now, let's use the existing API and let the backend handle S3 documents
-    const session = await fetchAuthSession();
-    const token = session.tokens?.idToken?.toString();
-
-    const apiUrl = `${
-      import.meta.env.VITE_DOCS_API_BASE_URL || "/api"
-    }/documents/${docId}`;
-
-    const res = await fetch(apiUrl, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({ download: forDownload }),
-    });
-
-    if (!res.ok) {
-      const errorText = await res.text();
-      console.error("API Error (getDocumentUrl):", errorText);
-      throw new Error("Failed to get document URL");
-    }
-
-    return res.json();
-  }
-
-  // For DynamoDB documents, use the existing flow
   const session = await fetchAuthSession();
   const token = session.tokens?.idToken?.toString();
 
-  const apiUrl = `${
-    import.meta.env.VITE_DOCS_API_BASE_URL || "/api"
-  }/documents/${docId}`;
+  const baseUrl = import.meta.env.VITE_DOCS_API_BASE_URL || "/api";
+
+  // All documents now use DynamoDB - no more S3-specific logic needed
+  const apiUrl = `${baseUrl}/documents/${docId}`;
+
+  console.log("Making request to:", apiUrl);
+  console.log("DocId:", docId);
 
   const res = await fetch(apiUrl, {
     method: "POST",
@@ -77,8 +50,8 @@ export async function getDocumentUrl(docId: string, forDownload = false) {
 
   if (!res.ok) {
     const errorText = await res.text();
-    console.error("API Error (getDocumentUrl):", errorText);
-    throw new Error("Failed to get document URL");
+    console.error("API Error (getDocumentUrl):", res.status, errorText);
+    throw new Error(`Failed to get document URL: ${res.status} ${errorText}`);
   }
 
   return res.json();

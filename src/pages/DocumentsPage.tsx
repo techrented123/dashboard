@@ -559,21 +559,24 @@ export default function DocumentsPage() {
                     <Trash2 className="w-4 h-4 text-red-600 dark:text-red-400" />
                   </button>
                 ) : (
-                  <button
-                    className="p-1 cursor-not-allowed opacity-50 relative group"
-                    disabled
-                    title={
-                      doc.source === "ID Verification"
-                        ? undefined
-                        : doc.source === "Lease Agreement"
-                        ? "Upload a new one to replace"
-                        : isMostRecentLeaseAgreement(doc)
-                        ? "Upload a new one first"
-                        : "Cannot delete this document type"
-                    }
-                  >
-                    <Trash2 className="w-4 h-4 text-slate-400" />
-                  </button>
+                  <div className="group relative cursor-help">
+                    <button
+                      className="p-1 cursor-not-allowed opacity-50"
+                      disabled
+                    >
+                      <Trash2 className="w-4 h-4 text-slate-400" />
+                    </button>
+                    {doc.source !== "ID Verification" && (
+                      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-48 p-2 bg-slate-900 dark:bg-slate-700 text-white text-xs rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10">
+                        {doc.source === "Lease Agreement"
+                          ? "Upload a new one to replace"
+                          : isMostRecentLeaseAgreement(doc)
+                          ? "Upload a new one first"
+                          : "Cannot delete this document type"}
+                        <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-2 border-r-2 border-t-2 border-transparent border-t-slate-900 dark:border-t-slate-700"></div>
+                      </div>
+                    )}
+                  </div>
                 )}
               </div>
             </div>
@@ -656,32 +659,24 @@ export default function DocumentsPage() {
                     <Trash2 className="w-4 h-4 text-red-600 dark:text-red-400" />
                   </button>
                 ) : (
-                  <button
-                    className="p-1.5 cursor-not-allowed opacity-50 relative group"
-                    disabled
-                    title={
-                      doc.source === "ID Verification"
-                        ? undefined
-                        : doc.source === "Lease Agreement"
-                        ? "Upload a new one to replace"
-                        : isMostRecentLeaseAgreement(doc)
-                        ? "Upload a new one first"
-                        : "Cannot delete this document type"
-                    }
-                  >
-                    <Trash2 className="w-4 h-4 text-slate-400" />
-                    {/* Tooltip - only show for lease agreements, not ID Verification */}
-                    {/* {doc.source !== "ID Verification" && (
-                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-[99999] pointer-events-none">
-                      {doc.source === "Lease Agreement"
-                        ? "Upload a new one first"
-                        : isMostRecentLeaseAgreement(doc)
-                        ? "Upload a new one first"
-                        : "Cannot delete this document type"}
-                      <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-800"></div>
-                    </div>
-                  )} */}
-                  </button>
+                  <div className="group relative cursor-help">
+                    <button
+                      className="p-1.5 cursor-not-allowed opacity-50"
+                      disabled
+                    >
+                      <Trash2 className="w-4 h-4 text-slate-400" />
+                    </button>
+                    {doc.source !== "ID Verification" && (
+                      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-48 p-2 bg-slate-900 dark:bg-slate-700 text-white text-xs rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10">
+                        {doc.source === "Lease Agreement"
+                          ? "Upload a new one to replace"
+                          : isMostRecentLeaseAgreement(doc)
+                          ? "Upload a new one first"
+                          : "Cannot delete this document type"}
+                        <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-2 border-r-2 border-t-2 border-transparent border-t-slate-900 dark:border-t-slate-700"></div>
+                      </div>
+                    )}
+                  </div>
                 )}
               </div>
             </div>
