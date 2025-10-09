@@ -177,7 +177,6 @@ export default function RentReportingPage() {
     }
   };
 
-  //console.log({ user, },user["custom:MonthlyRent"]); // This effect runs whenever the 'user' object changes
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -255,10 +254,8 @@ export default function RentReportingPage() {
       throw new Error("Failed to upload file to S3");
     }
 
-    console.log("Receipt uploaded successfully, S3 key:", key);
     return key;
   };
-  console.log({ user });
   // Main form submission handler
   const onSubmit = async (data: FormValues) => {
     console.log("Form submitted:", data);
@@ -334,7 +331,6 @@ export default function RentReportingPage() {
         status: status, // 'Late' if after 5th of month, 'Reported' otherwise
       };
 
-      console.log("Submitting form data:", formData);
 
       // Submit form data to main API endpoint
       const submitBaseUrl =
@@ -354,8 +350,6 @@ export default function RentReportingPage() {
         throw new Error("Failed to submit form data");
       }
 
-      const submitResult = await submitResponse.json();
-      console.log("Form submitted successfully!", submitResult);
 
       // Submit tenant data to Lambda
       try {
