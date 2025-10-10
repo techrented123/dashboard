@@ -4,7 +4,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
-import AppLayout from "../components/AppLayout";
 import Card from "../components/Card";
 import {
   Form,
@@ -210,8 +209,8 @@ export default function RentReportingMagicLinkPage() {
     }
 
     const uploadBaseUrl =
-    import.meta.env.VITE_UPLOAD_API_BASE_URL ||
-    "https://rbzn5e69oa.execute-api.us-west-2.amazonaws.com";
+      import.meta.env.VITE_UPLOAD_API_BASE_URL ||
+      "https://rbzn5e69oa.execute-api.us-west-2.amazonaws.com";
 
     // Get presigned URL from API
     const response = await fetch(uploadBaseUrl, {
@@ -326,8 +325,8 @@ export default function RentReportingMagicLinkPage() {
 
       // Submit form data to main API endpoint
       const submitBaseUrl =
-      import.meta.env.VITE_RENT_REPORTS_API_BASE_URL ||
-      "https://yipdy0po78.execute-api.us-west-2.amazonaws.com/rent-reports";
+        import.meta.env.VITE_RENT_REPORTS_API_BASE_URL ||
+        "https://yipdy0po78.execute-api.us-west-2.amazonaws.com/rent-reports";
 
       const submitResponse = await fetch(submitBaseUrl, {
         method: "POST",
@@ -421,55 +420,51 @@ export default function RentReportingMagicLinkPage() {
   // Show loading state while validating token
   if (isValidToken === null) {
     return (
-      <AppLayout>
-        <div className="min-h-screen flex items-center justify-center">
-          <div className="space-y-4 text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto"></div>
-            <p className="text-slate-600 dark:text-slate-400">
-              Validating access token...
-            </p>
-          </div>
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex items-center justify-center">
+        <div className="space-y-4 text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto"></div>
+          <p className="text-slate-600 dark:text-slate-400">
+            Validating access token...
+          </p>
         </div>
-      </AppLayout>
+      </div>
     );
   }
 
   // Show error state if token is invalid
   if (isValidToken === false) {
     return (
-      <AppLayout>
-        <div className="min-h-screen flex items-center justify-center">
-          <div className="space-y-4 text-center max-w-md">
-            <div className="w-16 h-16 mx-auto bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center">
-              <svg
-                className="w-8 h-8 text-red-600 dark:text-red-400"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
-            </div>
-            <h1 className="text-2xl font-bold text-brand dark:text-primary-300">
-              Access Denied
-            </h1>
-            <p className="text-slate-600 dark:text-slate-400">
-              The access token is invalid or expired. Please check your link or
-              request a new one.
-            </p>
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex items-center justify-center">
+        <div className="space-y-4 text-center max-w-md">
+          <div className="w-16 h-16 mx-auto bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center">
+            <svg
+              className="w-8 h-8 text-red-600 dark:text-red-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
           </div>
+          <h1 className="text-2xl font-bold text-brand dark:text-primary-300">
+            Access Denied
+          </h1>
+          <p className="text-slate-600 dark:text-slate-400">
+            The access token is invalid or expired. Please check your link or
+            request a new one.
+          </p>
         </div>
-      </AppLayout>
+      </div>
     );
   }
 
   return (
-    <AppLayout>
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
       <Toast
         message={toast.message}
         type={toast.type}
@@ -477,196 +472,92 @@ export default function RentReportingMagicLinkPage() {
         onClose={hideToast}
       />
 
-      <div className="space-y-8">
-        <div>
-          <h1 className="text-2xl font-bold text-brand dark:text-primary-300 mb-2">
-            Rent Reporting
-          </h1>
-          <p className="text-base text-slate-600 dark:text-slate-400 font-medium">
-            Submit your rent payment proof via magic link access
-          </p>
-        </div>
+      <div className="container mx-auto px-4 py-8 max-w-4xl">
+        <div className="space-y-8">
+          <div>
+            <h1 className="text-2xl text-center font-bold text-brand dark:text-primary-300 mb-2">
+              Rent Reporting
+            </h1>
+            <p className="text-center text-base text-slate-600 dark:text-slate-400 font-medium">
+              Submit your rent payment proof via magic link access
+            </p>
+          </div>
 
-        <div className="grid grid-cols-1 gap-4 items-start">
-          <Card title="Submit Rent Payment Proof">
-            <Form {...form}>
-              <form
-                onSubmit={form.handleSubmit(onSubmit)}
-                className="space-y-6"
-              >
-                <FormField
-                  control={form.control}
-                  name="sin"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Social Insurance Number (SIN)</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="Enter your 9-digit SIN"
-                          {...field}
-                          maxLength={9}
-                          pattern="\d*"
-                          inputMode="numeric"
-                          onChange={(e) => {
-                            const value = e.target.value.replace(/\D/g, "");
-                            field.onChange(value);
-                          }}
-                          className={cn(
-                            form.formState.errors.sin &&
-                              "border-red-500 focus-visible:ring-red-500"
-                          )}
-                        />
-                      </FormControl>
-                      <FormDescription className="text-xs">
-                        Your SIN is required for rent reporting and is deleted
-                        after reporting.
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="confirmationNumber"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Payment Confirmation Number </FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="Enter confirmation number (Cheque Number or E-transfer ID)"
-                          {...field}
-                          maxLength={32}
-                          className={cn(
-                            form.formState.errors.confirmationNumber &&
-                              "border-red-500 focus-visible:ring-red-500"
-                          )}
-                        />
-                      </FormControl>
-
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 items-start">
+            <Card title="Submit Rent Payment Proof">
+              <Form {...form}>
+                <form
+                  onSubmit={form.handleSubmit(onSubmit)}
+                  className="space-y-6"
+                >
                   <FormField
                     control={form.control}
-                    name="phoneNumber"
+                    name="sin"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Phone Number</FormLabel>
+                        <FormLabel>Social Insurance Number (SIN)</FormLabel>
                         <FormControl>
                           <Input
-                            placeholder="(123) 456-7890"
+                            placeholder="Enter your 9-digit SIN"
                             {...field}
-                            className={cn(
-                              form.formState.errors.phoneNumber &&
-                                "border-red-500 focus-visible:ring-red-500"
-                            )}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="rentAmount"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Rent Amount ($)</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="number"
-                            step="5"
-                            placeholder="Enter rent amount"
-                            {...field}
+                            maxLength={9}
+                            pattern="\d*"
+                            inputMode="numeric"
                             onChange={(e) => {
-                              const value =
-                                e.target.value &&
-                                Math.max(0, parseFloat(e.target.value) || 0);
+                              const value = e.target.value.replace(/\D/g, "");
                               field.onChange(value);
                             }}
                             className={cn(
-                              form.formState.errors.rentAmount &&
+                              form.formState.errors.sin &&
                                 "border-red-500 focus-visible:ring-red-500"
                             )}
                           />
                         </FormControl>
+                        <FormDescription className="text-xs">
+                          Your SIN is required for rent reporting and is deleted
+                          after reporting.
+                        </FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
-                </div>
 
-                <FormField
-                  control={form.control}
-                  name="addressChanged"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Has your address changed?</FormLabel>
-                      <FormControl>
-                        <RadioGroup
-                          onValueChange={(value) => {
-                            const isChanged = value === "true";
-                            field.onChange(isChanged);
-                            if (!isChanged) {
-                              form.setValue("newAddress", null);
-                            } else {
-                              form.setValue("newAddress", {
-                                address1: "",
-                                address2: "",
-                                city: "",
-                                provinceState: "",
-                                postalZipCode: "",
-                                countryCode: "CN",
-                              });
-                            }
-                          }}
-                          defaultValue={field.value ? "true" : "false"}
-                          className="flex flex-row gap-6"
-                        >
-                          <FormItem className="flex items-center space-x-3 space-y-0">
-                            <FormControl>
-                              <RadioGroupItem value="true" />
-                            </FormControl>
-                            <FormLabel className="font-normal">Yes</FormLabel>
-                          </FormItem>
-                          <FormItem className="flex items-center space-x-3 space-y-0">
-                            <FormControl>
-                              <RadioGroupItem value="false" />
-                            </FormControl>
-                            <FormLabel className="font-normal">No</FormLabel>
-                          </FormItem>
-                        </RadioGroup>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                  <FormField
+                    control={form.control}
+                    name="confirmationNumber"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Payment Confirmation Number </FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="Enter confirmation number (Cheque Number or E-transfer ID)"
+                            {...field}
+                            maxLength={32}
+                            className={cn(
+                              form.formState.errors.confirmationNumber &&
+                                "border-red-500 focus-visible:ring-red-500"
+                            )}
+                          />
+                        </FormControl>
 
-                {form.watch("addressChanged") && (
-                  <div className="space-y-4">
-                    <div className="p-3 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-xl">
-                      <p className="text-sm text-blue-700 dark:text-blue-400 font-medium">
-                        ℹ️ Your address update will be processed by our backend
-                        system
-                      </p>
-                    </div>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FormField
                       control={form.control}
-                      name="newAddress.address1"
+                      name="phoneNumber"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Address Line 1</FormLabel>
+                          <FormLabel>Phone Number</FormLabel>
                           <FormControl>
                             <Input
-                              placeholder="Street address"
+                              placeholder="(123) 456-7890"
                               {...field}
                               className={cn(
-                                form.formState.errors.newAddress?.address1 &&
+                                form.formState.errors.phoneNumber &&
                                   "border-red-500 focus-visible:ring-red-500"
                               )}
                             />
@@ -678,34 +569,100 @@ export default function RentReportingMagicLinkPage() {
 
                     <FormField
                       control={form.control}
-                      name="newAddress.address2"
+                      name="rentAmount"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Address Line 2 (Optional)</FormLabel>
+                          <FormLabel>Rent Amount ($)</FormLabel>
                           <FormControl>
                             <Input
-                              placeholder="Apartment, suite, unit, etc."
+                              type="number"
+                              step="5"
+                              placeholder="Enter rent amount"
                               {...field}
+                              onChange={(e) => {
+                                const value =
+                                  e.target.value &&
+                                  Math.max(0, parseFloat(e.target.value) || 0);
+                                field.onChange(value);
+                              }}
+                              className={cn(
+                                form.formState.errors.rentAmount &&
+                                  "border-red-500 focus-visible:ring-red-500"
+                              )}
                             />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
+                  </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="addressChanged"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Has your address changed?</FormLabel>
+                        <FormControl>
+                          <RadioGroup
+                            onValueChange={(value) => {
+                              const isChanged = value === "true";
+                              field.onChange(isChanged);
+                              if (!isChanged) {
+                                form.setValue("newAddress", null);
+                              } else {
+                                form.setValue("newAddress", {
+                                  address1: "",
+                                  address2: "",
+                                  city: "",
+                                  provinceState: "",
+                                  postalZipCode: "",
+                                  countryCode: "CN",
+                                });
+                              }
+                            }}
+                            defaultValue={field.value ? "true" : "false"}
+                            className="flex flex-row gap-6"
+                          >
+                            <FormItem className="flex items-center space-x-3 space-y-0">
+                              <FormControl>
+                                <RadioGroupItem value="true" />
+                              </FormControl>
+                              <FormLabel className="font-normal">Yes</FormLabel>
+                            </FormItem>
+                            <FormItem className="flex items-center space-x-3 space-y-0">
+                              <FormControl>
+                                <RadioGroupItem value="false" />
+                              </FormControl>
+                              <FormLabel className="font-normal">No</FormLabel>
+                            </FormItem>
+                          </RadioGroup>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  {form.watch("addressChanged") && (
+                    <div className="space-y-4">
+                      <div className="p-3 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-xl">
+                        <p className="text-sm text-blue-700 dark:text-blue-400 font-medium">
+                          ℹ️ Your address update will be processed by our
+                          backend system
+                        </p>
+                      </div>
                       <FormField
                         control={form.control}
-                        name="newAddress.city"
+                        name="newAddress.address1"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>City</FormLabel>
+                            <FormLabel>Address Line 1</FormLabel>
                             <FormControl>
                               <Input
-                                placeholder="City"
+                                placeholder="Street address"
                                 {...field}
                                 className={cn(
-                                  form.formState.errors.newAddress?.city &&
+                                  form.formState.errors.newAddress?.address1 &&
                                     "border-red-500 focus-visible:ring-red-500"
                                 )}
                               />
@@ -717,43 +674,14 @@ export default function RentReportingMagicLinkPage() {
 
                       <FormField
                         control={form.control}
-                        name="newAddress.provinceState"
+                        name="newAddress.address2"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Province/State</FormLabel>
+                            <FormLabel>Address Line 2 (Optional)</FormLabel>
                             <FormControl>
                               <Input
-                                placeholder="Province or State"
+                                placeholder="Apartment, suite, unit, etc."
                                 {...field}
-                                className={cn(
-                                  form.formState.errors.newAddress
-                                    ?.provinceState &&
-                                    "border-red-500 focus-visible:ring-red-500"
-                                )}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <FormField
-                        control={form.control}
-                        name="newAddress.postalZipCode"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Postal/ZIP Code</FormLabel>
-                            <FormControl>
-                              <Input
-                                placeholder="Postal or ZIP code"
-                                {...field}
-                                className={cn(
-                                  form.formState.errors.newAddress
-                                    ?.postalZipCode &&
-                                    "border-red-500 focus-visible:ring-red-500"
-                                )}
                               />
                             </FormControl>
                             <FormMessage />
@@ -761,152 +689,221 @@ export default function RentReportingMagicLinkPage() {
                         )}
                       />
 
-                      <FormField
-                        control={form.control}
-                        name="newAddress.countryCode"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Country Code</FormLabel>
-                            <FormControl>
-                              <Select
-                                value={field.value}
-                                onValueChange={field.onChange}
-                                defaultValue="CN"
-                              >
-                                <SelectTrigger
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <FormField
+                          control={form.control}
+                          name="newAddress.city"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>City</FormLabel>
+                              <FormControl>
+                                <Input
+                                  placeholder="City"
+                                  {...field}
                                   className={cn(
-                                    "w-full",
-                                    form.formState.errors.newAddress
-                                      ?.countryCode &&
+                                    form.formState.errors.newAddress?.city &&
                                       "border-red-500 focus-visible:ring-red-500"
                                   )}
-                                >
-                                  {field.value !== "CN" ? "USA" : "Canada"}
-                                </SelectTrigger>
-                                <SelectContent style={{ zIndex: 9999 }}>
-                                  <SelectGroup>
-                                    <SelectLabel>Country</SelectLabel>
-                                    <SelectItem value="CN">Canada</SelectItem>
-                                    <SelectItem value="US">USA</SelectItem>
-                                  </SelectGroup>
-                                </SelectContent>
-                              </Select>
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                  </div>
-                )}
-
-                <FormField
-                  control={form.control}
-                  name="paymentDate"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-col">
-                      <FormLabel>Payment Date</FormLabel>
-                      <FormControl>
-                        <input
-                          type="date"
-                          value={
-                            field.value
-                              ? field.value.toISOString().split("T")[0]
-                              : ""
-                          }
-                          onChange={(e) => {
-                            const dateValue = e.target.value
-                              ? new Date(e.target.value)
-                              : undefined;
-                            field.onChange(dateValue);
-                          }}
-                          min={(() => {
-                            const today = new Date();
-                            const lastMonth = new Date(
-                              today.getFullYear(),
-                              today.getMonth() - 1,
-                              15
-                            );
-                            return lastMonth.toISOString().split("T")[0];
-                          })()}
-                          max={new Date().toISOString().split("T")[0]}
-                          className="w-full px-3 py-2 border-2 border-gray-300 dark:border-slate-400 rounded-md bg-white dark:bg-slate-800 text-black dark:text-black focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                          placeholder="Pick a date"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="rentReceipt"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Rent Receipt (Optional)</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="file"
-                          accept=".pdf,.png,.jpg,.jpeg,.webp,.heic,.heif"
-                          onChange={(e) => {
-                            const file = e.target.files?.[0];
-                            if (file) {
-                              // Validate file type
-                              const allowedTypes = [
-                                "application/pdf",
-                                "image/png",
-                                "image/jpeg",
-                                "image/jpg",
-                                "image/webp",
-                                "image/heic",
-                                "image/heif",
-                              ];
-
-                              if (!allowedTypes.includes(file.type)) {
-                                form.setError("rentReceipt", {
-                                  type: "manual",
-                                  message:
-                                    "Please upload a PDF or image file (PNG, JPEG, JPG, WebP, HEIC)",
-                                });
-                                return;
-                              }
-
-                              // Clear any previous errors
-                              form.clearErrors("rentReceipt");
-                              field.onChange(file);
-                            } else {
-                              field.onChange(undefined);
-                            }
-                          }}
-                          className={cn(
-                            "file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200 file:cursor-pointer file:dark:text-black text-gray-900 dark:text-white h-15",
-                            form.formState.errors.rentReceipt &&
-                              "border-red-500 focus-visible:ring-red-500"
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
                           )}
                         />
-                      </FormControl>
-                      <FormDescription className="text-xs">
-                        Upload a PDF or image of your rent receipt for
-                        verification
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
 
-                <Button
-                  type="submit"
-                  className="w-full bg-[#077BFB] hover:bg-[#077BFB]/90 text-white font-medium py-3 rounded-lg transition-colors"
-                  disabled={isLoading}
-                >
-                  {isLoading ? "Submitting..." : "Submit"}
-                </Button>
-              </form>
-            </Form>
-          </Card>
+                        <FormField
+                          control={form.control}
+                          name="newAddress.provinceState"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Province/State</FormLabel>
+                              <FormControl>
+                                <Input
+                                  placeholder="Province or State"
+                                  {...field}
+                                  className={cn(
+                                    form.formState.errors.newAddress
+                                      ?.provinceState &&
+                                      "border-red-500 focus-visible:ring-red-500"
+                                  )}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <FormField
+                          control={form.control}
+                          name="newAddress.postalZipCode"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Postal/ZIP Code</FormLabel>
+                              <FormControl>
+                                <Input
+                                  placeholder="Postal or ZIP code"
+                                  {...field}
+                                  className={cn(
+                                    form.formState.errors.newAddress
+                                      ?.postalZipCode &&
+                                      "border-red-500 focus-visible:ring-red-500"
+                                  )}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name="newAddress.countryCode"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Country Code</FormLabel>
+                              <FormControl>
+                                <Select
+                                  value={field.value}
+                                  onValueChange={field.onChange}
+                                  defaultValue="CN"
+                                >
+                                  <SelectTrigger
+                                    className={cn(
+                                      "w-full",
+                                      form.formState.errors.newAddress
+                                        ?.countryCode &&
+                                        "border-red-500 focus-visible:ring-red-500"
+                                    )}
+                                  >
+                                    {field.value !== "CN" ? "USA" : "Canada"}
+                                  </SelectTrigger>
+                                  <SelectContent style={{ zIndex: 9999 }}>
+                                    <SelectGroup>
+                                      <SelectLabel>Country</SelectLabel>
+                                      <SelectItem value="CN">Canada</SelectItem>
+                                      <SelectItem value="US">USA</SelectItem>
+                                    </SelectGroup>
+                                  </SelectContent>
+                                </Select>
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  <FormField
+                    control={form.control}
+                    name="paymentDate"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-col">
+                        <FormLabel>Payment Date</FormLabel>
+                        <FormControl>
+                          <input
+                            type="date"
+                            value={
+                              field.value
+                                ? field.value.toISOString().split("T")[0]
+                                : ""
+                            }
+                            onChange={(e) => {
+                              const dateValue = e.target.value
+                                ? new Date(e.target.value)
+                                : undefined;
+                              field.onChange(dateValue);
+                            }}
+                            min={(() => {
+                              const today = new Date();
+                              const lastMonth = new Date(
+                                today.getFullYear(),
+                                today.getMonth() - 1,
+                                15
+                              );
+                              return lastMonth.toISOString().split("T")[0];
+                            })()}
+                            max={new Date().toISOString().split("T")[0]}
+                            className="w-full px-3 py-2 border-2 border-gray-300 dark:border-slate-400 rounded-md bg-white dark:bg-slate-800 text-black dark:text-black focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            placeholder="Pick a date"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="rentReceipt"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Rent Receipt (Optional)</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="file"
+                            accept=".pdf,.png,.jpg,.jpeg,.webp,.heic,.heif"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                // Validate file type
+                                const allowedTypes = [
+                                  "application/pdf",
+                                  "image/png",
+                                  "image/jpeg",
+                                  "image/jpg",
+                                  "image/webp",
+                                  "image/heic",
+                                  "image/heif",
+                                ];
+
+                                if (!allowedTypes.includes(file.type)) {
+                                  form.setError("rentReceipt", {
+                                    type: "manual",
+                                    message:
+                                      "Please upload a PDF or image file (PNG, JPEG, JPG, WebP, HEIC)",
+                                  });
+                                  return;
+                                }
+
+                                // Clear any previous errors
+                                form.clearErrors("rentReceipt");
+                                field.onChange(file);
+                              } else {
+                                field.onChange(undefined);
+                              }
+                            }}
+                            className={cn(
+                              "file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200 file:cursor-pointer file:dark:text-black text-gray-900 dark:text-white h-15",
+                              form.formState.errors.rentReceipt &&
+                                "border-red-500 focus-visible:ring-red-500"
+                            )}
+                          />
+                        </FormControl>
+                        <FormDescription className="text-xs">
+                          Upload a PDF or image of your rent receipt for
+                          verification
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <Button
+                    type="submit"
+                    className="w-full bg-[#077BFB] hover:bg-[#077BFB]/90 text-white font-medium py-3 rounded-lg transition-colors"
+                    disabled={isLoading}
+                  >
+                    {isLoading ? "Submitting..." : "Submit"}
+                  </Button>
+                </form>
+              </Form>
+            </Card>
+          </div>
         </div>
       </div>
-    </AppLayout>
+    </div>
   );
 }
