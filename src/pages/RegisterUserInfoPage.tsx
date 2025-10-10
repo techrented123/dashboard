@@ -23,6 +23,7 @@ import {
   FormLabel,
   FormControl,
   FormMessage,
+  FormDescription,
 } from "../ui/form";
 import { Input } from "../ui/input";
 import { Button } from "../components/ui/button";
@@ -463,7 +464,8 @@ export default function RegisterUserInfoPage() {
                     >
                       here
                     </a>{" "}
-                    first. If you've already done this, please continue below.
+                    before proceeding. If you've already done this, please
+                    continue below.
                   </p>
                 </div>
               </div>
@@ -681,6 +683,9 @@ export default function RegisterUserInfoPage() {
                               )}
                             />
                           </FormControl>
+                          <FormDescription className="text-xs text-slate-500 dark:text-slate-400">
+                            We will remind you to report your rent each month
+                          </FormDescription>
                           <FormMessage />
                         </FormItem>
                       )}
