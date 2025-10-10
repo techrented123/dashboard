@@ -8,7 +8,15 @@ import { useCreditScore } from "../lib/hooks/useCreditScore";
 import type { CreditScoreData } from "../lib/credit-score";
 import { useDocuments } from "../lib/hooks/useDocuments";
 import { useBillingData } from "../lib/hooks/useBillingData";
-import { ExternalLinkIcon, FileText, Info } from "lucide-react";
+import {
+  ExternalLinkIcon,
+  FileText,
+  Info,
+  FileSignature,
+  Home,
+  Wifi,
+  Calculator,
+} from "lucide-react";
 import {
   Skeleton,
   SkeletonText,
@@ -62,446 +70,491 @@ export default function DashboardPage() {
               Welcome back! Here's your overview
             </p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-            <Card title="Credit Score">
-              {isLoadingCreditScore ? (
-                <div className="space-y-4">
-                  <SkeletonCircle size="h-16 w-16" className="mx-auto" />
-                  <SkeletonText lines={2} className="text-center" />
-                </div>
-              ) : creditScoreError ? (
-                <div className="">
-                  <p className="text-center text-2xl font-semibold text-slate-400 dark:text-slate-500">
-                    --
-                  </p>
-                  <p className="text-center text-sm text-slate-500 dark:text-slate-400 mt-2">
-                    Error loading credit score
-                  </p>
-                  <Button
-                    className="flex items-center gap-2 mt-5 !bg-[#077BFB]"
-                    onClick={() =>
-                      window.open("https://rented123.com/gold/", "_blank")
-                    }
-                  >
-                    Get More Rewards <ExternalLinkIcon className="w-4 h-4" />
-                  </Button>
-                </div>
-              ) : !creditScoreData ? (
-                <div className="">
-                  <p className="text-center text-2xl font-semibold text-slate-400 dark:text-slate-500">
-                    --
-                  </p>
-                  <p className="text-center text-sm text-slate-500 dark:text-slate-400 mt-2">
-                    No data returned
-                  </p>
-                  <Button
-                    className="flex items-center gap-2 mt-5 !bg-[#077BFB]"
-                    onClick={() =>
-                      window.open("https://rented123.com/gold/", "_blank")
-                    }
-                  >
-                    Get More Rewards <ExternalLinkIcon className="w-4 h-4" />
-                  </Button>
-                </div>
-              ) : creditScoreData?.status === "no_score" ? (
-                <div className="">
-                  <p className="text-center text-2xl font-semibold text-slate-400 dark:text-slate-500">
-                    --
-                  </p>
-
-                  <Button
-                    className="flex items-center gap-2 mt-5 !bg-[#077BFB] text-white"
-                    onClick={() =>
-                      window.open(
-                        "https://rented123.com/product/credit-check/",
-                        "_blank"
-                      )
-                    }
-                  >
-                    Check My Credit Score{" "}
-                    <ExternalLinkIcon className="w-4 h-4" />
-                  </Button>
-                </div>
-              ) : (creditScoreData?.status as string) === "no_score" ? (
-                <div className="">
-                  <p className="text-center text-2xl font-semibold text-slate-400 dark:text-slate-500">
-                    --
-                  </p>
-                  <p className="text-center text-sm text-slate-500 dark:text-slate-400 mt-2">
-                    Credit score not available yet
-                  </p>
-                  <p className="text-center text-xs text-slate-400 mt-1">
-                    Subscribe to view your credit score
-                  </p>
-                  <Button
-                    className="mt-4 !bg-[#077BFB]"
-                    onClick={() =>
-                      window.open("https://rented123.com/gold/", "_blank")
-                    }
-                  >
-                    Get Credit Monitoring{" "}
-                    <ExternalLinkIcon className="w-4 h-4" />
-                  </Button>
-                </div>
-              ) : (
-                <>
-                  <ScoreGauge
-                    value={creditScoreData?.score || 0}
-                    min={creditScoreData?.min || 300}
-                    max={creditScoreData?.max || 850}
-                  />
-                  <p className="text-xs text-slate-500 mt-2">
-                    as of{" "}
-                    {creditScoreData?.lastUpdated
-                      ? new Date(
-                          creditScoreData.lastUpdated
-                        ).toLocaleDateString("en-US", {
-                          month: "short",
-                          day: "numeric",
-                          year: "numeric",
-                        })
-                      : "Unknown date"}{" "}
-                    • {creditScoreData?.bureau || "Educational only"}
-                  </p>
-                </>
-              )}
-            </Card>
-            <Card title="Next Report Date">
-              <div className="text-2xl font-bold dark:text-white">
-                {(() => {
-                  const today = new Date();
-                  const currentDay = today.getDate();
-
-                  // If we're past the 4th of this month, show next month's 4th
-                  // Otherwise, show this month's 4th
-                  const targetDate = new Date(
-                    today.getFullYear(),
-                    today.getMonth(),
-                    4
-                  );
-                  if (currentDay > 4) {
-                    targetDate.setMonth(targetDate.getMonth() + 1);
-                  }
-
-                  return targetDate.toLocaleDateString("en-US", {
-                    month: "short",
-                    day: "numeric",
-                    year: "numeric",
-                  });
-                })()}
-              </div>
-              <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
-                We&apos;ll remind you 3 days before.
-              </p>
-              <Button
-                className="mt-5 !bg-[#077BFB] text-white"
-                onClick={() => navigate("/rent-reporting")}
-              >
-                Report Now
-              </Button>
-            </Card>
-            <Card title="Last Report Status">
-              {(() => {
-                if (isLoadingReports) {
-                  return (
-                    <div className="space-y-3">
-                      <Skeleton className="h-8 w-24" />
-                      <Skeleton className="h-4 w-32" />
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+            <div className="lg:col-span-2 space-y-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                <Card title="Credit Score">
+                  {isLoadingCreditScore ? (
+                    <div className="space-y-4">
+                      <SkeletonCircle size="h-16 w-16" className="mx-auto" />
+                      <SkeletonText lines={2} className="text-center" />
                     </div>
-                  );
-                }
-
-                if (rentReports.length === 0) {
-                  return (
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-slate-400 dark:text-slate-500">
+                  ) : creditScoreError ? (
+                    <div className="">
+                      <p className="text-center text-2xl font-semibold text-slate-400 dark:text-slate-500">
                         --
-                      </div>
-                      <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
-                        No reports yet
                       </p>
+                      <p className="text-center text-sm text-slate-500 dark:text-slate-400 mt-2">
+                        Error loading credit score
+                      </p>
+                      <Button
+                        className="flex items-center gap-2 mt-5 !bg-[#077BFB]"
+                        onClick={() =>
+                          window.open("https://rented123.com/gold/", "_blank")
+                        }
+                      >
+                        Get More Rewards{" "}
+                        <ExternalLinkIcon className="w-4 h-4" />
+                      </Button>
                     </div>
-                  );
-                }
-
-                // Get the most recent report
-                const lastReport = rentReports.sort(
-                  (a: any, b: any) =>
-                    new Date(b.paymentDate).getTime() -
-                    new Date(a.paymentDate).getTime()
-                )[0];
-
-                const statusColor =
-                  lastReport.status === "Reported"
-                    ? "text-green-600"
-                    : lastReport.status === "Late"
-                    ? "text-yellow-600"
-                    : "text-red-600";
-
-                const statusMessage =
-                  lastReport.status === "Reported"
-                    ? "On-time payment recorded."
-                    : lastReport.status === "Late"
-                    ? "Payment was late."
-                    : "Payment was missed.";
-
-                return (
-                  <>
-                    <div className={`text-2xl font-bold ${statusColor}`}>
-                      {lastReport.status}
+                  ) : !creditScoreData ? (
+                    <div className="">
+                      <p className="text-center text-2xl font-semibold text-slate-400 dark:text-slate-500">
+                        --
+                      </p>
+                      <p className="text-center text-sm text-slate-500 dark:text-slate-400 mt-2">
+                        No data returned
+                      </p>
+                      <Button
+                        className="flex items-center gap-2 mt-5 !bg-[#077BFB]"
+                        onClick={() =>
+                          window.open("https://rented123.com/gold/", "_blank")
+                        }
+                      >
+                        Get More Rewards{" "}
+                        <ExternalLinkIcon className="w-4 h-4" />
+                      </Button>
                     </div>
-                    <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
-                      {statusMessage}
-                    </p>
-                  </>
-                );
-              })()}
-            </Card>
+                  ) : creditScoreData?.status === "no_score" ? (
+                    <div className="">
+                      <p className="text-center text-2xl font-semibold text-slate-400 dark:text-slate-500">
+                        --
+                      </p>
 
-            <Card
-              title={
-                <div className="flex items-center justify-between">
-                  <span>Rent to Own</span>
-                  <div className="group relative">
-                    <Info className="w-4 h-4 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 cursor-pointer" />
-                    <div className="absolute bottom-full left-0 mb-2 w-64 p-3 bg-slate-900 dark:bg-slate-700 text-white text-sm rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10">
-                      Earn points with each rent payment and purchase your dream
-                      home quicker
-                      <div className="absolute top-full left-4 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-slate-900 dark:border-t-slate-700"></div>
+                      <Button
+                        className="flex items-center gap-2 mt-5 !bg-[#077BFB] text-white"
+                        onClick={() =>
+                          window.open(
+                            "https://rented123.com/product/credit-check/",
+                            "_blank"
+                          )
+                        }
+                      >
+                        Check My Credit Score{" "}
+                        <ExternalLinkIcon className="w-4 h-4" />
+                      </Button>
                     </div>
+                  ) : (creditScoreData?.status as string) === "no_score" ? (
+                    <div className="">
+                      <p className="text-center text-2xl font-semibold text-slate-400 dark:text-slate-500">
+                        --
+                      </p>
+                      <p className="text-center text-sm text-slate-500 dark:text-slate-400 mt-2">
+                        Credit score not available yet
+                      </p>
+                      <p className="text-center text-xs text-slate-400 mt-1">
+                        Subscribe to view your credit score
+                      </p>
+                      <Button
+                        className="mt-4 !bg-[#077BFB]"
+                        onClick={() =>
+                          window.open("https://rented123.com/gold/", "_blank")
+                        }
+                      >
+                        Get Credit Monitoring{" "}
+                        <ExternalLinkIcon className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  ) : (
+                    <>
+                      <ScoreGauge
+                        value={creditScoreData?.score || 0}
+                        min={creditScoreData?.min || 300}
+                        max={creditScoreData?.max || 850}
+                      />
+                      <p className="text-xs text-slate-500 mt-2">
+                        as of{" "}
+                        {creditScoreData?.lastUpdated
+                          ? new Date(
+                              creditScoreData.lastUpdated
+                            ).toLocaleDateString("en-US", {
+                              month: "short",
+                              day: "numeric",
+                              year: "numeric",
+                            })
+                          : "Unknown date"}{" "}
+                        • {creditScoreData?.bureau || "Educational only"}
+                      </p>
+                    </>
+                  )}
+                </Card>
+                <Card title="Next Report Date">
+                  <div className="text-2xl font-bold dark:text-white">
+                    {(() => {
+                      const today = new Date();
+                      const currentDay = today.getDate();
+
+                      // If we're past the 4th of this month, show next month's 4th
+                      // Otherwise, show this month's 4th
+                      const targetDate = new Date(
+                        today.getFullYear(),
+                        today.getMonth(),
+                        4
+                      );
+                      if (currentDay > 4) {
+                        targetDate.setMonth(targetDate.getMonth() + 1);
+                      }
+
+                      return targetDate.toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                      });
+                    })()}
                   </div>
-                </div>
-              }
-            >
-              <div className="text-2xl font-extrabold dark:text-white">
-                {Math.round(goldMemberPoints)} pts
-              </div>
-              {/*   <div className="text-sm text-slate-600 dark:text-slate-400">
+                  <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+                    We&apos;ll remind you 3 days before.
+                  </p>
+                  <Button
+                    className="mt-5 !bg-[#077BFB] text-white"
+                    onClick={() => navigate("/rent-reporting")}
+                  >
+                    Report Now
+                  </Button>
+                </Card>
+
+                <Card
+                  title={
+                    <div className="flex items-center justify-between">
+                      <span>Rent to Own</span>
+                      <div className="group relative">
+                        <Info className="w-4 h-4 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 cursor-pointer" />
+                        <div className="absolute bottom-full left-0 mb-2 w-64 p-3 bg-slate-900 dark:bg-slate-700 text-white text-sm rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10">
+                          Earn points with each rent payment and purchase your
+                          dream home quicker
+                          <div className="absolute top-full left-4 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-slate-900 dark:border-t-slate-700"></div>
+                        </div>
+                      </div>
+                    </div>
+                  }
+                >
+                  <div className="text-2xl font-extrabold dark:text-white">
+                    {Math.round(goldMemberPoints)} pts
+                  </div>
+                  {/*   <div className="text-sm text-slate-600 dark:text-slate-400">
                 300 pts to next perk
               </div> */}
-              <div className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-full mt-3 overflow-hidden">
-                <div
-                  className="h-full bg-[#077BFB]"
-                  style={{
-                    width: `${Math.min((goldMemberPoints / 1800) * 100, 100)}%`,
-                  }}
-                />
+                  <div className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-full mt-3 overflow-hidden">
+                    <div
+                      className="h-full bg-[#077BFB]"
+                      style={{
+                        width: `${Math.min(
+                          (goldMemberPoints / 1800) * 100,
+                          100
+                        )}%`,
+                      }}
+                    />
+                  </div>
+                  <div className="mt-3">
+                    {billingData?.subscription?.plan_name !== "Gold" && (
+                      <Button
+                        className="text-white mt-5 !bg-[#077BFB] flex items-center gap-2"
+                        onClick={() => {
+                          if (billingData?.manageSubscriptionUrl) {
+                            window.open(
+                              billingData.manageSubscriptionUrl,
+                              "_blank",
+                              "noopener,noreferrer"
+                            );
+                          } else {
+                            window.open(
+                              "https://rented123.com/pricing-2/",
+                              "_blank"
+                            );
+                          }
+                        }}
+                      >
+                        Upgrade to Gold <ExternalLinkIcon className="w-4 h-4" />
+                      </Button>
+                    )}
+                  </div>
+                </Card>
               </div>
-              <div className="mt-3">
-                {billingData?.subscription?.plan_name !== "Gold" && (
-                  <Button
-                    className="text-white mt-5 !bg-[#077BFB] flex items-center gap-2"
-                    onClick={() => {
-                      if (billingData?.manageSubscriptionUrl) {
-                        window.open(
-                          billingData.manageSubscriptionUrl,
-                          "_blank",
-                          "noopener,noreferrer"
-                        );
-                      } else {
-                        window.open(
-                          "https://rented123.com/pricing-2/",
-                          "_blank"
-                        );
-                      }
-                    }}
-                  >
-                    Upgrade to Gold <ExternalLinkIcon className="w-4 h-4" />
-                  </Button>
-                )}
-              </div>
-            </Card>
-          </div>
 
-          <section className="mb-6">
-            <h2 className="text-lg font-semibold text-[#32429B] dark:text-primary-300 mb-3">
-              Rent Reporting Timeline
-            </h2>
-            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow p-4">
-              {isLoadingReports ? (
-                <div className="flex flex-wrap gap-3">
-                  {Array.from({ length: 5 }).map((_, index) => (
-                    <Skeleton key={index} className="h-8 w-20 rounded-full" />
-                  ))}
-                </div>
-              ) : (
-                <div className="flex flex-wrap gap-3">
-                  {rentReports.length > 0 ? (
-                    rentReports
-                      .sort(
-                        (a: any, b: any) =>
-                          new Date(b.paymentDate).getTime() -
-                          new Date(a.paymentDate).getTime()
-                      ) // Sort by most recent first
-                      .slice(0, 5) // Show only 5 most recent reports
-                      .map((report: any, i: number) => {
-                        const paymentDate = new Date(report.paymentDate);
-                        const month = paymentDate.toLocaleDateString("en-US", {
-                          month: "short",
-                          year: "numeric",
-                        });
-                        return (
-                          <div
-                            key={i}
-                            className="px-4 py-2 rounded-full border dark:border-slate-600 text-sm flex items-center gap-2"
-                          >
-                            <span className="font-medium text-slate-700 dark:text-slate-300">
-                              {month}
-                            </span>
-                            <StatusPill status={report.status} />
-                          </div>
-                        );
-                      })
+              <section className="mb-6">
+                <h2 className="text-lg font-semibold text-[#32429B] dark:text-primary-300 mb-3">
+                  Rent Reporting Timeline
+                </h2>
+                <div className="bg-white dark:bg-slate-800 rounded-2xl shadow p-4">
+                  {isLoadingReports ? (
+                    <div className="flex flex-wrap gap-3">
+                      {Array.from({ length: 5 }).map((_, index) => (
+                        <Skeleton
+                          key={index}
+                          className="h-8 w-20 rounded-full"
+                        />
+                      ))}
+                    </div>
                   ) : (
-                    <div className="text-[rgb(50,66,155)] dark:text-slate-400 text-sm py-4 px-2">
-                      No rent reports found
+                    <div className="flex flex-wrap gap-3">
+                      {rentReports.length > 0 ? (
+                        rentReports
+                          .sort(
+                            (a: any, b: any) =>
+                              new Date(b.paymentDate).getTime() -
+                              new Date(a.paymentDate).getTime()
+                          ) // Sort by most recent first
+                          .slice(0, 5) // Show only 5 most recent reports
+                          .map((report: any, i: number) => {
+                            const paymentDate = new Date(report.paymentDate);
+                            const month = paymentDate.toLocaleDateString(
+                              "en-US",
+                              {
+                                month: "short",
+                                year: "numeric",
+                              }
+                            );
+                            return (
+                              <div
+                                key={i}
+                                className="px-4 py-2 rounded-full border dark:border-slate-600 text-sm flex items-center gap-2"
+                              >
+                                <span className="font-medium text-slate-700 dark:text-slate-300">
+                                  {month}
+                                </span>
+                                <StatusPill status={report.status} />
+                              </div>
+                            );
+                          })
+                      ) : (
+                        <div className="text-[rgb(50,66,155)] dark:text-slate-400 text-sm py-4 px-2">
+                          No rent reports found
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  {rentReports.length > 0 && (
+                    <div className="mt-4">
+                      <Button
+                        variant="link"
+                        className="hover:underline px-4 dark:text-white bg-white dark:bg-slate-800"
+                        onClick={() => navigate("/rent-reporting")}
+                      >
+                        View full history →
+                      </Button>
                     </div>
                   )}
                 </div>
-              )}
-              {rentReports.length > 0 && (
-                <div className="mt-4">
-                  <Button
-                    variant="link"
-                    className="hover:underline px-4 dark:text-white bg-white dark:bg-slate-800"
-                    onClick={() => navigate("/rent-reporting")}
-                  >
-                    View full history →
-                  </Button>
-                </div>
-              )}
-            </div>
-          </section>
-
-          <section className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
-            <Card title="Documents">
-              {isLoadingDocuments ? (
-                <div className="space-y-3">
-                  <SkeletonText lines={3} />
-                  <div className="flex gap-2">
-                    <SkeletonButton />
-                    <SkeletonButton />
-                  </div>
-                </div>
-              ) : documents.length > 0 ? (
-                <ul className="text-sm text-slate-700 dark:text-slate-300 space-y-1 list-disc pl-5">
-                  {documents
-                    .sort(
-                      (a: any, b: any) =>
-                        new Date(b.updatedAt).getTime() -
-                        new Date(a.updatedAt).getTime()
-                    )
-                    .slice(0, 3)
-                    .map((doc: any) => (
-                      <li key={doc.docId} className="break-words">
-                        {doc.filename}
-                      </li>
-                    ))}
-                </ul>
-              ) : (
-                <div className="flex flex-col justify-between min-h-[100px]">
-                  <div className="flex-1 flex items-start justify-center">
-                    <div className="text-center">
-                      <div className="w-16 h-16 mx-auto mb-0 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center">
-                        <FileText className="w-8 h-8 text-slate-400" />
+              </section>
+              <section className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+                <Card title="Documents">
+                  {isLoadingDocuments ? (
+                    <div className="space-y-3">
+                      <SkeletonText lines={3} />
+                      <div className="flex gap-2">
+                        <SkeletonButton />
+                        <SkeletonButton />
                       </div>
-                      <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">
-                        No Documents Uploaded Yet
-                      </p>
                     </div>
-                  </div>
-                </div>
-              )}
-              <div className="mt-4 flex gap-2">
-                <Button
-                  variant="link"
-                  onClick={() => navigate("/documents")}
-                  className="hover:underline px-4 dark:text-white bg-white dark:bg-slate-800"
-                >
-                  Open Documents →
-                </Button>
-              </div>
-            </Card>
-            <Card title="Billing">
-              {isLoadingBilling ? (
-                <div className="space-y-3">
-                  <SkeletonText lines={3} />
-                  <div className="flex gap-2">
-                    <SkeletonButton />
-                    <SkeletonButton />
-                  </div>
-                </div>
-              ) : billingData ? (
-                <>
-                  <div className="text-sm text-slate-700 dark:text-slate-300">
-                    Plan:{" "}
-                    <span className="font-semibold">
-                      {billingData.subscription?.plan_name || "N/A"}
-                    </span>
-                  </div>
-                  <div className="text-sm text-slate-700 dark:text-slate-300">
-                    Renewal:{" "}
-                    <span className="font-semibold">
-                      {billingData.subscription?.current_period_end
-                        ? new Date(
-                            billingData.subscription.current_period_end
-                          ).toLocaleDateString("en-US", {
-                            month: "short",
-                            day: "numeric",
-                            year: "numeric",
-                          })
-                        : "N/A"}
-                    </span>
-                  </div>
-                  <div className="text-sm text-slate-700 dark:text-slate-300">
-                    Payment:{" "}
-                    <span className="font-semibold">
-                      {billingData.payment_method
-                        ? `•••• ${billingData.payment_method.last4}`
-                        : "No payment method"}
-                    </span>
-                  </div>
-                  <Button
-                    variant="link"
-                    onClick={() => navigate("/billing")}
-                    className="hover:underline px-0 mt-2 dark:text-white bg-white dark:bg-slate-800"
-                  >
-                    Manage Billing →
-                  </Button>
-                </>
-              ) : (
-                <div className="flex flex-col justify-between min-h-[100px]">
-                  <div className="flex-1 flex items-start justify-center">
-                    <div className="text-center">
-                      <div className="w-16 h-16 mx-auto mb-0 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center">
-                        <svg
-                          className="w-8 h-8 text-slate-400"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
-                          />
-                        </svg>
+                  ) : documents.length > 0 ? (
+                    <ul className="text-sm text-slate-700 dark:text-slate-300 space-y-1 list-disc pl-5">
+                      {documents
+                        .sort(
+                          (a: any, b: any) =>
+                            new Date(b.updatedAt).getTime() -
+                            new Date(a.updatedAt).getTime()
+                        )
+                        .slice(0, 3)
+                        .map((doc: any) => (
+                          <li key={doc.docId} className="break-words">
+                            {doc.filename}
+                          </li>
+                        ))}
+                    </ul>
+                  ) : (
+                    <div className="flex flex-col justify-between min-h-[100px]">
+                      <div className="flex-1 flex items-start justify-center">
+                        <div className="text-center">
+                          <div className="w-16 h-16 mx-auto mb-0 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center">
+                            <FileText className="w-8 h-8 text-slate-400" />
+                          </div>
+                          <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">
+                            No Documents Uploaded Yet
+                          </p>
+                        </div>
                       </div>
-                      <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">
-                        No billing information found
-                      </p>
                     </div>
-                  </div>
-                  <div className="mt-2">
-                    <Button variant="link" onClick={() => navigate("/billing")}>
-                      Open Billing →
+                  )}
+                  <div className="mt-4 flex gap-2">
+                    <Button
+                      variant="link"
+                      onClick={() => navigate("/documents")}
+                      className="hover:underline px-4 dark:text-white bg-white dark:bg-slate-800"
+                    >
+                      Open Documents →
                     </Button>
                   </div>
-                </div>
-              )}
-            </Card>
-          </section>
+                </Card>
+                <Card title="Billing">
+                  {isLoadingBilling ? (
+                    <div className="space-y-3">
+                      <SkeletonText lines={3} />
+                      <div className="flex gap-2">
+                        <SkeletonButton />
+                        <SkeletonButton />
+                      </div>
+                    </div>
+                  ) : billingData ? (
+                    <>
+                      <div className="text-sm text-slate-700 dark:text-slate-300">
+                        Plan:{" "}
+                        <span className="font-semibold">
+                          {billingData.subscription?.plan_name || "N/A"}
+                        </span>
+                      </div>
+                      <div className="text-sm text-slate-700 dark:text-slate-300">
+                        Renewal:{" "}
+                        <span className="font-semibold">
+                          {billingData.subscription?.current_period_end
+                            ? new Date(
+                                billingData.subscription.current_period_end
+                              ).toLocaleDateString("en-US", {
+                                month: "short",
+                                day: "numeric",
+                                year: "numeric",
+                              })
+                            : "N/A"}
+                        </span>
+                      </div>
+                      <div className="text-sm text-slate-700 dark:text-slate-300">
+                        Payment:{" "}
+                        <span className="font-semibold">
+                          {billingData.payment_method
+                            ? `•••• ${billingData.payment_method.last4}`
+                            : "No payment method"}
+                        </span>
+                      </div>
+                      <Button
+                        variant="link"
+                        onClick={() => navigate("/billing")}
+                        className="hover:underline px-0 mt-2 dark:text-white bg-white dark:bg-slate-800"
+                      >
+                        Manage Billing →
+                      </Button>
+                    </>
+                  ) : (
+                    <div className="flex flex-col justify-between min-h-[100px]">
+                      <div className="flex-1 flex items-start justify-center">
+                        <div className="text-center">
+                          <div className="w-16 h-16 mx-auto mb-0 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center">
+                            <svg
+                              className="w-8 h-8 text-slate-400"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
+                              />
+                            </svg>
+                          </div>
+                          <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">
+                            No billing information found
+                          </p>
+                        </div>
+                      </div>
+                      <div className="mt-2">
+                        <Button
+                          variant="link"
+                          onClick={() => navigate("/billing")}
+                        >
+                          Open Billing →
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </Card>
+              </section>
+            </div>
+
+            <aside className="lg:col-span-1">
+              <section className="mb-6 lg:sticky lg:top-16">
+                {(() => {
+                  const services = [
+                    {
+                      title: "Telus Discount",
+                      description:
+                        "Receive discounts on your wifi & data services with Telus",
+                      href: "https://forms.monday.com/forms/c68bfe588586b4d4edeac574337c140f?r=use1",
+                      icon: Wifi,
+                    },
+                    {
+                      title: "Financial Needs Analysis",
+                      description:
+                        "Get a free financial needs analysis from our financial partners",
+                      href: "https://primericafinancialservices.pipedrive.com/scheduler/WrzvrvH1/intro-review-call",
+                      icon: Calculator,
+                    },
+                    /*  {
+                      title: "Renter’s Insurance",
+                      description:
+                        "Protect your belongings with affordable coverage",
+                      href: "https://rented123.com/renters-insurance/",
+                      icon: ShieldCheck,
+                    },
+                    {
+                      title: "Credit Monitoring",
+                      description: "Track changes and protect your credit",
+                      href: "https://rented123.com/product/credit-check/",
+                      icon: CreditCard,
+                    }, */
+                    {
+                      title: "Mortgage Approval",
+                      description:
+                        "See if you qualify for a mortgage with our mortgage specialists",
+                      href: "https://angelacalla.ca/request-a-call-back/",
+                      icon: FileSignature,
+                    },
+                    {
+                      title: "Find New Housing",
+                      description: "See more housing options",
+                      href: "https://rented123.com/properties/",
+                      icon: Home,
+                    },
+                  ];
+
+                  return (
+                    <div className="bg-white dark:bg-slate-800 rounded-2xl shadow p-4 lg:max-h-[calc(100vh-64px)] overflow-auto">
+                      <h2 className="text-lg font-semibold text-[#32429B] dark:text-primary-300 mb-3">
+                        Quick Actions
+                      </h2>
+                      <div className="flex flex-col gap-3">
+                        {services.map(
+                          ({ title, description, href, icon: Icon }, idx) => (
+                            <a
+                              key={idx}
+                              href={href}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="group flex items-center justify-between gap-3 rounded-xl border border-slate-200 dark:border-slate-700 px-4 py-3 hover:shadow-sm hover:border-slate-300 dark:hover:border-slate-600 transition-colors"
+                            >
+                              <div className="flex items-center gap-3 min-w-0">
+                                <div className="w-10 h-10 rounded-lg bg-slate-100 dark:bg-slate-700 flex items-center justify-center shrink-0">
+                                  <Icon className="w-5 h-5 text-[#077BFB]" />
+                                </div>
+                                <div className="min-w-0">
+                                  <div className="text-sm font-semibold text-slate-800 dark:text-slate-100 truncate">
+                                    {title}
+                                  </div>
+                                  <div className="text-xs text-slate-500 dark:text-slate-400 truncate">
+                                    {description}
+                                  </div>
+                                </div>
+                              </div>
+                              <ExternalLinkIcon className="w-4 h-4 text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300 shrink-0" />
+                            </a>
+                          )
+                        )}
+                      </div>
+                    </div>
+                  );
+                })()}
+              </section>
+            </aside>
+          </div>
 
           {/*  <section className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <Card title="AI Agent Recap">

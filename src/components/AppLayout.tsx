@@ -19,7 +19,9 @@ export default function AppLayout({ children }: AppLayoutProps) {
       <div className="flex">
         <Sidebar />
         <main className="flex-1 p-4 md:p-6">
-          <div className="container-padded space-y-6">{children}</div>
+          <div className="max-w-8xl mx-auto px-2 sm:px-4 lg:px-6 space-y-6">
+            {children}
+          </div>
         </main>
       </div>
     </div>
