@@ -37,7 +37,7 @@ export const PLANS: Plan[] = [
   {
     id: 'gold',
     name: 'Gold',
-    price: 24.99,
+    price: 29.99,
     stripeId: import.meta.env.VITE_STRIPE_GOLD_PRICE_ID || 'plan_S3h1gHoLzS1QFt',
     features: [
       'Everything in Silver',
