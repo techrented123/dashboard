@@ -666,7 +666,7 @@ export default function AccountPage() {
           </div>
 
           <Card title="Danger Zone">
-            <div className="border border-red-500/30 rounded-xl p-4 flex items-center justify-between">
+            <div className="border border-red-500/30 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div>
                 <h3 className="font-semibold text-red-700 dark:text-red-300">
                   Delete Account
@@ -681,7 +681,7 @@ export default function AccountPage() {
               </div>
               <button
                 onClick={() => setIsDeleteModalOpen(true)}
-                className="bg-red-600 text-white px-4 py-2 rounded-xl hover:bg-red-700 transition-colors"
+                className="bg-red-600 text-white px-4 py-2 rounded-xl hover:bg-red-700 transition-colors w-full sm:w-auto"
               >
                 Delete My Account
               </button>
