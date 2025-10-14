@@ -326,6 +326,7 @@ export default function RentReportingPage() {
       const formData = {
         userSub: user?.sub, // Include userSub for signed-in users
         rentAmount: data.rentAmount,
+        reportId: user?.sub + "-" + data.paymentDate.toISOString(),
         paymentDate: data.paymentDate.toISOString(),
         receiptS3Key: s3Key, // Include S3 key for later use
         status: status, // 'Late' if after 5th of month, 'Reported' otherwise
