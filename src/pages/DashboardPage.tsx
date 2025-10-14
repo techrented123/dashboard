@@ -80,15 +80,17 @@ export default function DashboardPage() {
                       <SkeletonText lines={2} className="text-center" />
                     </div>
                   ) : creditScoreError ? (
-                    <div className="">
-                      <p className="text-center text-2xl font-semibold text-slate-400 dark:text-slate-500">
-                        --
-                      </p>
-                      <p className="text-center text-sm text-slate-500 dark:text-slate-400 mt-2">
-                        Error loading credit score
-                      </p>
+                    <div className="flex flex-col h-full lg:h-[100px]">
+                      <div className="flex-1 flex flex-col justify-center">
+                        <p className="text-center text-lg font-semibold text-slate-400 dark:text-slate-500">
+                          --
+                        </p>
+                        <p className="text-center text-xs text-slate-500 dark:text-slate-400 mt-2">
+                          Error loading credit score
+                        </p>
+                      </div>
                       <Button
-                        className="flex items-center gap-2 mt-5 !bg-[#077BFB]"
+                        className="flex items-center gap-2 mt-5 !bg-[#077BFB] w-full"
                         onClick={() =>
                           window.open("https://rented123.com/gold/", "_blank")
                         }
@@ -98,15 +100,17 @@ export default function DashboardPage() {
                       </Button>
                     </div>
                   ) : !creditScoreData ? (
-                    <div className="">
-                      <p className="text-center text-2xl font-semibold text-slate-400 dark:text-slate-500">
-                        --
-                      </p>
-                      <p className="text-center text-sm text-slate-500 dark:text-slate-400 mt-2">
-                        No data returned
-                      </p>
+                    <div className="flex flex-col h-full lg:h-[150px]">
+                      <div className="flex-1 flex flex-col justify-center">
+                        <p className="text-center text-lg font-semibold text-slate-400 dark:text-slate-500">
+                          --
+                        </p>
+                        <p className="text-center text-xs text-slate-500 dark:text-slate-400 mt-2">
+                          No data returned
+                        </p>
+                      </div>
                       <Button
-                        className="flex items-center gap-2 mt-5 !bg-[#077BFB]"
+                        className="flex items-center gap-2 mt-5 !bg-[#077BFB] w-full"
                         onClick={() =>
                           window.open("https://rented123.com/gold/", "_blank")
                         }
@@ -116,13 +120,14 @@ export default function DashboardPage() {
                       </Button>
                     </div>
                   ) : creditScoreData?.status === "no_score" ? (
-                    <div className="">
-                      <p className="text-center text-2xl font-semibold text-slate-400 dark:text-slate-500">
-                        --
-                      </p>
-
+                    <div className="flex flex-col h-full lg:h-[150px]">
+                      <div className="flex-1 flex flex-col justify-center">
+                        <p className="text-center text-lg font-semibold text-slate-400 dark:text-slate-500">
+                          --
+                        </p>
+                      </div>
                       <Button
-                        className="flex items-center gap-2 mt-5 !bg-[#077BFB] text-white"
+                        className="flex items-center gap-2 mt-5 !bg-[#077BFB] text-white w-full"
                         onClick={() =>
                           window.open(
                             "https://rented123.com/product/credit-check/",
@@ -135,18 +140,20 @@ export default function DashboardPage() {
                       </Button>
                     </div>
                   ) : (creditScoreData?.status as string) === "no_score" ? (
-                    <div className="">
-                      <p className="text-center text-2xl font-semibold text-slate-400 dark:text-slate-500">
-                        --
-                      </p>
-                      <p className="text-center text-sm text-slate-500 dark:text-slate-400 mt-2">
-                        Credit score not available yet
-                      </p>
-                      <p className="text-center text-xs text-slate-400 mt-1">
-                        Subscribe to view your credit score
-                      </p>
+                    <div className="flex flex-col h-full lg:h-[150px]">
+                      <div className="flex-1 flex flex-col justify-center">
+                        <p className="text-center text-lg font-semibold text-slate-400 dark:text-slate-500">
+                          --
+                        </p>
+                        <p className="text-center text-xs text-slate-500 dark:text-slate-400 mt-2">
+                          Credit score not available yet
+                        </p>
+                        <p className="text-center text-xs text-slate-400 mt-1">
+                          Subscribe to view your credit score
+                        </p>
+                      </div>
                       <Button
-                        className="mt-4 !bg-[#077BFB]"
+                        className="mt-4 !bg-[#077BFB] w-full"
                         onClick={() =>
                           window.open("https://rented123.com/gold/", "_blank")
                         }
@@ -179,38 +186,42 @@ export default function DashboardPage() {
                   )}
                 </Card>
                 <Card title="Next Report Date">
-                  <div className="text-2xl font-bold dark:text-white">
-                    {(() => {
-                      const today = new Date();
-                      const currentDay = today.getDate();
+                  <div className="flex flex-col h-full lg:h-[150px]">
+                    <div className="flex-1 flex flex-col justify-center">
+                      <div className="text-lg font-bold dark:text-white">
+                        {(() => {
+                          const today = new Date();
+                          const currentDay = today.getDate();
 
-                      // If we're past the 4th of this month, show next month's 4th
-                      // Otherwise, show this month's 4th
-                      const targetDate = new Date(
-                        today.getFullYear(),
-                        today.getMonth(),
-                        4
-                      );
-                      if (currentDay > 4) {
-                        targetDate.setMonth(targetDate.getMonth() + 1);
-                      }
+                          // If we're past the 4th of this month, show next month's 4th
+                          // Otherwise, show this month's 4th
+                          const targetDate = new Date(
+                            today.getFullYear(),
+                            today.getMonth(),
+                            4
+                          );
+                          if (currentDay > 4) {
+                            targetDate.setMonth(targetDate.getMonth() + 1);
+                          }
 
-                      return targetDate.toLocaleDateString("en-US", {
-                        month: "short",
-                        day: "numeric",
-                        year: "numeric",
-                      });
-                    })()}
+                          return targetDate.toLocaleDateString("en-US", {
+                            month: "short",
+                            day: "numeric",
+                            year: "numeric",
+                          });
+                        })()}
+                      </div>
+                      <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
+                        We&apos;ll remind you 3 days before.
+                      </p>
+                    </div>
+                    <Button
+                      className="mt-5 !bg-[#077BFB] text-white w-full"
+                      onClick={() => navigate("/rent-reporting")}
+                    >
+                      Report Now
+                    </Button>
                   </div>
-                  <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
-                    We&apos;ll remind you 3 days before.
-                  </p>
-                  <Button
-                    className="mt-5 !bg-[#077BFB] text-white"
-                    onClick={() => navigate("/rent-reporting")}
-                  >
-                    Report Now
-                  </Button>
                 </Card>
 
                 <Card
@@ -228,45 +239,50 @@ export default function DashboardPage() {
                     </div>
                   }
                 >
-                  <div className="text-2xl font-extrabold dark:text-white">
-                    {Math.round(goldMemberPoints)} pts
-                  </div>
-                  {/*   <div className="text-sm text-slate-600 dark:text-slate-400">
-                300 pts to next perk
-              </div> */}
-                  <div className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-full mt-3 overflow-hidden">
-                    <div
-                      className="h-full bg-[#077BFB]"
-                      style={{
-                        width: `${Math.min(
-                          (goldMemberPoints / 1800) * 100,
-                          100
-                        )}%`,
-                      }}
-                    />
-                  </div>
-                  <div className="mt-3">
-                    {billingData?.subscription?.plan_name !== "Gold" && (
-                      <Button
-                        className="text-white mt-5 !bg-[#077BFB] flex items-center gap-2"
-                        onClick={() => {
-                          if (billingData?.manageSubscriptionUrl) {
-                            window.open(
-                              billingData.manageSubscriptionUrl,
-                              "_blank",
-                              "noopener,noreferrer"
-                            );
-                          } else {
-                            window.open(
-                              "https://rented123.com/pricing-2/",
-                              "_blank"
-                            );
-                          }
-                        }}
-                      >
-                        Upgrade to Gold <ExternalLinkIcon className="w-4 h-4" />
-                      </Button>
-                    )}
+                  <div className="flex flex-col h-full lg:h-[150px]">
+                    <div className="flex-1 flex flex-col justify-center">
+                      <div className="text-lg font-extrabold dark:text-white">
+                        {Math.round(goldMemberPoints)} pts
+                      </div>
+                      {/*   <div className="text-xs text-slate-600 dark:text-slate-400">
+                    300 pts to next perk
+                  </div> */}
+                      <div className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-full mt-3 overflow-hidden">
+                        <div
+                          className="h-full bg-[#077BFB]"
+                          style={{
+                            width: `${Math.min(
+                              (goldMemberPoints / 1800) * 100,
+                              100
+                            )}%`,
+                          }}
+                        />
+                      </div>
+                    </div>
+                    <div className="mt-3">
+                      {billingData?.subscription?.plan_name !== "Gold" && (
+                        <Button
+                          className="text-white mt-5 !bg-[#077BFB] flex items-center gap-2 w-full"
+                          onClick={() => {
+                            if (billingData?.manageSubscriptionUrl) {
+                              window.open(
+                                billingData.manageSubscriptionUrl,
+                                "_blank",
+                                "noopener,noreferrer"
+                              );
+                            } else {
+                              window.open(
+                                "https://rented123.com/pricing-2/",
+                                "_blank"
+                              );
+                            }
+                          }}
+                        >
+                          Upgrade to Gold{" "}
+                          <ExternalLinkIcon className="w-4 h-4" />
+                        </Button>
+                      )}
+                    </div>
                   </div>
                 </Card>
               </div>
