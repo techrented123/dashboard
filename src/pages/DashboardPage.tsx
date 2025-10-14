@@ -504,19 +504,6 @@ export default function DashboardPage() {
                       href: "https://primericafinancialservices.pipedrive.com/scheduler/WrzvrvH1/intro-review-call",
                       icon: Calculator,
                     },
-                    /*  {
-                      title: "Renter’s Insurance",
-                      description:
-                        "Protect your belongings with affordable coverage",
-                      href: "https://rented123.com/renters-insurance/",
-                      icon: ShieldCheck,
-                    },
-                    {
-                      title: "Credit Monitoring",
-                      description: "Track changes and protect your credit",
-                      href: "https://rented123.com/product/credit-check/",
-                      icon: CreditCard,
-                    }, */
                     {
                       title: "Mortgage Approval",
                       description:
@@ -532,6 +519,21 @@ export default function DashboardPage() {
                     },
                   ];
 
+                  // Check if user is Bronze member
+                  const isBronzeMember =
+                    billingData?.subscription?.plan_name === "Bronze";
+
+                  // Function to handle click - disabled for Bronze members
+                  const handleServiceClick = (href: string, title: string) => {
+                    if (isBronzeMember) {
+                      // Show upgrade message for Bronze members
+                      alert(`Upgrade to Gold to access ${title}`);
+                      return;
+                    }
+                    // Open link for Gold members and non-subscribers
+                    window.open(href, "_blank", "noopener,noreferrer");
+                  };
+
                   return (
                     <div className="bg-white dark:bg-slate-800 rounded-2xl shadow p-4 lg:max-h-[calc(100vh-64px)] overflow-auto">
                       <h2 className="text-lg font-semibold text-[#32429B] dark:text-primary-300 mb-3">
@@ -540,12 +542,15 @@ export default function DashboardPage() {
                       <div className="flex flex-col gap-3">
                         {services.map(
                           ({ title, description, href, icon: Icon }, idx) => (
-                            <a
+                            <div
                               key={idx}
-                              href={href}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="group flex items-center justify-between gap-3 rounded-xl border border-slate-200 dark:border-slate-700 px-4 py-3 hover:shadow-sm hover:border-slate-300 dark:hover:border-slate-600 transition-colors"
+                              onClick={() => handleServiceClick(href, title)}
+                              className={`group flex items-center justify-between gap-3 rounded-xl border border-slate-200 dark:border-slate-700 px-4 py-3 transition-colors ${
+                                isBronzeMember
+                                  ? "cursor-pointer hover:shadow-sm hover:border-slate-300 dark:hover:border-slate-600 opacity-75"
+                                  : "cursor-pointer hover:shadow-sm hover:border-slate-300 dark:hover:border-slate-600"
+                              }`}
+                              {...(isBronzeMember ? {} : { "data-href": href })}
                             >
                               <div className="flex items-center gap-3 min-w-0">
                                 <div className="w-10 h-10 rounded-lg bg-slate-100 dark:bg-slate-700 flex items-center justify-center shrink-0">
@@ -561,7 +566,7 @@ export default function DashboardPage() {
                                 </div>
                               </div>
                               <ExternalLinkIcon className="w-4 h-4 text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300 shrink-0" />
-                            </a>
+                            </div>
                           )
                         )}
                       </div>
