@@ -166,7 +166,7 @@ export default function RentReportingPage() {
   const handlePreview = async (docId: string) => {
     try {
       setIsLoadingReceipt(true);
-      const response = await getDocumentUrl(docId, false); // false = for viewing, not downloading
+      const response = await getDocumentUrl(docId, "rent-receipts"); // false = for viewing, not downloading
       setReceiptUrl(response.url);
       setIsReceiptDialogOpen(true);
     } catch (error) {

@@ -27,14 +27,14 @@ export async function fetchDocuments() {
 }
 
 /** Fetches a presigned URL for viewing/downloading a specific document.*/
-export async function getDocumentUrl(docId: string, forDownload = false) {
+export async function getDocumentUrl(docId: string, path?: string) {
   const session = await fetchAuthSession();
   const token = session.tokens?.idToken?.toString();
 
   const baseUrl = import.meta.env.VITE_DOCS_API_BASE_URL || "/api";
 
   // All documents now use DynamoDB - no more S3-specific logic needed
-  const apiUrl = `${baseUrl}/documents/${docId}`;
+  const apiUrl = `${baseUrl}/${path || "documents"}/${docId}`;
 
   console.log("Making request to:", apiUrl);
   console.log("DocId:", docId);
@@ -45,7 +45,7 @@ export async function getDocumentUrl(docId: string, forDownload = false) {
       "Content-Type": "application/json",
       Authorization: `Bearer ${token}`,
     },
-    body: JSON.stringify({ download: forDownload }),
+    body: JSON.stringify({ download: false }),
   });
 
   if (!res.ok) {
