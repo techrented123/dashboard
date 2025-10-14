@@ -177,7 +177,6 @@ export default function RentReportingPage() {
     }
   };
 
-
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -332,7 +331,6 @@ export default function RentReportingPage() {
         status: status, // 'Late' if after 5th of month, 'Reported' otherwise
       };
 
-
       // Submit form data to main API endpoint
       const submitBaseUrl =
         import.meta.env.VITE_RENT_REPORTS_API_BASE_URL ||
@@ -350,7 +348,6 @@ export default function RentReportingPage() {
       if (!submitResponse.ok) {
         throw new Error("Failed to submit form data");
       }
-
 
       // Submit tenant data to Lambda
       try {
@@ -1004,8 +1001,13 @@ export default function RentReportingPage() {
                           <td className="py-3 pr-4">
                             {report.key ? (
                               <button
-                                className="text-secondary hover:underline"
+                                className={`text-secondary hover:underline ${
+                                  isLoadingReceipt
+                                    ? "cursor-wait"
+                                    : "cursor-pointer"
+                                }`}
                                 onClick={() => handlePreview(report.docId)}
+                                disabled={isLoadingReceipt}
                               >
                                 View
                               </button>
