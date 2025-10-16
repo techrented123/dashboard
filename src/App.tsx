@@ -13,6 +13,11 @@ import AccountPage from "./pages/AccountPage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import ConfirmPasswordResetPage from "./pages/ConfirmPasswordResetPage";
 import ProtectedRoute from "./components/ProtectedRoute";
+import AdminLoginPage from "./pages/AdminLoginPage";
+import AdminPasswordResetPage from "./pages/AdminPasswordResetPage";
+import AdminPasswordResetConfirmPage from "./pages/AdminPasswordResetConfirmPage";
+import AdminRentReportsPage from "./pages/AdminRentReportsPage";
+import AdminProtectedRoute from "./components/AdminProtectedRoute";
 import { useState, useEffect } from "react";
 import { isAuthenticated } from "./lib/auth";
 
@@ -105,6 +110,33 @@ function App() {
           <ProtectedRoute requireSubscription={true}>
             <AccountPage />
           </ProtectedRoute>
+        }
+      />
+
+      {/* Admin Routes */}
+      <Route path="/admin/login" element={<AdminLoginPage />} />
+      <Route
+        path="/admin/password-reset"
+        element={<AdminPasswordResetPage />}
+      />
+      <Route
+        path="/admin/password-reset-confirm"
+        element={<AdminPasswordResetConfirmPage />}
+      />
+      <Route
+        path="/admin/dashboard"
+        element={
+          <AdminProtectedRoute>
+            <AdminRentReportsPage />
+          </AdminProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/rent-reports"
+        element={
+          <AdminProtectedRoute>
+            <AdminRentReportsPage />
+          </AdminProtectedRoute>
         }
       />
     </Routes>

@@ -316,6 +316,8 @@ export default function RentReportingMagicLinkPage() {
       const formData = {
         userSub: userSub, // Include userSub for magic link submissions
         rentAmount: data.rentAmount,
+        name: userData?.given_name + " " + userData?.family_name, //cognito last name
+        addressChanged: data.addressChanged,
         paymentDate: data.paymentDate.toISOString(),
         receiptS3Key: s3Key, // Include S3 key for later use
         status: status, // 'Late' if after 5th of month, 'Reported' otherwise

@@ -480,3 +480,6 @@ export async function signOutUser(): Promise<void> {
     console.error("Sign out error:", err);
   }
 }
+
+// ---------- Export Amplify functions for admin use ----------
+export { fetchAuthSession, fetchUserAttributes };
