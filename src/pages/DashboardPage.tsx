@@ -16,6 +16,7 @@ import {
   Home,
   Wifi,
   Calculator,
+  CreditCard,
 } from "lucide-react";
 import {
   Skeleton,
@@ -490,6 +491,13 @@ export default function DashboardPage() {
               <section className="mb-6 lg:sticky lg:top-16">
                 {(() => {
                   const services = [
+                    {
+                      title: "RentAdvance with Magical Credit",
+                      description:
+                        "Get up to $1500 in advance on your rent payments with Magical Credit",
+                      href: "https://members.magicalcash.ca/apply.aspx?/?utm_source=rented123&utm_medium=rented123",
+                      icon: CreditCard,
+                    },
                     {
                       title: "Telus Discount",
                       description:
