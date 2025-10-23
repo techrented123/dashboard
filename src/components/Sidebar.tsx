@@ -15,6 +15,11 @@ import { useEffect, useState } from "react";
 const links = [
   { href: "/dashboard", label: "Dashboard", Icon: Home },
   { href: "/rent-reporting", label: "Rent Reporting", Icon: ClipboardCheck },
+  {
+    href: "/back-rent-reporting",
+    label: "Back Rent Reporting",
+    Icon: ClipboardCheck,
+  },
   { href: "/billing", label: "Billing", Icon: DollarSign },
   { href: "/documents", label: "Documents", Icon: FileText },
   { href: "/account", label: "Account", Icon: User },

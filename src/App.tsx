@@ -7,6 +7,8 @@ import SubscribePage from "./pages/SubscribePage";
 import DashboardPage from "./pages/DashboardPage";
 import RentReportingPage from "./pages/RentReportingPage";
 import RentReportingMagicLinkPage from "./pages/RentReportingMagicLinkPage";
+import BackRentReportingPage from "./pages/BackRentReportingPage";
+import BackRentReportingPurchasePage from "./pages/BackRentReportingPurchasePage";
 import BillingPage from "./pages/BillingPage";
 import DocumentsPage from "./pages/DocumentsPage";
 import AccountPage from "./pages/AccountPage";
@@ -87,6 +89,22 @@ function App() {
       <Route
         path="/rent-reporting-magic-link"
         element={<RentReportingMagicLinkPage />}
+      />
+      <Route
+        path="/back-rent-reporting"
+        element={
+          <ProtectedRoute>
+            <BackRentReportingPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/back-rent-reporting/purchase"
+        element={
+          <ProtectedRoute requireSubscription={false}>
+            <BackRentReportingPurchasePage />
+          </ProtectedRoute>
+        }
       />
       <Route
         path="/billing"
