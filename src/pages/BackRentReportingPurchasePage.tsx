@@ -40,9 +40,6 @@ export default function BackRentReportingPurchasePage() {
         return;
       }
 
-      console.log("🔍 Checking user access for back rent reporting");
-      console.log("👤 Current user:", user?.sub);
-
       // Check purchases API for back rent reporting purchases
       const purchasesApiUrl = import.meta.env.DEV
         ? "/api/purchases"
@@ -115,13 +112,11 @@ export default function BackRentReportingPurchasePage() {
   };
   // Check access when component mounts
   useEffect(() => {
-    console.log("🚀 BackRentReportingPurchasePage mounted");
     console.log("👤 User from useAuth:", user);
 
     const initializePage = async () => {
       if (user) {
-        console.log("✅ User available, calling checkUserAccess");
-        //await checkUserAccess();
+        await checkUserAccess();
       } else {
         console.log("❌ No user available, skipping checkUserAccess");
         setCheckingAccess(false);
@@ -184,7 +179,7 @@ export default function BackRentReportingPurchasePage() {
   };
 
   // Show loading spinner while checking access
-  /*   if (checkingAccess) {
+  if (checkingAccess) {
     return (
       <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex items-center justify-center">
         <div className="text-center">
@@ -195,7 +190,7 @@ export default function BackRentReportingPurchasePage() {
         </div>
       </div>
     );
-  } */
+  }
 
   if (!product) {
     return (

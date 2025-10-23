@@ -34,6 +34,15 @@ import { Toast } from "../components/ui/toast";
 import { Skeleton } from "../components/Skeleton";
 import { useAuth } from "../lib/context/authContext";
 import { useRentReports } from "../lib/hooks/useRentReports";
+import { submitTenantData } from "@/lib/submit-tenant-data";
+
+const today = new Date();
+// Calculate minimum start date (1st day of the month, 12 months ago from today)
+const getMinStartDate = (): string => {
+  const minDate = new Date(today.getFullYear() - 1, today.getMonth() - 1, 1);
+  console.log("🔍 Minimum start date:", minDate.toISOString().split("T")[0]);
+  return minDate.toISOString().split("T")[0];
+};
 
 // Form validation schema for back rent reporting
 const formSchema = z
@@ -61,10 +70,6 @@ const formSchema = z
     paymentDate: z.date({ message: "Please select a valid payment date" }),
     rentReceipt: z.instanceof(File).optional(),
     // Additional fields for back rent reporting
-    monthsToReport: z
-      .number({ message: "Please enter number of months to report" })
-      .min(1, "Must report at least 1 month")
-      .max(12, "Cannot report more than 12 months"),
     startDate: z.date({
       message: "Please select a start date for reporting period",
     }),
@@ -80,6 +85,74 @@ const formSchema = z
     {
       message: "New address is required when address has changed",
       path: ["newAddress"],
+    }
+  )
+  .refine(
+    (data) => {
+      // Ensure end date is no more than 12 months from start date
+      if (data.startDate && data.paymentDate) {
+        // Calculate the difference in months more accurately
+        const startYear = data.startDate.getFullYear();
+        const startMonth = data.startDate.getMonth();
+        const endYear = data.paymentDate.getFullYear();
+        const endMonth = data.paymentDate.getMonth();
+
+        // Calculate total months difference
+        const totalMonths =
+          (endYear - startYear) * 12 + (endMonth - startMonth);
+
+        // Allow up to 13 months (1 year + 1 month)
+        // This means Sept 1, 2024 to Sept 30, 2025 is valid (12 months)
+        // and Sept 1, 2024 to Oct 31, 2025 is also valid (13 months)
+        return totalMonths <= 13;
+      }
+      return true;
+    },
+    {
+      message: "End date cannot be more than 12 months from start date",
+      path: ["paymentDate"],
+    }
+  )
+  .refine(
+    (data) => {
+      // Ensure end date is at least 1 month after start date
+      if (data.startDate && data.paymentDate) {
+        const yearDiff =
+          data.paymentDate.getFullYear() - data.startDate.getFullYear();
+        const monthDiff =
+          data.paymentDate.getMonth() - data.startDate.getMonth();
+        const totalMonths = yearDiff * 12 + monthDiff;
+        return totalMonths >= 1;
+      }
+      return true;
+    },
+    {
+      message: "End date must be at least 1 month after start date",
+      path: ["paymentDate"],
+    }
+  )
+  .refine(
+    (data) => {
+      // Ensure start date is not more than 2 months from current month
+      if (data.startDate) {
+        const currentYear = today.getFullYear();
+        const currentMonth = today.getMonth();
+        const startYear = data.startDate.getFullYear();
+        const startMonth = data.startDate.getMonth();
+
+        // Calculate months difference
+        const yearDiff = startYear - currentYear;
+        const monthDiff = startMonth - currentMonth;
+        const totalMonthsDiff = yearDiff * 12 + monthDiff;
+
+        // Allow up to 2 months from current month (including current month)
+        return totalMonthsDiff <= 2;
+      }
+      return true;
+    },
+    {
+      message: "Start date cannot be more than 2 months from the current month",
+      path: ["startDate"],
     }
   );
 
@@ -108,6 +181,7 @@ export default function BackRentReportingPage() {
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
+    mode: "onChange",
     defaultValues: {
       sin: "",
       confirmationNumber: "",
@@ -117,7 +191,6 @@ export default function BackRentReportingPage() {
       newAddress: null,
       paymentDate: new Date(),
       rentReceipt: undefined,
-      monthsToReport: 1,
       startDate: new Date(),
     },
   });
@@ -261,16 +334,23 @@ export default function BackRentReportingPage() {
     formData.append("file", file);
     formData.append("type", "rent_receipt");
 
-    const response = await fetch(
-      "https://zwigvjvyub.execute-api.us-west-2.amazonaws.com/prod/upload",
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        body: formData,
-      }
-    );
+    // Get presigned URL from API
+    const uploadBaseUrl =
+      import.meta.env.VITE_UPLOAD_API_BASE_URL ||
+      "https://rbzn5e69oa.execute-api.us-west-2.amazonaws.com";
+
+    const response = await fetch(uploadBaseUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        filename: file.name,
+        contentType: file.type,
+        userSub: user?.sub,
+      }),
+    });
 
     if (!response.ok) {
       throw new Error("Failed to upload rent receipt");
@@ -296,53 +376,50 @@ export default function BackRentReportingPage() {
       if (data.rentReceipt) {
         s3Key = await uploadRentReceipt(data.rentReceipt);
       }
-
+console.log("user", user);
       // Prepare form data for submission - similar to regular rent reporting
       // but with additional back rent specific fields
-      /* const metro2Data = {
-        email: data.email,
+      const metro2Data = {
+        "Email Address": user?.email,
         "Portfolio Type": "O",
         "Account Type": 29,
         "Date Opened": "",
         "Highest Credit": data.rentAmount,
         "Terms Duration": "001",
         "Terms Frequency": "M",
-        "Scheduled Monthly Payment Amount": user.custom?.MonthlyRent,
+        "Scheduled Monthly Payment Amount": user["custom:MonthlyRent"],
         "Actual Payment Amount": data.rentAmount,
         "Account Status": "11",
         "Payment History Profile": "BBBBBBBBBBBBBBBBBBBBBBBB",
-        "Current Balance": Math.floor(
-          (user.custom?.MonthlyRent || 0) - data.rentAmount
+        "Current Balance": Math.abs(
+          (user["custom:MonthlyRent"] || 0) - data.rentAmount
         ),
         "Date of Account Information": data.paymentDate,
-        "Date of Last Payment": "",
         Surname: user.family_name,
         "First Name": user.given_name,
         "Middle Name": user.middle_name,
         "Social Security Number": data.sin,
         "Date of Birth": user.birthdate,
         "Telephone Number": data.phoneNumber,
-        "Country Code": data.newAddress?.countryCode || user.custom?.country,
+        "Country Code": data.newAddress?.countryCode || user["custom:country"],
         "First Line of Address": data.addressChanged
           ? data.newAddress?.address1
           : user.address,
         "Second Line of Address": data.addressChanged
           ? data.newAddress?.address2
           : "",
-        City: data.addressChanged ? data.newAddress?.city : user.custom?.city,
+        City: data.addressChanged ? data.newAddress?.city : user["custom:city"],
         "Province/State": data.addressChanged
           ? data.newAddress?.provinceState
-          : user.custom?.province,
+          : user["custom:province"],
         "Postal/ZIP Code": data.addressChanged
           ? data.newAddress?.postalZipCode
-          : user.custom?.postalCode,
+          : user["custom:postal_code"],
         // Back rent specific fields
         "Back Rent Reporting": true,
-        "Months to Report": data.monthsToReport,
-        "Reporting Start Date": data.startDate,
-        "Confirmation Number": data.confirmationNumber,
-        "Rent Receipt S3 Key": s3Key,
-      }; */
+        "Back Reporting Start Date": data.startDate,
+        "Back Reporting End Date": data.paymentDate,
+      };
       const formData = {
         userSub: user?.sub, // Include userSub for signed-in users
         rentAmount: data.rentAmount,
@@ -373,28 +450,29 @@ export default function BackRentReportingPage() {
         throw new Error("Failed to submit form data");
       }
 
-      /*  const result = await submitTenantData(metro2Data);
+      const result = await submitTenantData(metro2Data);
 
       if (result.success) {
-        showToast("Back rent payment proof submitted successfully!", "success");
+        showToast("Back rent payment submitted successfully!", "success");
         form.reset();
-        fetchRentReports(); // Refresh the reports list
       } else {
         showToast(
-          result.message || "Failed to submit back rent payment proof",
+          result.message || "Failed to submit back rent payment",
           "error"
         );
-      } */
+      }
     } catch (error: any) {
       console.error("Error submitting back rent payment proof:", error);
       showToast(
         error.message ||
-          "An error occurred while submitting your back rent payment proof",
+          "An error occurred while submitting your back rent payment",
         "error"
       );
     } finally {
       setIsLoading(false);
     }
+
+
   };
 
   const handleReceiptClick = async (s3Key: string) => {
@@ -571,32 +649,6 @@ export default function BackRentReportingPage() {
 
                   <FormField
                     control={form.control}
-                    name="monthsToReport"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Number of Months to Report</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="number"
-                            placeholder="6"
-                            min="1"
-                            max="12"
-                            {...field}
-                            onChange={(e) =>
-                              field.onChange(parseInt(e.target.value) || 1)
-                            }
-                          />
-                        </FormControl>
-                        <FormDescription>
-                          Report up to 12 months of back rent payments
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
                     name="startDate"
                     render={({ field }) => (
                       <FormItem>
@@ -605,18 +657,36 @@ export default function BackRentReportingPage() {
                           <Input
                             type="date"
                             {...field}
+                            min={getMinStartDate()}
+                            max={
+                              new Date(
+                                today.getFullYear(),
+                                today.getMonth() - 2,
+                                1
+                              )
+                                .toISOString()
+                                .split("T")[0]
+                            }
                             value={
                               field.value
                                 ? field.value.toISOString().split("T")[0]
                                 : ""
                             }
-                            onChange={(e) =>
-                              field.onChange(new Date(e.target.value))
-                            }
+                            onChange={(e) => {
+                              field.onChange(new Date(e.target.value));
+                              // Trigger validation for both fields when start date changes
+                              setTimeout(() => {
+                                form.trigger(["startDate", "paymentDate"]);
+                              }, 0);
+                            }}
+                            onBlur={() => {
+                              form.trigger("startDate");
+                            }}
                           />
                         </FormControl>
                         <FormDescription>
                           The start date of the period you want to report
+                          (minimum 12 months ago)
                         </FormDescription>
                         <FormMessage />
                       </FormItem>
@@ -633,16 +703,43 @@ export default function BackRentReportingPage() {
                           <Input
                             type="date"
                             {...field}
+                            min={
+                              form.watch("startDate")
+                                ? new Date(
+                                    form.watch("startDate").getFullYear(),
+                                    form.watch("startDate").getMonth() + 1,
+                                    1
+                                  )
+                                    .toISOString()
+                                    .split("T")[0]
+                                : undefined
+                            }
+                            max={
+                              new Date(today.getFullYear(), today.getMonth(), 0)
+                                .toISOString()
+                                .split("T")[0]
+                            }
                             value={
                               field.value
                                 ? field.value.toISOString().split("T")[0]
                                 : ""
                             }
-                            onChange={(e) =>
-                              field.onChange(new Date(e.target.value))
-                            }
+                            onChange={(e) => {
+                              field.onChange(new Date(e.target.value));
+                              // Trigger validation for both fields when end date changes
+                              setTimeout(() => {
+                                form.trigger(["startDate", "paymentDate"]);
+                              }, 0);
+                            }}
+                            onBlur={() => {
+                              // Trigger validation on blur
+                              form.trigger(["startDate", "paymentDate"]);
+                            }}
                           />
                         </FormControl>
+                        <FormDescription>
+                          The end date of the period you want to report
+                        </FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}

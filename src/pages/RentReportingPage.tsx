@@ -297,7 +297,6 @@ export default function RentReportingPage() {
           user?.["custom:MonthlyRent"] - data.rentAmount
         ),
         "Date of Account Information": data.paymentDate, //chech this
-        "Date of Last Payment": "",
         Surname: user?.family_name, //cognito last name
         "First Name": user?.given_name,
         "Middle Name": user?.middle_name,
@@ -321,6 +320,9 @@ export default function RentReportingPage() {
         "Zip Code": data.addressChanged
           ? data.newAddress?.postalZipCode
           : user?.["custom:postal_code"],
+          "Back Rent Reporting": false,
+          "Reporting Start Date": "N/A",
+          "Reporting End Date": "N/A",
       };
       const formData = {
         userSub: user?.sub, // Include userSub for signed-in users
