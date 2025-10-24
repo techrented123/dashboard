@@ -37,7 +37,6 @@ const today = new Date();
 // Calculate minimum start date (1st day of the month, 12 months ago from today)
 const getMinStartDate = (): string => {
   const minDate = new Date(today.getFullYear() - 1, today.getMonth() - 1, 1);
-  console.log("🔍 Minimum start date:", minDate.toISOString().split("T")[0]);
   return minDate.toISOString().split("T")[0];
 };
 
@@ -233,16 +232,13 @@ export default function BackRentReportingPage() {
         const hasPurchased = purchases.some((purchase: any) => {
           const isBackRentProduct = purchase.product === "back-rent-report";
           const isCurrentUser = purchase.userId === user?.sub;
-
+          const isOneTimeUse = purchase.reported;
           console.log(`🔍 Checking purchase:`, {
-            product: purchase.product,
-            userId: purchase.userId,
-            isBackRentProduct,
-            isCurrentUser,
+            purchase,
             matches: isBackRentProduct && isCurrentUser,
           });
 
-          return isBackRentProduct && isCurrentUser;
+          return isBackRentProduct && isCurrentUser && !isOneTimeUse;
         });
 
         console.log("✅ Has purchased back rent reporting:", hasPurchased);
@@ -258,6 +254,18 @@ export default function BackRentReportingPage() {
           console.log(
             "🎉 User has purchased back rent reporting, showing form"
           );
+          const unreportedPurchases = purchases.filter(
+            (purchase: any) =>
+              purchase.product === "back-rent-report" &&
+              purchase.userId === user?.sub &&
+              (purchase.reported === false || !purchase.reported)
+          );
+
+          if (unreportedPurchases.length === 0) {
+            // No unreported purchases, redirect to purchase page
+            navigate("/back-rent-reporting/purchase");
+            return;
+          }
         }
       } else {
         console.log(
@@ -356,6 +364,7 @@ export default function BackRentReportingPage() {
 
   const onSubmit = async (data: FormValues) => {
     console.log("Back rent reporting form submitted:", data);
+    const session = await fetchAuthSession();
 
     if (!user) {
       showToast("User information not available", "error");
@@ -370,7 +379,6 @@ export default function BackRentReportingPage() {
       if (data.rentReceipt) {
         s3Key = await uploadRentReceipt(data.rentReceipt);
       }
-      console.log("user", user);
       // Prepare form data for submission - similar to regular rent reporting
       // but with additional back rent specific fields
       const metro2Data = {
@@ -448,6 +456,31 @@ export default function BackRentReportingPage() {
 
       if (result.success) {
         showToast("Back rent payment submitted successfully!", "success");
+        try {
+          // ✅ ADD THIS: Mark purchase as reported after successful submission
+          const markReportedResponse = await fetch(
+            "https://q2ffiqyuv8.execute-api.us-west-2.amazonaws.com",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${session.tokens?.idToken?.toString()}`, // if using Cognito auth
+              },
+              body: JSON.stringify({
+                userSub: user.sub,
+              }),
+            }
+          );
+
+          if (!markReportedResponse.ok) {
+            console.warn(
+              "Failed to mark purchase as reported, but form was submitted"
+            );
+            // Don't throw error here - form was already submitted successfully
+          }
+        } catch (markError) {
+          console.warn("Error marking purchase as reported:", markError);
+        }
         form.reset();
       } else {
         showToast(
