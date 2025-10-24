@@ -29,6 +29,7 @@ import {
 import { cn } from "../lib/utils";
 import { fetchAuthSession } from "aws-amplify/auth";
 import { Toast } from "../components/ui/toast";
+import { Skeleton } from "../components/Skeleton";
 import { useAuth } from "../lib/context/authContext";
 //import { useRentReports } from "../lib/hooks/useRentReports";
 import { submitTenantData } from "@/lib/submit-tenant-data";
@@ -544,13 +545,46 @@ export default function BackRentReportingPage() {
       <ProtectedRoute>
         <AppLayout>
           <div className="space-y-8">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
-              <p className="mt-4 text-slate-600 dark:text-slate-400">
-                {checkingPurchase
-                  ? "Checking purchase status..."
-                  : "Loading..."}
-              </p>
+            {/* Header skeleton */}
+            <div>
+              <Skeleton className="h-8 w-64 mb-2" />
+              <Skeleton className="h-4 w-96 mb-4" />
+              <Skeleton className="h-20 w-full" />
+            </div>
+
+            {/* Form skeleton */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
+              <Card title="Submit Back Rent Payment Proof">
+                <div className="space-y-6">
+                  <Skeleton className="h-4 w-32" />
+                  <Skeleton className="h-10 w-full" />
+
+                  <Skeleton className="h-4 w-40" />
+                  <Skeleton className="h-10 w-full" />
+
+                  <Skeleton className="h-4 w-28" />
+                  <Skeleton className="h-10 w-full" />
+
+                  <Skeleton className="h-4 w-24" />
+                  <Skeleton className="h-10 w-full" />
+
+                  <Skeleton className="h-4 w-48" />
+                  <Skeleton className="h-10 w-full" />
+
+                  <Skeleton className="h-4 w-44" />
+                  <Skeleton className="h-10 w-full" />
+
+                  <Skeleton className="h-10 w-full" />
+                </div>
+              </Card>
+
+              <Card title="Back Rent Reporting History">
+                <div className="space-y-4">
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-3/4" />
+                  <Skeleton className="h-4 w-1/2" />
+                </div>
+              </Card>
             </div>
           </div>
         </AppLayout>
