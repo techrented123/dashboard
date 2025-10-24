@@ -6,7 +6,6 @@ import { useSearchParams, useNavigate } from "react-router-dom";
 import ProtectedRoute from "../components/ProtectedRoute";
 import AppLayout from "../components/AppLayout";
 import Card from "../components/Card";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog";
 import {
   Form,
   FormControl,
@@ -29,11 +28,9 @@ import {
 } from "../components/ui/select";
 import { cn } from "../lib/utils";
 import { fetchAuthSession } from "aws-amplify/auth";
-import { getDocumentUrl } from "../lib/documents";
 import { Toast } from "../components/ui/toast";
-import { Skeleton } from "../components/Skeleton";
 import { useAuth } from "../lib/context/authContext";
-import { useRentReports } from "../lib/hooks/useRentReports";
+//import { useRentReports } from "../lib/hooks/useRentReports";
 import { submitTenantData } from "@/lib/submit-tenant-data";
 
 const today = new Date();
@@ -162,7 +159,7 @@ export default function BackRentReportingPage() {
   const { user, isLoading: loadingUser } = useAuth();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { rentReports, isLoading: isRefreshingReports } = useRentReports();
+  //const { rentReports, isLoading: isRefreshingReports } = useRentReports();
 
   const [isLoading, setIsLoading] = useState(false);
   const [checkingPurchase, setCheckingPurchase] = useState(true);
@@ -175,9 +172,6 @@ export default function BackRentReportingPage() {
     type: "success",
     isVisible: false,
   });
-
-  const [isReceiptDialogOpen, setIsReceiptDialogOpen] = useState(false);
-  const [receiptUrl, setReceiptUrl] = useState<string | null>(null);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -376,7 +370,7 @@ export default function BackRentReportingPage() {
       if (data.rentReceipt) {
         s3Key = await uploadRentReceipt(data.rentReceipt);
       }
-console.log("user", user);
+      console.log("user", user);
       // Prepare form data for submission - similar to regular rent reporting
       // but with additional back rent specific fields
       const metro2Data = {
@@ -471,11 +465,9 @@ console.log("user", user);
     } finally {
       setIsLoading(false);
     }
-
-
   };
 
-  const handleReceiptClick = async (s3Key: string) => {
+  /*  const handleReceiptClick = async (s3Key: string) => {
     try {
       const url = await getDocumentUrl(s3Key);
       setReceiptUrl(url);
@@ -484,7 +476,7 @@ console.log("user", user);
       console.error("Error fetching receipt:", error);
       showToast("Failed to load receipt", "error");
     }
-  };
+  }; */
 
   // Handle purchase success
   const purchased = searchParams.get("purchased") === "true";
@@ -542,23 +534,7 @@ console.log("user", user);
           isVisible={toast.isVisible}
           onClose={() => setToast((prev) => ({ ...prev, isVisible: false }))}
         />
-        <Dialog
-          open={isReceiptDialogOpen}
-          onOpenChange={setIsReceiptDialogOpen}
-        >
-          <DialogContent className="max-w-4xl">
-            <DialogHeader>
-              <DialogTitle>Rent Receipt</DialogTitle>
-            </DialogHeader>
-            {receiptUrl && (
-              <iframe
-                src={receiptUrl}
-                className="w-full h-96 border rounded"
-                title="Rent Receipt"
-              />
-            )}
-          </DialogContent>
-        </Dialog>
+
         <div className="space-y-8">
           <div>
             <h1 className="text-2xl font-bold text-brand dark:text-primary-300 mb-2">
@@ -570,7 +546,7 @@ console.log("user", user);
             </p>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
+          <div className="grid grid-cols-1 gap-4 items-start">
             <Card title="Submit Back Rent Payment Proof">
               <Form {...form}>
                 <form
@@ -860,27 +836,35 @@ console.log("user", user);
                           name="newAddress.countryCode"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Country</FormLabel>
-                              <Select
-                                onValueChange={field.onChange}
-                                defaultValue={field.value}
-                              >
-                                <FormControl>
-                                  <SelectTrigger>
-                                    <SelectContent>
-                                      <SelectGroup>
-                                        <SelectLabel>Countries</SelectLabel>
-                                        <SelectItem value="CA">
-                                          Canada
-                                        </SelectItem>
-                                        <SelectItem value="US">
-                                          United States
-                                        </SelectItem>
-                                      </SelectGroup>
-                                    </SelectContent>
+                              <FormLabel>Country Code</FormLabel>
+                              <FormControl>
+                                <Select
+                                  value={field.value}
+                                  onValueChange={field.onChange}
+                                  defaultValue="CN"
+                                >
+                                  <SelectTrigger
+                                    className={cn(
+                                      "w-full",
+                                      form.formState.errors.newAddress
+                                        ?.countryCode &&
+                                        "border-red-500 focus-visible:ring-red-500"
+                                    )}
+                                  >
+                                    {field.value !== "CN" ? "USA" : "Canada"}
                                   </SelectTrigger>
-                                </FormControl>
-                              </Select>
+                                  <SelectContent
+                                    style={{ zIndex: 9999 }}
+                                    className="dark:!bg-slate-80  !bg-white dark:!border-slate-600 !border-white dark:!text-white !text-black"
+                                  >
+                                    <SelectGroup>
+                                      <SelectLabel>Country</SelectLabel>
+                                      <SelectItem value="CN">Canada</SelectItem>
+                                      <SelectItem value="US">USA</SelectItem>
+                                    </SelectGroup>
+                                  </SelectContent>
+                                </Select>
+                              </FormControl>
                               <FormMessage />
                             </FormItem>
                           )}
@@ -897,6 +881,7 @@ console.log("user", user);
                         <FormLabel>Rent Receipt (Optional)</FormLabel>
                         <FormControl>
                           <Input
+                            className="dark:!text-white text-black"
                             type="file"
                             accept=".pdf,.jpg,.jpeg,.png"
                             onChange={(e) => {
@@ -916,7 +901,7 @@ console.log("user", user);
                   <Button
                     type="submit"
                     disabled={isLoading}
-                    className="w-full"
+                    className="w-full text-white"
                     size="lg"
                   >
                     {isLoading
@@ -925,74 +910,6 @@ console.log("user", user);
                   </Button>
                 </form>
               </Form>
-            </Card>
-
-            <Card title="Back Rent Reporting History">
-              <div className="space-y-4">
-                {isRefreshingReports ? (
-                  <div className="space-y-3">
-                    <Skeleton className="h-4 w-full" />
-                    <Skeleton className="h-4 w-3/4" />
-                    <Skeleton className="h-4 w-1/2" />
-                  </div>
-                ) : rentReports && rentReports.length > 0 ? (
-                  rentReports
-                    .filter((report) => report.isBackRent) // Filter for back rent reports
-                    .map((report, index) => (
-                      <div
-                        key={index}
-                        className="p-4 border rounded-lg bg-slate-50 dark:bg-slate-800"
-                      >
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <p className="font-medium">
-                              Back Rent Report #{report.confirmationNumber}
-                            </p>
-                            <p className="text-sm text-slate-600 dark:text-slate-400">
-                              Amount: ${report.rentAmount}
-                            </p>
-                            <p className="text-sm text-slate-600 dark:text-slate-400">
-                              Months Reported: {report.monthsToReport}
-                            </p>
-                            <p className="text-sm text-slate-600 dark:text-slate-400">
-                              Period:{" "}
-                              {new Date(report.startDate).toLocaleDateString()}{" "}
-                              - {new Date(report.endDate).toLocaleDateString()}
-                            </p>
-                            <p className="text-sm text-slate-600 dark:text-slate-400">
-                              Status:{" "}
-                              <span
-                                className={cn(
-                                  "font-medium",
-                                  report.status === "Reported"
-                                    ? "text-green-600"
-                                    : "text-yellow-600"
-                                )}
-                              >
-                                {report.status}
-                              </span>
-                            </p>
-                          </div>
-                          {report.rentReceiptS3Key && (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() =>
-                                handleReceiptClick(report.rentReceiptS3Key)
-                              }
-                            >
-                              View Receipt
-                            </Button>
-                          )}
-                        </div>
-                      </div>
-                    ))
-                ) : (
-                  <p className="text-slate-600 dark:text-slate-400 text-center py-8">
-                    No back rent reports submitted yet.
-                  </p>
-                )}
-              </div>
             </Card>
           </div>
         </div>

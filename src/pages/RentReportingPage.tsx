@@ -775,7 +775,7 @@ export default function RentReportingPage() {
                                   >
                                     {field.value !== "CN" ? "USA" : "Canada"}
                                   </SelectTrigger>
-                                  <SelectContent style={{ zIndex: 9999 }}>
+                                  <SelectContent style={{ zIndex: 9999 }} className="dark:!bg-slate-80  !bg-white dark:!border-slate-600 !border-white dark:!text-white !text-black">
                                     <SelectGroup>
                                       <SelectLabel>Country</SelectLabel>
                                       <SelectItem value="CN">Canada</SelectItem>
