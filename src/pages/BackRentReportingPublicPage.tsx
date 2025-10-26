@@ -1,8 +1,8 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import AppLayout from "../components/AppLayout";
 import Card from "../components/Card";
 import {
@@ -118,7 +118,15 @@ type FormValues = z.infer<typeof formSchema>;
 
 export default function BackRentReportingPublicPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
+  const [checkingVerification, setCheckingVerification] = useState(true);
+  const [verificationStatus, setVerificationStatus] = useState<{
+    isValid: boolean;
+    isReported: boolean;
+    email?: string;
+    name?: string;
+  }>({ isValid: false, isReported: false });
   const [toast, setToast] = useState<{
     message: string;
     type: "success" | "error";
@@ -155,6 +163,71 @@ export default function BackRentReportingPublicPage() {
     setToast({ message, type, isVisible: true });
     setTimeout(() => setToast((prev) => ({ ...prev, isVisible: false })), 5000);
   };
+
+  // Check verification code on mount
+  useEffect(() => {
+    const verifyCode = searchParams.get("verify");
+
+    const checkVerificationCode = async () => {
+      if (!verifyCode) {
+        setVerificationStatus({ isValid: false, isReported: false });
+        setCheckingVerification(false);
+        return;
+      }
+
+      try {
+        const response = await fetch(
+          `https://k9n4kzbes3.execute-api.us-west-2.amazonaws.com/verify/${verifyCode}`
+        );
+
+        if (response.ok) {
+          const data = await response.json();
+
+          if (data.found && !data.reported) {
+            // Valid and not yet used
+            setVerificationStatus({
+              isValid: true,
+              isReported: false,
+              email: data.email,
+              name: data.name,
+            });
+
+            // Pre-fill form with verified info
+            if (data.email) form.setValue("email", data.email);
+            if (data.name) {
+              const names = data.name.split(" ");
+              if (names.length >= 2) {
+                form.setValue("firstName", names[0]);
+                form.setValue("lastName", names.slice(1).join(" "));
+              }
+            }
+          } else if (data.reported) {
+            // Already used
+            setVerificationStatus({ isValid: false, isReported: true });
+            showToast("This verification code has already been used", "error");
+            setTimeout(() => {
+              navigate("/public-purchase/back-rent-report");
+            }, 3000);
+          } else {
+            // Invalid
+            setVerificationStatus({ isValid: false, isReported: false });
+            showToast("Invalid verification code", "error");
+          }
+        } else {
+          setVerificationStatus({ isValid: false, isReported: false });
+          showToast("Failed to verify code", "error");
+        }
+      } catch (error) {
+        console.error("Verification error:", error);
+        setVerificationStatus({ isValid: false, isReported: false });
+        showToast("Error verifying code", "error");
+      } finally {
+        setCheckingVerification(false);
+      }
+    };
+
+    checkVerificationCode();
+  }, [searchParams]);
 
   const onSubmit = async (data: FormValues) => {
     console.log("Public back rent reporting form submitted:", data);
@@ -198,6 +271,26 @@ export default function BackRentReportingPublicPage() {
       }
 
       showToast("Back rent payment proof submitted successfully!", "success");
+
+      // Mark purchase as reported
+      const verifyCode = searchParams.get("verify");
+      if (verifyCode) {
+        try {
+          await fetch(
+            `https://mg9mbr6g5i.execute-api.us-west-2.amazonaws.com/mark-reported`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ verificationCode: verifyCode }),
+            }
+          );
+        } catch (err) {
+          console.error("Failed to mark as reported:", err);
+        }
+      }
+
       form.reset();
 
       // Redirect to thank you page or purchase completion
@@ -231,6 +324,51 @@ export default function BackRentReportingPublicPage() {
     return maxDate.toISOString().split("T")[0];
   };
 
+  // Show loading while checking verification
+  if (checkingVerification) {
+    return (
+      <AppLayout>
+        <div className="space-y-8">
+          <div className="text-center py-20">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
+            <p className="mt-4 text-slate-600 dark:text-slate-400">
+              Verifying your purchase...
+            </p>
+          </div>
+        </div>
+      </AppLayout>
+    );
+  }
+
+  // Show error if verification failed
+  if (!verificationStatus.isValid) {
+    return (
+      <AppLayout>
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          isVisible={toast.isVisible}
+          onClose={() => setToast((prev) => ({ ...prev, isVisible: false }))}
+        />
+        <div className="space-y-8">
+          <div className="text-center py-20">
+            <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-4">
+              Verification Required
+            </h2>
+            <p className="text-slate-600 dark:text-slate-400 mb-6">
+              Please purchase Back Rent Reporting to access the form.
+            </p>
+            <Button
+              onClick={() => navigate("/public-purchase/back-rent-report")}
+            >
+              Go to Purchase Page
+            </Button>
+          </div>
+        </div>
+      </AppLayout>
+    );
+  }
+
   return (
     <AppLayout>
       <Toast
@@ -255,7 +393,7 @@ export default function BackRentReportingPublicPage() {
             <Form {...form}>
               <form
                 onSubmit={form.handleSubmit(onSubmit)}
-                className="space-y-6"
+                className="space-y-10"
               >
                 {/* Personal Information */}
                 <div className="border-b dark:border-slate-700 pb-4">
@@ -573,36 +711,12 @@ export default function BackRentReportingPublicPage() {
                       </FormItem>
                     )}
                   />
-
-                  <FormField
-                    control={form.control}
-                    name="rentReceipt"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Rent Receipt (Optional)</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="file"
-                            accept=".pdf,.jpg,.jpeg,.png"
-                            onChange={(e) => {
-                              const file = e.target.files?.[0];
-                              field.onChange(file);
-                            }}
-                          />
-                        </FormControl>
-                        <FormDescription>
-                          Upload a receipt or proof of payment (PDF, JPG, PNG)
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
                 </div>
 
                 <Button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full"
+                  className="w-full text-white"
                   size="lg"
                 >
                   {isLoading
