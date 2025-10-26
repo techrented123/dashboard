@@ -1,4 +1,4 @@
-import { useForm } from "react-hook-form";
+import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useState, useEffect } from "react";
@@ -25,10 +25,40 @@ import {
   SelectTrigger,
 } from "../components/ui/select";
 import { Toast } from "../components/ui/toast";
+import { Plus, X } from "lucide-react";
 
 const today = new Date();
 
 // Enhanced form validation schema for public back rent reporting
+const historyEntrySchema = z
+  .object({
+    address1: z.string().min(1, "Address line 1 is required"),
+    address2: z.string().optional(),
+    city: z.string().min(1, "City is required"),
+    provinceState: z.string().min(1, "Province/State is required"),
+    postalZipCode: z.string().min(1, "Postal/ZIP code is required"),
+    countryCode: z.string().min(1, "Country code is required"),
+    startDate: z.date({
+      message: "Please select a start date for reporting period",
+    }),
+    endDate: z.date({ message: "Please select a valid payment date" }),
+    rentAmount: z
+      .number({ message: "Please enter a valid rent amount" })
+      .min(100, "Rent amount must be at least $100"),
+  })
+  .refine(
+    (data) => {
+      if (data.startDate && data.endDate) {
+        return data.endDate >= data.startDate;
+      }
+      return true;
+    },
+    {
+      message: "End date cannot be earlier than start date",
+      path: ["endDate"],
+    }
+  );
+
 const formSchema = z
   .object({
     // Personal Information
@@ -40,16 +70,21 @@ const formSchema = z
       .min(9, "SIN must be 9 digits")
       .max(9, "SIN must be 9 digits"),
     phoneNumber: z.string().min(10, "Phone number must be at least 10 digits"),
-
-    // Address
+    dob: z
+      .date({ message: "Please select a valid date of birth" })
+      .min(new Date("1900-01-01"), "You cannot be born before 1900")
+      .max(
+        new Date(today.getFullYear() - 18, today.getMonth(), today.getDate()),
+        "You must be at least 18 years ago"
+      ),
+    // Address for first entry
     address1: z.string().min(1, "Address line 1 is required"),
     address2: z.string().optional(),
     city: z.string().min(1, "City is required"),
     provinceState: z.string().min(1, "Province/State is required"),
     postalZipCode: z.string().min(1, "Postal/ZIP code is required"),
     countryCode: z.string().min(1, "Country code is required"),
-
-    // Payment Details
+    // Payment Details - First entry
     rentAmount: z
       .number({ message: "Please enter a valid rent amount" })
       .min(100, "Rent amount must be at least $100"),
@@ -58,6 +93,8 @@ const formSchema = z
       message: "Please select a start date for reporting period",
     }),
     rentReceipt: z.instanceof(File).optional(),
+    // Additional history entries
+    additionalHistory: z.array(historyEntrySchema).optional(),
   })
   .refine(
     (data) => {
@@ -112,6 +149,43 @@ const formSchema = z
       message: "Start date cannot be more than 2 months from the current month",
       path: ["startDate"],
     }
+  )
+  .refine(
+    (data) => {
+      // Check if total reporting period spans more than 12 months
+      const allEntries = [
+        {
+          startDate: data.startDate,
+          endDate: data.paymentDate,
+        },
+        ...(data.additionalHistory || []).map((entry) => ({
+          startDate: entry.startDate,
+          endDate: entry.endDate,
+        })),
+      ];
+
+      if (allEntries.length === 0) return true;
+
+      // Find the earliest start date and latest end date
+      const earliestStart = new Date(
+        Math.min(...allEntries.map((e) => e.startDate.getTime()))
+      );
+      const latestEnd = new Date(
+        Math.max(...allEntries.map((e) => e.endDate.getTime()))
+      );
+
+      // Calculate total months
+      const yearDiff = latestEnd.getFullYear() - earliestStart.getFullYear();
+      const monthDiff = latestEnd.getMonth() - earliestStart.getMonth();
+      const totalMonths = yearDiff * 12 + monthDiff;
+
+      return totalMonths <= 12;
+    },
+    {
+      message:
+        "The entire reporting period from your first start date to your last end date cannot exceed 12 months",
+      path: ["startDate"],
+    }
   );
 
 type FormValues = z.infer<typeof formSchema>;
@@ -146,6 +220,7 @@ export default function BackRentReportingPublicPage() {
       email: "",
       sin: "",
       phoneNumber: "",
+      dob: new Date(),
       address1: "",
       address2: "",
       city: "",
@@ -156,6 +231,7 @@ export default function BackRentReportingPublicPage() {
       paymentDate: new Date(),
       startDate: new Date(),
       rentReceipt: undefined,
+      additionalHistory: [],
     },
   });
 
@@ -163,6 +239,11 @@ export default function BackRentReportingPublicPage() {
     setToast({ message, type, isVisible: true });
     setTimeout(() => setToast((prev) => ({ ...prev, isVisible: false })), 5000);
   };
+
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: "additionalHistory",
+  });
 
   // Check verification code on mount
   useEffect(() => {
@@ -235,13 +316,17 @@ export default function BackRentReportingPublicPage() {
     try {
       setIsLoading(true);
 
-      // Prepare form data for submission
-      const formData = {
+      // Build history entries array
+      const historyEntries = [];
+
+      // Add first entry (from main form fields)
+      historyEntries.push({
         firstName: data.firstName,
         lastName: data.lastName,
         email: data.email,
         sin: data.sin,
         phoneNumber: data.phoneNumber,
+        dob: data.dob.toISOString(),
         address1: data.address1,
         address2: data.address2,
         city: data.city,
@@ -252,25 +337,30 @@ export default function BackRentReportingPublicPage() {
         startDate: data.startDate.toISOString(),
         endDate: data.paymentDate.toISOString(),
         receiptFile: data.rentReceipt?.name,
-      };
+      });
 
-      // Submit to API (implement actual endpoint)
-      const submitResponse = await fetch(
-        "https://yipdy0po78.execute-api.us-west-2.amazonaws.com/rent-reports/public",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(formData),
-        }
-      );
-
-      if (!submitResponse.ok) {
-        throw new Error("Failed to submit form data");
+      // Add additional history entries if any
+      if (data.additionalHistory && data.additionalHistory.length > 0) {
+        data.additionalHistory.forEach((entry) => {
+          historyEntries.push({
+            firstName: data.firstName,
+            lastName: data.lastName,
+            email: data.email,
+            sin: data.sin,
+            phoneNumber: data.phoneNumber,
+            dob: data.dob.toISOString(),
+            address1: entry.address1,
+            address2: entry.address2,
+            city: entry.city,
+            provinceState: entry.provinceState,
+            postalZipCode: entry.postalZipCode,
+            countryCode: entry.countryCode,
+            rentAmount: entry.rentAmount,
+            startDate: entry.startDate.toISOString(),
+            endDate: entry.endDate.toISOString(),
+          });
+        });
       }
-
-      showToast("Back rent payment proof submitted successfully!", "success");
 
       // Mark purchase as reported
       const verificationCode = searchParams.get("verify");
@@ -283,13 +373,14 @@ export default function BackRentReportingPublicPage() {
               headers: {
                 "Content-Type": "application/json",
               },
-              body: JSON.stringify({ verificationCode }),
+              body: JSON.stringify({ verificationCode, historyEntries }),
             }
           );
         } catch (err) {
           console.error("Failed to mark as reported:", err);
         }
       }
+      showToast("Back rent payment proof submitted successfully!", "success");
 
       form.reset();
 
@@ -388,12 +479,12 @@ export default function BackRentReportingPublicPage() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-1 gap-4 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-1 gap-4 items-start max-w-5xl mx-auto">
           <Card title="Submit Back Rent Payment Proof">
             <Form {...form}>
               <form
                 onSubmit={form.handleSubmit(onSubmit)}
-                className="space-y-10"
+                className="space-y-6"
               >
                 {/* Personal Information */}
                 <div className="border-b dark:border-slate-700 pb-4">
@@ -406,7 +497,7 @@ export default function BackRentReportingPublicPage() {
                       control={form.control}
                       name="firstName"
                       render={({ field }) => (
-                        <FormItem>
+                        <FormItem className="mb-6">
                           <FormLabel>First Name</FormLabel>
                           <FormControl>
                             <Input placeholder="John" {...field} />
@@ -435,7 +526,7 @@ export default function BackRentReportingPublicPage() {
                     control={form.control}
                     name="email"
                     render={({ field }) => (
-                      <FormItem>
+                      <FormItem className="mb-6">
                         <FormLabel>Email Address</FormLabel>
                         <FormControl>
                           <Input
@@ -453,7 +544,7 @@ export default function BackRentReportingPublicPage() {
                     control={form.control}
                     name="sin"
                     render={({ field }) => (
-                      <FormItem>
+                      <FormItem className="mb-6">
                         <FormLabel>SIN (Social Insurance Number)</FormLabel>
                         <FormControl>
                           <Input
@@ -471,7 +562,7 @@ export default function BackRentReportingPublicPage() {
                     control={form.control}
                     name="phoneNumber"
                     render={({ field }) => (
-                      <FormItem>
+                      <FormItem className="mb-6">
                         <FormLabel>Phone Number</FormLabel>
                         <FormControl>
                           <Input placeholder="(555) 123-4567" {...field} />
@@ -480,19 +571,58 @@ export default function BackRentReportingPublicPage() {
                       </FormItem>
                     )}
                   />
+
+                  <FormField
+                    control={form.control}
+                    name="dob"
+                    render={({ field }) => (
+                      <FormItem className="mb-6">
+                        <FormLabel>Date of Birth</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="date"
+                            {...field}
+                            value={
+                              field.value instanceof Date
+                                ? field.value.toISOString().split("T")[0]
+                                : field.value
+                            }
+                            onChange={(e) => {
+                              const date = e.target.value
+                                ? new Date(e.target.value)
+                                : new Date();
+                              field.onChange(date);
+                            }}
+                            max={
+                              new Date(
+                                today.getFullYear() - 18,
+                                today.getMonth(),
+                                today.getDate()
+                              )
+                                .toISOString()
+                                .split("T")[0]
+                            }
+                            min="1900-01-01"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                 </div>
 
-                {/* Address Information */}
+                {/* Payment Details for First Entry */}
                 <div className="border-b dark:border-slate-700 pb-4">
                   <h3 className="text-lg font-semibold mb-4">
-                    Address Information
+                    Rental History #1
                   </h3>
 
+                  {/* Address Fields for First Entry */}
                   <FormField
                     control={form.control}
                     name="address1"
                     render={({ field }) => (
-                      <FormItem>
+                      <FormItem className="mb-6">
                         <FormLabel>Address Line 1</FormLabel>
                         <FormControl>
                           <Input placeholder="123 Main Street" {...field} />
@@ -506,7 +636,7 @@ export default function BackRentReportingPublicPage() {
                     control={form.control}
                     name="address2"
                     render={({ field }) => (
-                      <FormItem>
+                      <FormItem className="mb-6">
                         <FormLabel>Address Line 2 (Optional)</FormLabel>
                         <FormControl>
                           <Input placeholder="Apt 4B" {...field} />
@@ -521,7 +651,7 @@ export default function BackRentReportingPublicPage() {
                       control={form.control}
                       name="city"
                       render={({ field }) => (
-                        <FormItem>
+                        <FormItem className="mb-6">
                           <FormLabel>City</FormLabel>
                           <FormControl>
                             <Input placeholder="Toronto" {...field} />
@@ -535,7 +665,7 @@ export default function BackRentReportingPublicPage() {
                       control={form.control}
                       name="provinceState"
                       render={({ field }) => (
-                        <FormItem>
+                        <FormItem className="mb-6">
                           <FormLabel>Province/State</FormLabel>
                           <FormControl>
                             <Input placeholder="ON" {...field} />
@@ -551,7 +681,7 @@ export default function BackRentReportingPublicPage() {
                       control={form.control}
                       name="postalZipCode"
                       render={({ field }) => (
-                        <FormItem>
+                        <FormItem className="mb-6">
                           <FormLabel>Postal/ZIP Code</FormLabel>
                           <FormControl>
                             <Input placeholder="M5V 3A8" {...field} />
@@ -565,7 +695,7 @@ export default function BackRentReportingPublicPage() {
                       control={form.control}
                       name="countryCode"
                       render={({ field }) => (
-                        <FormItem>
+                        <FormItem className="mb-6">
                           <FormLabel>Country</FormLabel>
                           <Select
                             onValueChange={field.onChange}
@@ -591,6 +721,12 @@ export default function BackRentReportingPublicPage() {
                                     >
                                       United States
                                     </SelectItem>
+                                    <SelectItem
+                                      value="MX"
+                                      className="text-white hover:bg-slate-700 focus:bg-slate-700"
+                                    >
+                                      Mexico
+                                    </SelectItem>
                                   </SelectGroup>
                                 </SelectContent>
                               </SelectTrigger>
@@ -601,40 +737,12 @@ export default function BackRentReportingPublicPage() {
                       )}
                     />
                   </div>
-                </div>
-
-                {/* Payment Details */}
-                <div className="border-b dark:border-slate-700 pb-4">
-                  <h3 className="text-lg font-semibold mb-4">
-                    Payment Details
-                  </h3>
-
-                  <FormField
-                    control={form.control}
-                    name="rentAmount"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Rent Amount ($)</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="number"
-                            placeholder="1200"
-                            {...field}
-                            onChange={(e) =>
-                              field.onChange(parseFloat(e.target.value) || 0)
-                            }
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
 
                   <FormField
                     control={form.control}
                     name="startDate"
                     render={({ field }) => (
-                      <FormItem>
+                      <FormItem className="mb-6">
                         <FormLabel>Reporting Period Start Date</FormLabel>
                         <FormControl>
                           <Input
@@ -670,7 +778,7 @@ export default function BackRentReportingPublicPage() {
                     control={form.control}
                     name="paymentDate"
                     render={({ field }) => (
-                      <FormItem>
+                      <FormItem className="mb-6">
                         <FormLabel>Reporting Period End Date</FormLabel>
                         <FormControl>
                           <Input
@@ -711,6 +819,294 @@ export default function BackRentReportingPublicPage() {
                       </FormItem>
                     )}
                   />
+
+                  <FormField
+                    control={form.control}
+                    name="rentAmount"
+                    render={({ field }) => (
+                      <FormItem className="mb-6">
+                        <FormLabel>Rent Amount ($)</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            placeholder="1200"
+                            {...field}
+                            onChange={(e) =>
+                              field.onChange(parseFloat(e.target.value) || 0)
+                            }
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                {/* Additional History Section */}
+                {fields.length > 0 && (
+                  <div className="border-t dark:border-slate-700 pt-6">
+                    <h3 className="text-lg font-semibold mb-4">
+                      Additional Rental History
+                    </h3>
+                    {fields.map((field, index) => (
+                      <div
+                        key={field.id}
+                        className="border dark:border-slate-700 rounded-lg p-4 mb-4 bg-slate-50 dark:bg-slate-900/50"
+                      >
+                        <div className="flex justify-between items-center mb-4">
+                          <h4 className="font-medium text-slate-900 dark:text-slate-100">
+                            Rental History #{index + 2}
+                          </h4>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => remove(index)}
+                            className="text-red-600 hover:text-red-700"
+                          >
+                            <X className="w-4 h-4 mr-1" />
+                            Remove
+                          </Button>
+                        </div>
+
+                        <div className="space-y-4">
+                          <FormField
+                            control={form.control}
+                            name={`additionalHistory.${index}.address1`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Address Line 1</FormLabel>
+                                <FormControl>
+                                  <Input
+                                    placeholder="123 Main Street"
+                                    {...field}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+
+                          <FormField
+                            control={form.control}
+                            name={`additionalHistory.${index}.address2`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Address Line 2 (Optional)</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="Apt 4B" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+
+                          <div className="grid grid-cols-2 gap-4">
+                            <FormField
+                              control={form.control}
+                              name={`additionalHistory.${index}.city`}
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>City</FormLabel>
+                                  <FormControl>
+                                    <Input placeholder="Toronto" {...field} />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+
+                            <FormField
+                              control={form.control}
+                              name={`additionalHistory.${index}.provinceState`}
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Province/State</FormLabel>
+                                  <FormControl>
+                                    <Input placeholder="ON" {...field} />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-4">
+                            <FormField
+                              control={form.control}
+                              name={`additionalHistory.${index}.postalZipCode`}
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Postal/ZIP Code</FormLabel>
+                                  <FormControl>
+                                    <Input placeholder="M5V 3A8" {...field} />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+
+                            <FormField
+                              control={form.control}
+                              name={`additionalHistory.${index}.countryCode`}
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Country</FormLabel>
+                                  <FormControl>
+                                    <Select
+                                      value={field.value}
+                                      onValueChange={field.onChange}
+                                    >
+                                      <SelectTrigger>
+                                        <span className="text-black dark:text-white">
+                                          {field.value || "Select country"}
+                                        </span>
+                                      </SelectTrigger>
+                                      <SelectContent className="bg-slate-800 text-white border-slate-600">
+                                        <SelectGroup>
+                                          <SelectLabel>Countries</SelectLabel>
+                                          <SelectItem
+                                            value="CA"
+                                            className="hover:bg-slate-700 focus:bg-slate-700"
+                                          >
+                                            Canada
+                                          </SelectItem>
+                                          <SelectItem
+                                            value="US"
+                                            className="hover:bg-slate-700 focus:bg-slate-700"
+                                          >
+                                            United States
+                                          </SelectItem>
+                                          <SelectItem
+                                            value="MX"
+                                            className="hover:bg-slate-700 focus:bg-slate-700"
+                                          >
+                                            Mexico
+                                          </SelectItem>
+                                        </SelectGroup>
+                                      </SelectContent>
+                                    </Select>
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-4">
+                            <FormField
+                              control={form.control}
+                              name={`additionalHistory.${index}.startDate`}
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Start Date</FormLabel>
+                                  <FormControl>
+                                    <Input
+                                      type="date"
+                                      {...field}
+                                      min={getMinStartDate()}
+                                      max={getMaxStartDate()}
+                                      value={
+                                        field.value
+                                          ? field.value
+                                              .toISOString()
+                                              .split("T")[0]
+                                          : ""
+                                      }
+                                      onChange={(e) => {
+                                        field.onChange(
+                                          new Date(e.target.value)
+                                        );
+                                      }}
+                                    />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+
+                            <FormField
+                              control={form.control}
+                              name={`additionalHistory.${index}.endDate`}
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>End Date</FormLabel>
+                                  <FormControl>
+                                    <Input
+                                      type="date"
+                                      {...field}
+                                      max={getMaxEndDate()}
+                                      value={
+                                        field.value
+                                          ? field.value
+                                              .toISOString()
+                                              .split("T")[0]
+                                          : ""
+                                      }
+                                      onChange={(e) => {
+                                        field.onChange(
+                                          new Date(e.target.value)
+                                        );
+                                      }}
+                                    />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          </div>
+
+                          <FormField
+                            control={form.control}
+                            name={`additionalHistory.${index}.rentAmount`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Rent Amount ($)</FormLabel>
+                                <FormControl>
+                                  <Input
+                                    type="number"
+                                    placeholder="1200"
+                                    {...field}
+                                    onChange={(e) =>
+                                      field.onChange(
+                                        parseFloat(e.target.value) || 0
+                                      )
+                                    }
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Add More History Button */}
+                <div className="flex justify-center">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() =>
+                      append({
+                        address1: "",
+                        address2: "",
+                        city: "",
+                        provinceState: "",
+                        postalZipCode: "",
+                        countryCode: "",
+                        startDate: new Date(),
+                        endDate: new Date(),
+                        rentAmount: 0,
+                      })
+                    }
+                    className="w-full"
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add More History
+                  </Button>
                 </div>
 
                 <Button
