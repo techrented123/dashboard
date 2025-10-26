@@ -18,7 +18,20 @@ export const PRODUCTS: Product[] = [
     originalPrice: 99.99,
     stripePriceId:
       import.meta.env.VITE_STRIPE_BACK_RENT_REPORTING_PRICE_ID ||
-      "price_1SKQpVIaKHhzCYTqv7LU5CoF",
+      "price_1SMIM9IaKHhzCYTq2zZfITwz",
+    features: [
+      "Report up to 12 months of back rent payments",
+      "Build your credit history",
+      "Impact your credit score",
+    ],
+  },
+  {
+    id: "prod_TGyn4MgtPcaDTr",
+    name: "Back Rent Reporting",
+    description:
+      "Report your historical rent payments to improve your credit score",
+    price: 99.99,
+    stripePriceId: "price_1SKQpVIaKHhzCYTqv7LU5CoF",
     features: [
       "Report up to 12 months of back rent payments",
       "Build your credit history",

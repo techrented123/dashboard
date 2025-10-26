@@ -9,6 +9,8 @@ import RentReportingPage from "./pages/RentReportingPage";
 import RentReportingMagicLinkPage from "./pages/RentReportingMagicLinkPage";
 import BackRentReportingPage from "./pages/BackRentReportingPage";
 import BackRentReportingPurchasePage from "./pages/BackRentReportingPurchasePage";
+import BackRentReportingPublicPurchasePage from "./pages/BackRentReportingPublicPurchasePage";
+import BackRentReportingPublicPage from "./pages/BackRentReportingPublicPage";
 import BillingPage from "./pages/BillingPage";
 import DocumentsPage from "./pages/DocumentsPage";
 import AccountPage from "./pages/AccountPage";
@@ -89,6 +91,15 @@ function App() {
       <Route
         path="/rent-reporting-magic-link"
         element={<RentReportingMagicLinkPage />}
+      />
+      {/* Public routes - completely different URL */}
+      <Route
+        path="/public-purchase/back-rent-report"
+        element={<BackRentReportingPublicPurchasePage />}
+      />
+      <Route
+        path="/public-form/back-rent-report"
+        element={<BackRentReportingPublicPage />}
       />
       <Route
         path="/back-rent-reporting"
