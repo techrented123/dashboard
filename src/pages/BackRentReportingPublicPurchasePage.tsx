@@ -13,71 +13,28 @@ export default function BackRentReportingPublicPurchasePage() {
   // Use products[1] for public purchase (non-member pricing)
   const product = PRODUCTS[1];
 
-  const getAuthToken = async () => {
-    try {
-      const { fetchAuthSession } = await import("aws-amplify/auth");
-      const session = await fetchAuthSession();
-      return session.tokens?.idToken?.toString() || "";
-    } catch (error) {
-      console.error("Error getting auth token:", error);
-      return "";
-    }
-  };
-
   const handlePurchase = async () => {
     setLoading(true);
     setError("");
 
     try {
-      // Check if user is logged in
-      const token = await getAuthToken();
-
-      if (!token) {
-        // User not logged in, redirect to login
-        navigate("/login", {
-          state: {
-            from: location.pathname,
-            returnTo: "/public-purchase/back-rent-report",
-          },
-        });
-        setLoading(false);
-        return;
-      }
-
-      // Get user info
-      const { user } = await import("../lib/context/authContext").then((m) =>
-        m.useAuth()
-      );
-
-      if (!user) {
-        setError("User information not available");
-        setLoading(false);
-        return;
-      }
-
-      // Create checkout session with public price
+      // Create checkout session with public price - NO authentication needed
       const checkoutData = {
         priceId: product.stripePriceId,
-        customerEmail: user.email || "",
-        customerName: `${user.given_name || ""} ${
-          user.family_name || ""
-        }`.trim(),
         successUrl: `${window.location.origin}/public-form/back-rent-report?purchased=true`,
         cancelUrl: `${window.location.origin}/public-purchase/back-rent-report`,
         metadata: {
-          userId: user.sub,
           productId: "prod_TGyn4MgtPcaDTr",
           purchaseType: "public",
         },
       };
 
       const response = await fetch(
-        "https://efa9t5n79c.execute-api.us-west-2.amazonaws.com/",
+        "https://51icwyubm2.execute-api.us-west-2.amazonaws.com/",
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify(checkoutData),
         }
