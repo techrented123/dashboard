@@ -166,10 +166,10 @@ export default function BackRentReportingPublicPage() {
 
   // Check verification code on mount
   useEffect(() => {
-    const verifyCode = searchParams.get("verify");
+    const verificationCode = searchParams.get("verify");
 
     const checkVerificationCode = async () => {
-      if (!verifyCode) {
+      if (!verificationCode) {
         setVerificationStatus({ isValid: false, isReported: false });
         setCheckingVerification(false);
         return;
@@ -177,7 +177,7 @@ export default function BackRentReportingPublicPage() {
 
       try {
         const response = await fetch(
-          `https://k9n4kzbes3.execute-api.us-west-2.amazonaws.com/verify/${verifyCode}`
+          `https://k9n4kzbes3.execute-api.us-west-2.amazonaws.com/verify/${verificationCode}`
         );
 
         if (response.ok) {
@@ -273,8 +273,8 @@ export default function BackRentReportingPublicPage() {
       showToast("Back rent payment proof submitted successfully!", "success");
 
       // Mark purchase as reported
-      const verifyCode = searchParams.get("verify");
-      if (verifyCode) {
+      const verificationCode = searchParams.get("verify");
+      if (verificationCode) {
         try {
           await fetch(
             `https://mg9mbr6g5i.execute-api.us-west-2.amazonaws.com/mark-reported`,
@@ -283,7 +283,7 @@ export default function BackRentReportingPublicPage() {
               headers: {
                 "Content-Type": "application/json",
               },
-              body: JSON.stringify({ verificationCode: verifyCode }),
+              body: JSON.stringify({ verificationCode }),
             }
           );
         } catch (err) {

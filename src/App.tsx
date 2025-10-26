@@ -11,6 +11,7 @@ import BackRentReportingPage from "./pages/BackRentReportingPage";
 import BackRentReportingPurchasePage from "./pages/BackRentReportingPurchasePage";
 import BackRentReportingPublicPurchasePage from "./pages/BackRentReportingPublicPurchasePage";
 import BackRentReportingPublicPage from "./pages/BackRentReportingPublicPage";
+import CheckEmailPage from "./pages/CheckEmailPage";
 import BillingPage from "./pages/BillingPage";
 import DocumentsPage from "./pages/DocumentsPage";
 import AccountPage from "./pages/AccountPage";
@@ -97,6 +98,7 @@ function App() {
         path="/public-purchase/back-rent-report"
         element={<BackRentReportingPublicPurchasePage />}
       />
+      <Route path="/check-email" element={<CheckEmailPage />} />
       <Route
         path="/public-form/back-rent-report"
         element={<BackRentReportingPublicPage />}

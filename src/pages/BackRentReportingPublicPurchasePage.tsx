@@ -21,7 +21,7 @@ export default function BackRentReportingPublicPurchasePage() {
       // Create checkout session with public price - NO authentication needed
       const checkoutData = {
         priceId: product.stripePriceId,
-        successUrl: `${window.location.origin}/public-form/back-rent-report?purchased=true`,
+        successUrl: `${window.location.origin}/check-email`,
         cancelUrl: `${window.location.origin}/public-purchase/back-rent-report`,
         metadata: {
           productId: "prod_TGyn4MgtPcaDTr",
