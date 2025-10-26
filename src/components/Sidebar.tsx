@@ -9,6 +9,7 @@ import {
   User,
   ChevronLeft,
   ChevronRight,
+  Star,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -19,6 +20,7 @@ const links = [
     href: "/back-rent-reporting",
     label: "Back Rent Reporting",
     Icon: ClipboardCheck,
+    isPremium: true,
   },
   { href: "/billing", label: "Billing", Icon: DollarSign },
   { href: "/documents", label: "Documents", Icon: FileText },
@@ -88,7 +90,7 @@ export default function Sidebar() {
             isCollapsed ? "md:w-16" : "md:w-64"
           }`}
         >
-          {links.map(({ href, label, Icon }, index) => {
+          {links.map(({ href, label, Icon, isPremium }, index) => {
             const active = location.pathname === href;
             const isFirst = index === 0;
             return (
@@ -104,7 +106,14 @@ export default function Sidebar() {
                   } ${isCollapsed ? "justify-center" : "justify-start"}`}
                 >
                   <Icon className="w-5 h-5 shrink-0" />
-                  {!isCollapsed && <span className="truncate">{label}</span>}
+                  {!isCollapsed && (
+                    <span className="truncate flex items-center gap-2">
+                      {label}
+                      {isPremium && (
+                        <Star className="w-4 h-4 text-amber-500 fill-amber-500" />
+                      )}
+                    </span>
+                  )}
                 </Link>
                 {isFirst && !isCollapsed && (
                   <button
