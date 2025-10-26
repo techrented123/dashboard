@@ -3,6 +3,7 @@ export interface Product {
   name: string;
   description: string;
   price: number;
+  originalPrice?: number;
   stripePriceId: string;
   features: string[];
 }
@@ -13,7 +14,8 @@ export const PRODUCTS: Product[] = [
     name: "Back Rent Reporting",
     description:
       "Report your historical rent payments to improve your credit score",
-    price: 99.99,
+    price: 49.99,
+    originalPrice: 99.99,
     stripePriceId:
       import.meta.env.VITE_STRIPE_BACK_RENT_REPORTING_PRICE_ID ||
       "price_1SKQpVIaKHhzCYTqv7LU5CoF",

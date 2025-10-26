@@ -28,92 +28,97 @@ export default function BackRentReportingPurchasePage() {
   };
 
   // Check if user already has access to the product
-const checkUserAccess = async () => {
-  console.log("🎯 checkUserAccess function called");
+  const checkUserAccess = async () => {
+    console.log("🎯 checkUserAccess function called");
 
-  try {
-    const token = await getAuthToken();
-    if (!token) {
-      console.log("❌ No authentication token available");
-      setError("Authentication required");
-      setCheckingAccess(false);
-      return;
-    }
+    try {
+      const token = await getAuthToken();
+      if (!token) {
+        console.log("❌ No authentication token available");
+        setError("Authentication required");
+        setCheckingAccess(false);
+        return;
+      }
 
-    // Check purchases API for back rent reporting purchases
-    const purchasesApiUrl = import.meta.env.DEV
-      ? "/api/purchases"
-      : "https://i26qdmcyv5.execute-api.us-west-2.amazonaws.com";
+      // Check purchases API for back rent reporting purchases
+      const purchasesApiUrl = import.meta.env.DEV
+        ? "/api/purchases"
+        : "https://i26qdmcyv5.execute-api.us-west-2.amazonaws.com";
 
-    console.log("🌐 Calling purchases API:", purchasesApiUrl);
+      console.log("🌐 Calling purchases API:", purchasesApiUrl);
 
-    const response = await fetch(`${purchasesApiUrl}/${user?.sub}`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    console.log("📡 API Response status:", response.status);
-
-    if (response.ok) {
-      const data = await response.json();
-      console.log("📊 API Response data:", data);
-
-      const purchases = data.purchases || [];
-      console.log("🛒 All purchases:", purchases);
-
-      // Check if user has UNREPORTED back rent reporting purchases
-      const unreportedPurchases = purchases.filter((purchase: any) => {
-        const isBackRentProduct = purchase.product === "back-rent-report";
-        const isCurrentUser = purchase.userId === user?.sub;
-        const isUnreported = purchase.reported === false || !purchase.reported;
-
-        console.log(`🔍 Checking purchase:`, {
-          product: purchase.product,
-          userId: purchase.userId,
-          reported: purchase.reported,
-          isBackRentProduct,
-          isCurrentUser,
-          isUnreported,
-          matches: isBackRentProduct && isCurrentUser && isUnreported,
-        });
-
-        return isBackRentProduct && isCurrentUser && isUnreported;
+      const response = await fetch(`${purchasesApiUrl}/${user?.sub}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
       });
 
-      console.log("✅ Has unreported purchases:", unreportedPurchases.length > 0);
-      console.log("📊 Unreported purchases count:", unreportedPurchases.length);
+      console.log("📡 API Response status:", response.status);
 
-      if (unreportedPurchases.length > 0) {
-        // User has unreported purchases, redirect to form
+      if (response.ok) {
+        const data = await response.json();
+        console.log("📊 API Response data:", data);
+
+        const purchases = data.purchases || [];
+        console.log("🛒 All purchases:", purchases);
+
+        // Check if user has UNREPORTED back rent reporting purchases
+        const unreportedPurchases = purchases.filter((purchase: any) => {
+          const isBackRentProduct = purchase.product === "back-rent-report";
+          const isCurrentUser = purchase.userId === user?.sub;
+          const isUnreported =
+            purchase.reported === false || !purchase.reported;
+
+          console.log(`🔍 Checking purchase:`, {
+            product: purchase.product,
+            userId: purchase.userId,
+            reported: purchase.reported,
+            isBackRentProduct,
+            isCurrentUser,
+            isUnreported,
+            matches: isBackRentProduct && isCurrentUser && isUnreported,
+          });
+
+          return isBackRentProduct && isCurrentUser && isUnreported;
+        });
+
         console.log(
-          "🎉 User has unreported purchases, redirecting to form"
+          "✅ Has unreported purchases:",
+          unreportedPurchases.length > 0
         );
-        navigate("/back-rent-reporting");
-        return;
+        console.log(
+          "📊 Unreported purchases count:",
+          unreportedPurchases.length
+        );
+
+        if (unreportedPurchases.length > 0) {
+          // User has unreported purchases, redirect to form
+          console.log("🎉 User has unreported purchases, redirecting to form");
+          navigate("/back-rent-reporting");
+          return;
+        } else {
+          console.log(
+            "💳 User has no unreported purchases, showing purchase page"
+          );
+        }
       } else {
         console.log(
-          "💳 User has no unreported purchases, showing purchase page"
+          "❌ Purchases API not available, proceeding to purchase page"
         );
+        console.log("📡 Response status:", response.status);
+        console.log("📡 Response text:", await response.text());
       }
-    } else {
-      console.log(
-        "❌ Purchases API not available, proceeding to purchase page"
-      );
-      console.log("📡 Response status:", response.status);
-      console.log("📡 Response text:", await response.text());
-    }
 
-    // User hasn't purchased or has no unreported purchases, show purchase page
-    setCheckingAccess(false);
-  } catch (err: any) {
-    console.error("💥 Error checking access:", err);
-    // If check fails, allow user to proceed to purchase page
-    setCheckingAccess(false);
-  }
-};
+      // User hasn't purchased or has no unreported purchases, show purchase page
+      setCheckingAccess(false);
+    } catch (err: any) {
+      console.error("💥 Error checking access:", err);
+      // If check fails, allow user to proceed to purchase page
+      setCheckingAccess(false);
+    }
+  };
 
   // Check access when component mounts
   useEffect(() => {
@@ -233,9 +238,30 @@ const checkUserAccess = async () => {
           <Card title="Product Details">
             <div className="space-y-6">
               <div className="text-center">
-                <div className="text-4xl font-bold text-primary-600 dark:text-primary-400 mb-2">
-                  ${product.price}
-                </div>
+                {product.originalPrice ? (
+                  <div className="mb-2">
+                    <div className="flex items-center justify-center gap-2">
+                      <span className="text-2xl line-through text-slate-400 dark:text-slate-500">
+                        ${product.originalPrice}
+                      </span>
+                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400">
+                        {Math.round(
+                          ((product.originalPrice - product.price) /
+                            product.originalPrice) *
+                            100
+                        )}
+                        % OFF
+                      </span>
+                    </div>
+                    <div className="text-4xl font-bold text-primary-600 dark:text-primary-400 mt-1">
+                      ${product.price}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-4xl font-bold text-primary-600 dark:text-primary-400 mb-2">
+                    ${product.price}
+                  </div>
+                )}
                 <div className="text-slate-600 dark:text-slate-400">
                   One-time payment
                 </div>
@@ -273,7 +299,18 @@ const checkUserAccess = async () => {
                 ) : (
                   <>
                     <CreditCard className="w-4 h-4 mr-2" />
-                    Purchase for ${product.price}
+                    {product.originalPrice ? (
+                      <span className="flex items-center gap-2">
+                        Purchase for ${product.price}
+                        {product.originalPrice && (
+                          <span className="text-xs line-through opacity-70">
+                            ${product.originalPrice}
+                          </span>
+                        )}
+                      </span>
+                    ) : (
+                      <>Purchase for ${product.price}</>
+                    )}
                   </>
                 )}
               </Button>
