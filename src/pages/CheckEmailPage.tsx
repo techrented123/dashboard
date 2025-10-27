@@ -1,4 +1,4 @@
-import { Mail, ArrowLeft } from "lucide-react";
+import { Mail } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "../components/ui/button";
 
@@ -32,8 +32,12 @@ export default function CheckEmailPage() {
             Click the link in your email to access the form.
           </p>
 
-          <Button onClick={handlePricingPlans} variant="outline" className="w-full bg-blue-600 text-white hover:bg-blue-700">
-            Rent Reporting is Better as a Member 
+          <Button
+            onClick={handlePricingPlans}
+            variant="outline"
+            className="w-full bg-blue-600 text-white hover:bg-blue-700"
+          >
+            Rent Reporting is Better as a Member
           </Button>
         </div>
       </div>
