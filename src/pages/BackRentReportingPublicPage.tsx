@@ -2,7 +2,7 @@ import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useState, useEffect } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import AppLayout from "../components/AppLayout";
 import Card from "../components/Card";
 import {
@@ -191,9 +191,9 @@ const formSchema = z
 type FormValues = z.infer<typeof formSchema>;
 
 export default function BackRentReportingPublicPage() {
-  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
+  const [isSuccessfullySubmitted, setIsSuccessfullySubmitted] = useState(false);
   const [checkingVerification, setCheckingVerification] = useState(true);
   const [verificationStatus, setVerificationStatus] = useState<{
     isValid: boolean;
@@ -283,12 +283,8 @@ export default function BackRentReportingPublicPage() {
               }
             }
           } else if (data.reported) {
-            // Already used
-            setVerificationStatus({ isValid: false, isReported: true });
-            showToast("This verification code has already been used", "error");
-            setTimeout(() => {
-              navigate("/public-purchase/back-rent-report");
-            }, 3000);
+            // Already used - show success message
+            setVerificationStatus({ isValid: true, isReported: true });
           } else {
             // Invalid
             setVerificationStatus({ isValid: false, isReported: false });
@@ -382,12 +378,8 @@ export default function BackRentReportingPublicPage() {
       }
       showToast("Back rent payment proof submitted successfully!", "success");
 
-      form.reset();
-
-      // Redirect to thank you page or purchase completion
-      setTimeout(() => {
-        navigate("/public-purchase/back-rent-report?success=true");
-      }, 2000);
+      // Set success state to show success message
+      setIsSuccessfullySubmitted(true);
     } catch (error: any) {
       console.error("Error submitting back rent payment proof:", error);
       showToast(
@@ -431,8 +423,8 @@ export default function BackRentReportingPublicPage() {
     );
   }
 
-  // Show error if verification failed
-  if (!verificationStatus.isValid) {
+  // Show success screen if form was successfully submitted or already reported
+  if (isSuccessfullySubmitted || verificationStatus.isReported) {
     return (
       <AppLayout>
         <Toast
@@ -441,19 +433,57 @@ export default function BackRentReportingPublicPage() {
           isVisible={toast.isVisible}
           onClose={() => setToast((prev) => ({ ...prev, isVisible: false }))}
         />
-        <div className="space-y-8">
+        <div className="space-y-8 max-w-5xl mx-auto">
           <div className="text-center py-20">
-            <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-4">
-              Verification Required
+            <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
+              <svg
+                className="w-8 h-8 text-green-600 dark:text-green-400"
+                fill="none"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+            </div>
+
+            <h2 className="text-3xl font-bold text-slate-900 dark:text-slate-100 mb-4">
+              {isSuccessfullySubmitted
+                ? "Thank You!"
+                : "You've Already Reported"}
             </h2>
-            <p className="text-slate-600 dark:text-slate-400 mb-6">
-              Please purchase Back Rent Reporting to access the form.
+
+            <p className="text-xl text-slate-600 dark:text-slate-400 mb-8">
+              {isSuccessfullySubmitted
+                ? "Your rent has been reported to the credit bureau"
+                : "You have already submitted your back rent report"}
             </p>
-            <Button
-              onClick={() => navigate("/public-purchase/back-rent-report")}
-            >
-              Go to Purchase Page
-            </Button>
+
+            <div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-6 max-w-2xl mx-auto mb-8">
+              <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-2">
+                Now you've reported past rents, want to see more positive impact
+                on your credit?
+              </h3>
+              <p className="text-white mb-6">
+                Sign up to report your monthly rent payments and build your
+                credit history continuously.
+              </p>
+
+              <Button
+                onClick={() => (window.location.href = "/register")}
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white sm:w-auto"
+                size="lg"
+              >
+                Sign up to report monthly
+              </Button>
+            </div>
+
+            <p className="text-sm text-slate-500 dark:text-slate-500">
+              Your submission has been recorded. You will receive a confirmation
+              email shortly.
+            </p>
           </div>
         </div>
       </AppLayout>
