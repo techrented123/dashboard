@@ -61,7 +61,7 @@ export default function BackRentReportingPublicPurchasePage() {
   };
 
   const handleSubscribe = () => {
-    navigate("/subscribe");
+    navigate("/pricing-plans");
   };
 
   return (

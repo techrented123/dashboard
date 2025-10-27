@@ -2,7 +2,7 @@ import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useState, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import Card from "../components/Card";
 import {
   Form,
@@ -192,6 +192,7 @@ type FormValues = z.infer<typeof formSchema>;
 
 export default function BackRentReportingPublicPage() {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccessfullySubmitted, setIsSuccessfullySubmitted] = useState(false);
   const [checkingVerification, setCheckingVerification] = useState(true);
@@ -253,6 +254,14 @@ export default function BackRentReportingPublicPage() {
       if (!verificationCode) {
         setVerificationStatus({ isValid: false, isReported: false });
         setCheckingVerification(false);
+        showToast(
+          "No verification code found. Please use the link from your email.",
+          "error"
+        );
+        // Optionally redirect after a delay
+        setTimeout(() => {
+          navigate("/public-purchase/back-rent-report");
+        }, 3000);
         return;
       }
 
@@ -263,7 +272,7 @@ export default function BackRentReportingPublicPage() {
 
         if (response.ok) {
           const data = await response.json();
-
+          console.log("Verification data:", data);
           if (data.found && !data.reported) {
             // Valid and not yet used
             setVerificationStatus({
@@ -523,18 +532,18 @@ export default function BackRentReportingPublicPage() {
           onClose={() => setToast((prev) => ({ ...prev, isVisible: false }))}
         />
         <div className="space-y-8">
-          <div>
-            <h1 className="text-2xl font-bold text-brand dark:text-primary-300 mb-2">
+          <div className="">
+            <h1 className="text-2xl font-bold text-brand dark:text-primary-300 mb-2 text-center">
               Back Rent Reporting - Public Form
             </h1>
-            <p className="text-base text-slate-600 dark:text-slate-400 font-medium">
+            <p className="text-base text-slate-600 dark:text-slate-400 font-medium text-center">
               Submit your historical rent payment proof to improve your credit
               score
             </p>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-1 gap-4 items-start mx-auto">
-            <Card title="Submit Back Rent Payment Proof">
+          <div className="grid grid-cols-1 lg:grid-cols-1 gap-4 items-start max-w-5xl mx-auto">
+            <Card title="">
               <Form {...form}>
                 <form
                   onSubmit={form.handleSubmit(onSubmit)}
