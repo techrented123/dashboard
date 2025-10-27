@@ -524,8 +524,6 @@ export default function BackRentReportingPage() {
                   Go to Dashboard
                 </Button>
               </div>
-
-            
             </div>
           </div>
         </AppLayout>
