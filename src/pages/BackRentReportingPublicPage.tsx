@@ -479,35 +479,35 @@ export default function BackRentReportingPublicPage() {
                   : "You've Already Reported"}
               </h2>
 
-              <p className="text-xl text-slate-600 dark:text-slate-400 mb-8">
+              <p className="text-md text-slate-600 dark:text-slate-400 mb-8">
                 {isSuccessfullySubmitted
                   ? "Your rent has been reported to the credit bureau"
                   : "You have already submitted your back rent report"}
               </p>
 
               <div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-6 max-w-2xl mx-auto mb-8">
-                <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-2">
+                <h3 className="text-lg text-slate-900 dark:text-slate-100 mb-0">
                   Now you've reported past rents, want to see more positive
                   impact on your credit?
                 </h3>
-                <p className="text-white mb-6">
+                <p className="text-white mb-1">
                   Sign up to report your monthly rent payments and build your
                   credit history continuously.
                 </p>
 
                 <Button
-                  onClick={() => (window.location.href = "/register")}
+                  onClick={() => (window.location.href = "/pricing-plans")}
                   className="w-full bg-blue-600 hover:bg-blue-700 text-white sm:w-auto"
                   size="lg"
                 >
-                  Sign up to report monthly
+                  Sign Up to Report Monthly Rent Payments
                 </Button>
               </div>
-
+{/* 
               <p className="text-sm text-slate-500 dark:text-slate-500">
                 Your submission has been recorded. You will receive a
                 confirmation email shortly.
-              </p>
+              </p> */}
             </div>
           </div>
         </div>

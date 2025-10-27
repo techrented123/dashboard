@@ -112,6 +112,7 @@ export default function BackRentReportingPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [isSuccessfullySubmitted, setIsSuccessfullySubmitted] = useState(false);
+  const [hasAlreadyReported, setHasAlreadyReported] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [checkingPurchase, setCheckingPurchase] = useState(true);
   const [toast, setToast] = useState<{
@@ -188,45 +189,40 @@ export default function BackRentReportingPage() {
         const purchases = data.purchases || [];
         console.log("🛒 All purchases:", purchases);
 
-        // Check if user has purchased back rent reporting
-        const hasPurchased = purchases.some((purchase: any) => {
-          const isBackRentProduct = purchase.product === "back-rent-report";
-          const isCurrentUser = purchase.userId === user?.sub;
-          const isOneTimeUse = purchase.reported;
-          console.log(`🔍 Checking purchase:`, {
-            purchase,
-            matches: isBackRentProduct && isCurrentUser,
-          });
+        // Check for any back rent report purchases (both reported and unreported)
+        const allBackRentPurchases = purchases.filter(
+          (purchase: any) =>
+            purchase.product === "back-rent-report" &&
+            purchase.userId === user?.sub
+        );
 
-          return isBackRentProduct && isCurrentUser && !isOneTimeUse;
-        });
+        console.log("📦 All back rent purchases:", allBackRentPurchases);
 
-        console.log("✅ Has purchased back rent reporting:", hasPurchased);
-
-        if (!hasPurchased) {
-          // User hasn't purchased, redirect to purchase page
+        // If user has never purchased, redirect to purchase page
+        if (allBackRentPurchases.length === 0) {
           console.log(
-            "💳 User has not purchased back rent reporting, redirecting to purchase page"
+            "❌ User has never purchased back rent reporting, redirecting to purchase page"
           );
           navigate("/back-rent-reporting/purchase");
           return;
-        } else {
-          console.log(
-            "🎉 User has purchased back rent reporting, showing form"
-          );
-          const unreportedPurchases = purchases.filter(
-            (purchase: any) =>
-              purchase.product === "back-rent-report" &&
-              purchase.userId === user?.sub &&
-              (purchase.reported === false || !purchase.reported)
-          );
-
-          if (unreportedPurchases.length === 0) {
-            // No unreported purchases, redirect to purchase page
-            navigate("/back-rent-reporting/purchase");
-            return;
-          }
         }
+
+        // Check for unreported purchases
+        const unreportedPurchases = allBackRentPurchases.filter(
+          (purchase: any) => purchase.reported === false || !purchase.reported
+        );
+
+        if (unreportedPurchases.length === 0) {
+          // User has purchased but already reported all of them
+          console.log(
+            "✅ User has purchased and already submitted back rent report"
+          );
+          setHasAlreadyReported(true);
+          setCheckingPurchase(false);
+          return;
+        }
+
+        console.log("🎉 User has unreported purchases, showing form");
       } else {
         console.log(
           "❌ Purchases API not available, redirecting to purchase page"
@@ -471,7 +467,65 @@ export default function BackRentReportingPage() {
     );
   }
 
-  // Add this section after line 471 (after the loading skeleton return)
+  if (hasAlreadyReported) {
+    return (
+      <ProtectedRoute>
+        <AppLayout>
+          <Toast
+            message={toast.message}
+            type={toast.type}
+            isVisible={toast.isVisible}
+            onClose={() => setToast((prev) => ({ ...prev, isVisible: false }))}
+          />
+
+          <div className="space-y-8">
+            <div className="text-center py-20">
+              <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
+                <svg
+                  className="w-8 h-8 text-green-600 dark:text-green-400"
+                  fill="none"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+              </div>
+
+              <h2 className="text-3xl font-bold text-slate-900 dark:text-slate-100 mb-4">
+                Already Submitted
+              </h2>
+
+              <p className="text-xl text-slate-600 dark:text-slate-400 mb-8">
+                You have already submitted your back rent payment report
+              </p>
+
+              <div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-6 max-w-2xl mx-auto mb-8">
+                <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-2">
+                  Next Steps
+                </h3>
+                <p className="text-slate-600 dark:text-slate-400 mb-6">
+                  Continue reporting your monthly rent payments to build your
+                  credit history.
+                </p>
+
+                <Button
+                  onClick={() => navigate("/dashboard")}
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white sm:w-auto"
+                  size="lg"
+                >
+                  Go to Dashboard
+                </Button>
+              </div>
+            </div>
+          </div>
+        </AppLayout>
+      </ProtectedRoute>
+    );
+  }
+
   if (isSuccessfullySubmitted) {
     return (
       <ProtectedRoute>

@@ -5,8 +5,8 @@ import { Button } from "../components/ui/button";
 export default function CheckEmailPage() {
   const navigate = useNavigate();
 
-  const handleBack = () => {
-    navigate("/public-purchase/back-rent-report");
+  const handlePricingPlans = () => {
+    navigate("/pricing-plans");
   };
 
   return (
@@ -32,9 +32,8 @@ export default function CheckEmailPage() {
             Click the link in your email to access the form.
           </p>
 
-          <Button onClick={handleBack} variant="outline" className="w-full">
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Purchase
+          <Button onClick={handlePricingPlans} variant="outline" className="w-full bg-blue-600 text-white hover:bg-blue-700">
+            Rent Reporting is Better as a Member 
           </Button>
         </div>
       </div>
