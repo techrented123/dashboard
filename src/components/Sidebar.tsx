@@ -10,6 +10,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Star,
+  Crown,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -110,7 +111,7 @@ export default function Sidebar() {
                     <span className="truncate flex items-center gap-2">
                       {label}
                       {isPremium && (
-                        <Star className="w-4 h-4 text-amber-500 fill-amber-500" />
+                        <Crown className="w-4 h-4 text-amber-500 fill-amber-500" />
                       )}
                     </span>
                   )}
