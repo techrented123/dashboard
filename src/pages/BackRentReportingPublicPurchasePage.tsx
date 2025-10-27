@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { PRODUCTS } from "../types/products";
 import { Button } from "../components/ui/button";
 import { ArrowLeft, CreditCard, CheckCircle2, Crown } from "lucide-react";
+import logo from "../assets/logo.png";
 
 export default function BackRentReportingPublicPurchasePage() {
   const navigate = useNavigate();
@@ -65,6 +66,13 @@ export default function BackRentReportingPublicPurchasePage() {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
+      {/* Header with Logo */}
+      <header className="border-b border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">
+        <div className="container mx-auto px-4 py-4 flex justify-center items-center">
+          <img src={logo} alt="Rented123" className="h-20" />
+        </div>
+      </header>
+
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-2xl mx-auto">
           {/* Back Button */}

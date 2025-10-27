@@ -3,7 +3,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
-import AppLayout from "../components/AppLayout";
 import Card from "../components/Card";
 import {
   Form,
@@ -26,6 +25,7 @@ import {
 } from "../components/ui/select";
 import { Toast } from "../components/ui/toast";
 import { Plus, X } from "lucide-react";
+import logo from "../assets/logo.png";
 
 const today = new Date();
 
@@ -410,8 +410,15 @@ export default function BackRentReportingPublicPage() {
   // Show loading while checking verification
   if (checkingVerification) {
     return (
-      <AppLayout>
-        <div className="space-y-8">
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
+        {/* Header with Logo */}
+        <header className="border-b border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 flex justify-center items-center">
+          <div className="container mx-auto px-4 py-4 ">
+            <img src={logo} alt="Rented123" className="h-20" />
+          </div>
+        </header>
+
+        <div className="container mx-auto px-4 py-8">
           <div className="text-center py-20">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
             <p className="mt-4 text-slate-600 dark:text-slate-400">
@@ -419,741 +426,759 @@ export default function BackRentReportingPublicPage() {
             </p>
           </div>
         </div>
-      </AppLayout>
+      </div>
     );
   }
 
   // Show success screen if form was successfully submitted or already reported
   if (isSuccessfullySubmitted || verificationStatus.isReported) {
     return (
-      <AppLayout>
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
+        {/* Header with Logo */}
+        <header className="border-b border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">
+          <div className="container mx-auto px-4 py-4 flex justify-center items-center">
+            <img src={logo} alt="Rented123" className="h-20" />
+          </div>
+        </header>
+
+        <div className="container mx-auto px-4 py-8">
+          <Toast
+            message={toast.message}
+            type={toast.type}
+            isVisible={toast.isVisible}
+            onClose={() => setToast((prev) => ({ ...prev, isVisible: false }))}
+          />
+          <div className="space-y-8 max-w-5xl mx-auto">
+            <div className="text-center py-20">
+              <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
+                <svg
+                  className="w-8 h-8 text-green-600 dark:text-green-400"
+                  fill="none"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+              </div>
+
+              <h2 className="text-3xl font-bold text-slate-900 dark:text-slate-100 mb-4">
+                {isSuccessfullySubmitted
+                  ? "Thank You!"
+                  : "You've Already Reported"}
+              </h2>
+
+              <p className="text-xl text-slate-600 dark:text-slate-400 mb-8">
+                {isSuccessfullySubmitted
+                  ? "Your rent has been reported to the credit bureau"
+                  : "You have already submitted your back rent report"}
+              </p>
+
+              <div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-6 max-w-2xl mx-auto mb-8">
+                <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-2">
+                  Now you've reported past rents, want to see more positive
+                  impact on your credit?
+                </h3>
+                <p className="text-white mb-6">
+                  Sign up to report your monthly rent payments and build your
+                  credit history continuously.
+                </p>
+
+                <Button
+                  onClick={() => (window.location.href = "/register")}
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white sm:w-auto"
+                  size="lg"
+                >
+                  Sign up to report monthly
+                </Button>
+              </div>
+
+              <p className="text-sm text-slate-500 dark:text-slate-500">
+                Your submission has been recorded. You will receive a
+                confirmation email shortly.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
+      {/* Header with Logo */}
+      <header className="border-b border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">
+        <div className="container mx-auto px-4 py-4 flex justify-center items-center">
+          <img src={logo} alt="Rented123" className="h-20" />
+        </div>
+      </header>
+
+      <div className="container mx-auto px-4 py-8">
         <Toast
           message={toast.message}
           type={toast.type}
           isVisible={toast.isVisible}
           onClose={() => setToast((prev) => ({ ...prev, isVisible: false }))}
         />
-        <div className="space-y-8 max-w-5xl mx-auto">
-          <div className="text-center py-20">
-            <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
-              <svg
-                className="w-8 h-8 text-green-600 dark:text-green-400"
-                fill="none"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-              </svg>
-            </div>
-
-            <h2 className="text-3xl font-bold text-slate-900 dark:text-slate-100 mb-4">
-              {isSuccessfullySubmitted
-                ? "Thank You!"
-                : "You've Already Reported"}
-            </h2>
-
-            <p className="text-xl text-slate-600 dark:text-slate-400 mb-8">
-              {isSuccessfullySubmitted
-                ? "Your rent has been reported to the credit bureau"
-                : "You have already submitted your back rent report"}
-            </p>
-
-            <div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-6 max-w-2xl mx-auto mb-8">
-              <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-2">
-                Now you've reported past rents, want to see more positive impact
-                on your credit?
-              </h3>
-              <p className="text-white mb-6">
-                Sign up to report your monthly rent payments and build your
-                credit history continuously.
-              </p>
-
-              <Button
-                onClick={() => (window.location.href = "/register")}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white sm:w-auto"
-                size="lg"
-              >
-                Sign up to report monthly
-              </Button>
-            </div>
-
-            <p className="text-sm text-slate-500 dark:text-slate-500">
-              Your submission has been recorded. You will receive a confirmation
-              email shortly.
+        <div className="space-y-8">
+          <div>
+            <h1 className="text-2xl font-bold text-brand dark:text-primary-300 mb-2">
+              Back Rent Reporting - Public Form
+            </h1>
+            <p className="text-base text-slate-600 dark:text-slate-400 font-medium">
+              Submit your historical rent payment proof to improve your credit
+              score
             </p>
           </div>
-        </div>
-      </AppLayout>
-    );
-  }
 
-  return (
-    <AppLayout>
-      <Toast
-        message={toast.message}
-        type={toast.type}
-        isVisible={toast.isVisible}
-        onClose={() => setToast((prev) => ({ ...prev, isVisible: false }))}
-      />
-      <div className="space-y-8">
-        <div>
-          <h1 className="text-2xl font-bold text-brand dark:text-primary-300 mb-2">
-            Back Rent Reporting - Public Form
-          </h1>
-          <p className="text-base text-slate-600 dark:text-slate-400 font-medium">
-            Submit your historical rent payment proof to improve your credit
-            score
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-1 gap-4 items-start max-w-5xl mx-auto">
-          <Card title="Submit Back Rent Payment Proof">
-            <Form {...form}>
-              <form
-                onSubmit={form.handleSubmit(onSubmit)}
-                className="space-y-6"
-              >
-                {/* Personal Information */}
-                <div className="border-b dark:border-slate-700 pb-4">
-                  <h3 className="text-lg font-semibold mb-4">
-                    Personal Information
-                  </h3>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="firstName"
-                      render={({ field }) => (
-                        <FormItem className="mb-6">
-                          <FormLabel>First Name</FormLabel>
-                          <FormControl>
-                            <Input placeholder="John" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="lastName"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Last Name</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Doe" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-
-                  <FormField
-                    control={form.control}
-                    name="email"
-                    render={({ field }) => (
-                      <FormItem className="mb-6">
-                        <FormLabel>Email Address</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="email"
-                            placeholder="john@example.com"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="sin"
-                    render={({ field }) => (
-                      <FormItem className="mb-6">
-                        <FormLabel>SIN (Social Insurance Number)</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="123456789"
-                            {...field}
-                            maxLength={9}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="phoneNumber"
-                    render={({ field }) => (
-                      <FormItem className="mb-6">
-                        <FormLabel>Phone Number</FormLabel>
-                        <FormControl>
-                          <Input placeholder="(555) 123-4567" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="dob"
-                    render={({ field }) => (
-                      <FormItem className="mb-6">
-                        <FormLabel>Date of Birth</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="date"
-                            {...field}
-                            value={
-                              field.value instanceof Date
-                                ? field.value.toISOString().split("T")[0]
-                                : field.value
-                            }
-                            onChange={(e) => {
-                              const date = e.target.value
-                                ? new Date(e.target.value)
-                                : new Date();
-                              field.onChange(date);
-                            }}
-                            max={
-                              new Date(
-                                today.getFullYear() - 18,
-                                today.getMonth(),
-                                today.getDate()
-                              )
-                                .toISOString()
-                                .split("T")[0]
-                            }
-                            min="1900-01-01"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                {/* Payment Details for First Entry */}
-                <div className="border-b dark:border-slate-700 pb-4">
-                  <h3 className="text-lg font-semibold mb-4">
-                    Rental History #1
-                  </h3>
-
-                  {/* Address Fields for First Entry */}
-                  <FormField
-                    control={form.control}
-                    name="address1"
-                    render={({ field }) => (
-                      <FormItem className="mb-6">
-                        <FormLabel>Address Line 1</FormLabel>
-                        <FormControl>
-                          <Input placeholder="123 Main Street" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="address2"
-                    render={({ field }) => (
-                      <FormItem className="mb-6">
-                        <FormLabel>Address Line 2 (Optional)</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Apt 4B" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="city"
-                      render={({ field }) => (
-                        <FormItem className="mb-6">
-                          <FormLabel>City</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Toronto" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="provinceState"
-                      render={({ field }) => (
-                        <FormItem className="mb-6">
-                          <FormLabel>Province/State</FormLabel>
-                          <FormControl>
-                            <Input placeholder="ON" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="postalZipCode"
-                      render={({ field }) => (
-                        <FormItem className="mb-6">
-                          <FormLabel>Postal/ZIP Code</FormLabel>
-                          <FormControl>
-                            <Input placeholder="M5V 3A8" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="countryCode"
-                      render={({ field }) => (
-                        <FormItem className="mb-6">
-                          <FormLabel>Country</FormLabel>
-                          <Select
-                            onValueChange={field.onChange}
-                            value={field.value}
-                            defaultValue={field.value}
-                          >
-                            <FormControl>
-                              <SelectTrigger className="w-full text-white">
-                                <SelectContent className="bg-slate-800 border-slate-600 text-white">
-                                  <SelectGroup>
-                                    <SelectLabel className="text-slate-300">
-                                      Countries
-                                    </SelectLabel>
-                                    <SelectItem
-                                      value="CA"
-                                      className="text-white hover:bg-slate-700 focus:bg-slate-700"
-                                    >
-                                      Canada
-                                    </SelectItem>
-                                    <SelectItem
-                                      value="US"
-                                      className="text-white hover:bg-slate-700 focus:bg-slate-700"
-                                    >
-                                      United States
-                                    </SelectItem>
-                                    <SelectItem
-                                      value="MX"
-                                      className="text-white hover:bg-slate-700 focus:bg-slate-700"
-                                    >
-                                      Mexico
-                                    </SelectItem>
-                                  </SelectGroup>
-                                </SelectContent>
-                              </SelectTrigger>
-                            </FormControl>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-
-                  <FormField
-                    control={form.control}
-                    name="startDate"
-                    render={({ field }) => (
-                      <FormItem className="mb-6">
-                        <FormLabel>Reporting Period Start Date</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="date"
-                            {...field}
-                            min={getMinStartDate()}
-                            max={getMaxStartDate()}
-                            value={
-                              field.value
-                                ? field.value.toISOString().split("T")[0]
-                                : ""
-                            }
-                            onChange={(e) => {
-                              field.onChange(new Date(e.target.value));
-                              setTimeout(() => {
-                                form.trigger(["startDate", "paymentDate"]);
-                              }, 0);
-                            }}
-                            onBlur={() => {
-                              form.trigger("startDate");
-                            }}
-                          />
-                        </FormControl>
-                        <FormDescription>
-                          The start date of the period you want to report
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="paymentDate"
-                    render={({ field }) => (
-                      <FormItem className="mb-6">
-                        <FormLabel>Reporting Period End Date</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="date"
-                            {...field}
-                            min={
-                              form.watch("startDate")
-                                ? new Date(
-                                    form.watch("startDate").getFullYear(),
-                                    form.watch("startDate").getMonth() + 1,
-                                    1
-                                  )
-                                    .toISOString()
-                                    .split("T")[0]
-                                : undefined
-                            }
-                            max={getMaxEndDate()}
-                            value={
-                              field.value
-                                ? field.value.toISOString().split("T")[0]
-                                : ""
-                            }
-                            onChange={(e) => {
-                              field.onChange(new Date(e.target.value));
-                              setTimeout(() => {
-                                form.trigger(["startDate", "paymentDate"]);
-                              }, 0);
-                            }}
-                            onBlur={() => {
-                              form.trigger(["startDate", "paymentDate"]);
-                            }}
-                          />
-                        </FormControl>
-                        <FormDescription>
-                          The end date of the period you want to report
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="rentAmount"
-                    render={({ field }) => (
-                      <FormItem className="mb-6">
-                        <FormLabel>Rent Amount ($)</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="number"
-                            placeholder="1200"
-                            {...field}
-                            onChange={(e) =>
-                              field.onChange(parseFloat(e.target.value) || 0)
-                            }
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                {/* Additional History Section */}
-                {fields.length > 0 && (
-                  <div className="border-t dark:border-slate-700 pt-6">
-                    <h3 className="text-lg font-semibold mb-4">
-                      Additional Rental History
-                    </h3>
-                    {fields.map((field, index) => (
-                      <div
-                        key={field.id}
-                        className="border dark:border-slate-700 rounded-lg p-4 mb-4 bg-slate-50 dark:bg-slate-900/50"
-                      >
-                        <div className="flex justify-between items-center mb-4">
-                          <h4 className="font-medium text-slate-900 dark:text-slate-100">
-                            Rental History #{index + 2}
-                          </h4>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => remove(index)}
-                            className="text-red-600 hover:text-red-700"
-                          >
-                            <X className="w-4 h-4 mr-1" />
-                            Remove
-                          </Button>
-                        </div>
-
-                        <div className="space-y-4">
-                          <FormField
-                            control={form.control}
-                            name={`additionalHistory.${index}.address1`}
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Address Line 1</FormLabel>
-                                <FormControl>
-                                  <Input
-                                    placeholder="123 Main Street"
-                                    {...field}
-                                  />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-
-                          <FormField
-                            control={form.control}
-                            name={`additionalHistory.${index}.address2`}
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Address Line 2 (Optional)</FormLabel>
-                                <FormControl>
-                                  <Input placeholder="Apt 4B" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-
-                          <div className="grid grid-cols-2 gap-4">
-                            <FormField
-                              control={form.control}
-                              name={`additionalHistory.${index}.city`}
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>City</FormLabel>
-                                  <FormControl>
-                                    <Input placeholder="Toronto" {...field} />
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-
-                            <FormField
-                              control={form.control}
-                              name={`additionalHistory.${index}.provinceState`}
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>Province/State</FormLabel>
-                                  <FormControl>
-                                    <Input placeholder="ON" {...field} />
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                          </div>
-
-                          <div className="grid grid-cols-2 gap-4">
-                            <FormField
-                              control={form.control}
-                              name={`additionalHistory.${index}.postalZipCode`}
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>Postal/ZIP Code</FormLabel>
-                                  <FormControl>
-                                    <Input placeholder="M5V 3A8" {...field} />
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-
-                            <FormField
-                              control={form.control}
-                              name={`additionalHistory.${index}.countryCode`}
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>Country</FormLabel>
-                                  <FormControl>
-                                    <Select
-                                      value={field.value}
-                                      onValueChange={field.onChange}
-                                    >
-                                      <SelectTrigger>
-                                        <span className="text-black dark:text-white">
-                                          {field.value || "Select country"}
-                                        </span>
-                                      </SelectTrigger>
-                                      <SelectContent className="bg-slate-800 text-white border-slate-600">
-                                        <SelectGroup>
-                                          <SelectLabel>Countries</SelectLabel>
-                                          <SelectItem
-                                            value="CA"
-                                            className="hover:bg-slate-700 focus:bg-slate-700"
-                                          >
-                                            Canada
-                                          </SelectItem>
-                                          <SelectItem
-                                            value="US"
-                                            className="hover:bg-slate-700 focus:bg-slate-700"
-                                          >
-                                            United States
-                                          </SelectItem>
-                                          <SelectItem
-                                            value="MX"
-                                            className="hover:bg-slate-700 focus:bg-slate-700"
-                                          >
-                                            Mexico
-                                          </SelectItem>
-                                        </SelectGroup>
-                                      </SelectContent>
-                                    </Select>
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                          </div>
-
-                          <div className="grid grid-cols-2 gap-4">
-                            <FormField
-                              control={form.control}
-                              name={`additionalHistory.${index}.startDate`}
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>Start Date</FormLabel>
-                                  <FormControl>
-                                    <Input
-                                      type="date"
-                                      {...field}
-                                      min={getMinStartDate()}
-                                      max={getMaxStartDate()}
-                                      value={
-                                        field.value
-                                          ? field.value
-                                              .toISOString()
-                                              .split("T")[0]
-                                          : ""
-                                      }
-                                      onChange={(e) => {
-                                        field.onChange(
-                                          new Date(e.target.value)
-                                        );
-                                      }}
-                                    />
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-
-                            <FormField
-                              control={form.control}
-                              name={`additionalHistory.${index}.endDate`}
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>End Date</FormLabel>
-                                  <FormControl>
-                                    <Input
-                                      type="date"
-                                      {...field}
-                                      max={getMaxEndDate()}
-                                      value={
-                                        field.value
-                                          ? field.value
-                                              .toISOString()
-                                              .split("T")[0]
-                                          : ""
-                                      }
-                                      onChange={(e) => {
-                                        field.onChange(
-                                          new Date(e.target.value)
-                                        );
-                                      }}
-                                    />
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                          </div>
-
-                          <FormField
-                            control={form.control}
-                            name={`additionalHistory.${index}.rentAmount`}
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Rent Amount ($)</FormLabel>
-                                <FormControl>
-                                  <Input
-                                    type="number"
-                                    placeholder="1200"
-                                    {...field}
-                                    onChange={(e) =>
-                                      field.onChange(
-                                        parseFloat(e.target.value) || 0
-                                      )
-                                    }
-                                  />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {/* Add More History Button */}
-                <div className="flex justify-center">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() =>
-                      append({
-                        address1: "",
-                        address2: "",
-                        city: "",
-                        provinceState: "",
-                        postalZipCode: "",
-                        countryCode: "",
-                        startDate: new Date(),
-                        endDate: new Date(),
-                        rentAmount: 0,
-                      })
-                    }
-                    className="w-full"
-                  >
-                    <Plus className="w-4 h-4 mr-2" />
-                    Add More History
-                  </Button>
-                </div>
-
-                <Button
-                  type="submit"
-                  disabled={isLoading}
-                  className="w-full text-white"
-                  size="lg"
+          <div className="grid grid-cols-1 lg:grid-cols-1 gap-4 items-start mx-auto">
+            <Card title="Submit Back Rent Payment Proof">
+              <Form {...form}>
+                <form
+                  onSubmit={form.handleSubmit(onSubmit)}
+                  className="space-y-6"
                 >
-                  {isLoading
-                    ? "Submitting..."
-                    : "Submit Back Rent Payment Proof"}
-                </Button>
-              </form>
-            </Form>
-          </Card>
+                  {/* Personal Information */}
+                  <div className="border-b dark:border-slate-700 pb-4">
+                    <h3 className="text-lg font-semibold mb-4">
+                      Personal Information
+                    </h3>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="firstName"
+                        render={({ field }) => (
+                          <FormItem className="mb-6">
+                            <FormLabel>First Name</FormLabel>
+                            <FormControl>
+                              <Input placeholder="John" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="lastName"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Last Name</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Doe" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    <FormField
+                      control={form.control}
+                      name="email"
+                      render={({ field }) => (
+                        <FormItem className="mb-6">
+                          <FormLabel>Email Address</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="email"
+                              placeholder="john@example.com"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="sin"
+                      render={({ field }) => (
+                        <FormItem className="mb-6">
+                          <FormLabel>SIN (Social Insurance Number)</FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="123456789"
+                              {...field}
+                              maxLength={9}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="phoneNumber"
+                      render={({ field }) => (
+                        <FormItem className="mb-6">
+                          <FormLabel>Phone Number</FormLabel>
+                          <FormControl>
+                            <Input placeholder="(555) 123-4567" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="dob"
+                      render={({ field }) => (
+                        <FormItem className="mb-6">
+                          <FormLabel>Date of Birth</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="date"
+                              {...field}
+                              value={
+                                field.value instanceof Date
+                                  ? field.value.toISOString().split("T")[0]
+                                  : field.value
+                              }
+                              onChange={(e) => {
+                                const date = e.target.value
+                                  ? new Date(e.target.value)
+                                  : new Date();
+                                field.onChange(date);
+                              }}
+                              max={
+                                new Date(
+                                  today.getFullYear() - 18,
+                                  today.getMonth(),
+                                  today.getDate()
+                                )
+                                  .toISOString()
+                                  .split("T")[0]
+                              }
+                              min="1900-01-01"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  {/* Payment Details for First Entry */}
+                  <div className="border-b dark:border-slate-700 pb-4">
+                    <h3 className="text-lg font-semibold mb-4">
+                      Rental History #1
+                    </h3>
+
+                    {/* Address Fields for First Entry */}
+                    <FormField
+                      control={form.control}
+                      name="address1"
+                      render={({ field }) => (
+                        <FormItem className="mb-6">
+                          <FormLabel>Address Line 1</FormLabel>
+                          <FormControl>
+                            <Input placeholder="123 Main Street" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="address2"
+                      render={({ field }) => (
+                        <FormItem className="mb-6">
+                          <FormLabel>Address Line 2 (Optional)</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Apt 4B" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="city"
+                        render={({ field }) => (
+                          <FormItem className="mb-6">
+                            <FormLabel>City</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Toronto" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="provinceState"
+                        render={({ field }) => (
+                          <FormItem className="mb-6">
+                            <FormLabel>Province/State</FormLabel>
+                            <FormControl>
+                              <Input placeholder="ON" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="postalZipCode"
+                        render={({ field }) => (
+                          <FormItem className="mb-6">
+                            <FormLabel>Postal/ZIP Code</FormLabel>
+                            <FormControl>
+                              <Input placeholder="M5V 3A8" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="countryCode"
+                        render={({ field }) => (
+                          <FormItem className="mb-6">
+                            <FormLabel>Country</FormLabel>
+                            <Select
+                              onValueChange={field.onChange}
+                              value={field.value}
+                              defaultValue={field.value}
+                            >
+                              <FormControl>
+                                <SelectTrigger className="w-full text-white">
+                                  <SelectContent className="bg-slate-800 border-slate-600 text-white">
+                                    <SelectGroup>
+                                      <SelectLabel className="text-slate-300">
+                                        Countries
+                                      </SelectLabel>
+                                      <SelectItem
+                                        value="CA"
+                                        className="text-white hover:bg-slate-700 focus:bg-slate-700"
+                                      >
+                                        Canada
+                                      </SelectItem>
+                                      <SelectItem
+                                        value="US"
+                                        className="text-white hover:bg-slate-700 focus:bg-slate-700"
+                                      >
+                                        United States
+                                      </SelectItem>
+                                      <SelectItem
+                                        value="MX"
+                                        className="text-white hover:bg-slate-700 focus:bg-slate-700"
+                                      >
+                                        Mexico
+                                      </SelectItem>
+                                    </SelectGroup>
+                                  </SelectContent>
+                                </SelectTrigger>
+                              </FormControl>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    <FormField
+                      control={form.control}
+                      name="startDate"
+                      render={({ field }) => (
+                        <FormItem className="mb-6">
+                          <FormLabel>Reporting Period Start Date</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="date"
+                              {...field}
+                              min={getMinStartDate()}
+                              max={getMaxStartDate()}
+                              value={
+                                field.value
+                                  ? field.value.toISOString().split("T")[0]
+                                  : ""
+                              }
+                              onChange={(e) => {
+                                field.onChange(new Date(e.target.value));
+                                setTimeout(() => {
+                                  form.trigger(["startDate", "paymentDate"]);
+                                }, 0);
+                              }}
+                              onBlur={() => {
+                                form.trigger("startDate");
+                              }}
+                            />
+                          </FormControl>
+                          <FormDescription>
+                            The start date of the period you want to report
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="paymentDate"
+                      render={({ field }) => (
+                        <FormItem className="mb-6">
+                          <FormLabel>Reporting Period End Date</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="date"
+                              {...field}
+                              min={
+                                form.watch("startDate")
+                                  ? new Date(
+                                      form.watch("startDate").getFullYear(),
+                                      form.watch("startDate").getMonth() + 1,
+                                      1
+                                    )
+                                      .toISOString()
+                                      .split("T")[0]
+                                  : undefined
+                              }
+                              max={getMaxEndDate()}
+                              value={
+                                field.value
+                                  ? field.value.toISOString().split("T")[0]
+                                  : ""
+                              }
+                              onChange={(e) => {
+                                field.onChange(new Date(e.target.value));
+                                setTimeout(() => {
+                                  form.trigger(["startDate", "paymentDate"]);
+                                }, 0);
+                              }}
+                              onBlur={() => {
+                                form.trigger(["startDate", "paymentDate"]);
+                              }}
+                            />
+                          </FormControl>
+                          <FormDescription>
+                            The end date of the period you want to report
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="rentAmount"
+                      render={({ field }) => (
+                        <FormItem className="mb-6">
+                          <FormLabel>Rent Amount ($)</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              placeholder="1200"
+                              {...field}
+                              onChange={(e) =>
+                                field.onChange(parseFloat(e.target.value) || 0)
+                              }
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  {/* Additional History Section */}
+                  {fields.length > 0 && (
+                    <div className="border-t dark:border-slate-700 pt-6">
+                      <h3 className="text-lg font-semibold mb-4">
+                        Additional Rental History
+                      </h3>
+                      {fields.map((field, index) => (
+                        <div
+                          key={field.id}
+                          className="border dark:border-slate-700 rounded-lg p-4 mb-4 bg-slate-50 dark:bg-slate-900/50"
+                        >
+                          <div className="flex justify-between items-center mb-4">
+                            <h4 className="font-medium text-slate-900 dark:text-slate-100">
+                              Rental History #{index + 2}
+                            </h4>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => remove(index)}
+                              className="text-red-600 hover:text-red-700"
+                            >
+                              <X className="w-4 h-4 mr-1" />
+                              Remove
+                            </Button>
+                          </div>
+
+                          <div className="space-y-4">
+                            <FormField
+                              control={form.control}
+                              name={`additionalHistory.${index}.address1`}
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Address Line 1</FormLabel>
+                                  <FormControl>
+                                    <Input
+                                      placeholder="123 Main Street"
+                                      {...field}
+                                    />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+
+                            <FormField
+                              control={form.control}
+                              name={`additionalHistory.${index}.address2`}
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>
+                                    Address Line 2 (Optional)
+                                  </FormLabel>
+                                  <FormControl>
+                                    <Input placeholder="Apt 4B" {...field} />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+
+                            <div className="grid grid-cols-2 gap-4">
+                              <FormField
+                                control={form.control}
+                                name={`additionalHistory.${index}.city`}
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>City</FormLabel>
+                                    <FormControl>
+                                      <Input placeholder="Toronto" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+
+                              <FormField
+                                control={form.control}
+                                name={`additionalHistory.${index}.provinceState`}
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Province/State</FormLabel>
+                                    <FormControl>
+                                      <Input placeholder="ON" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                              <FormField
+                                control={form.control}
+                                name={`additionalHistory.${index}.postalZipCode`}
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Postal/ZIP Code</FormLabel>
+                                    <FormControl>
+                                      <Input placeholder="M5V 3A8" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+
+                              <FormField
+                                control={form.control}
+                                name={`additionalHistory.${index}.countryCode`}
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Country</FormLabel>
+                                    <FormControl>
+                                      <Select
+                                        value={field.value}
+                                        onValueChange={field.onChange}
+                                      >
+                                        <SelectTrigger>
+                                          <span className="text-black dark:text-white">
+                                            {field.value || "Select country"}
+                                          </span>
+                                        </SelectTrigger>
+                                        <SelectContent className="bg-slate-800 text-white border-slate-600">
+                                          <SelectGroup>
+                                            <SelectLabel>Countries</SelectLabel>
+                                            <SelectItem
+                                              value="CA"
+                                              className="hover:bg-slate-700 focus:bg-slate-700"
+                                            >
+                                              Canada
+                                            </SelectItem>
+                                            <SelectItem
+                                              value="US"
+                                              className="hover:bg-slate-700 focus:bg-slate-700"
+                                            >
+                                              United States
+                                            </SelectItem>
+                                            <SelectItem
+                                              value="MX"
+                                              className="hover:bg-slate-700 focus:bg-slate-700"
+                                            >
+                                              Mexico
+                                            </SelectItem>
+                                          </SelectGroup>
+                                        </SelectContent>
+                                      </Select>
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                              <FormField
+                                control={form.control}
+                                name={`additionalHistory.${index}.startDate`}
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Start Date</FormLabel>
+                                    <FormControl>
+                                      <Input
+                                        type="date"
+                                        {...field}
+                                        min={getMinStartDate()}
+                                        max={getMaxStartDate()}
+                                        value={
+                                          field.value
+                                            ? field.value
+                                                .toISOString()
+                                                .split("T")[0]
+                                            : ""
+                                        }
+                                        onChange={(e) => {
+                                          field.onChange(
+                                            new Date(e.target.value)
+                                          );
+                                        }}
+                                      />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+
+                              <FormField
+                                control={form.control}
+                                name={`additionalHistory.${index}.endDate`}
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>End Date</FormLabel>
+                                    <FormControl>
+                                      <Input
+                                        type="date"
+                                        {...field}
+                                        max={getMaxEndDate()}
+                                        value={
+                                          field.value
+                                            ? field.value
+                                                .toISOString()
+                                                .split("T")[0]
+                                            : ""
+                                        }
+                                        onChange={(e) => {
+                                          field.onChange(
+                                            new Date(e.target.value)
+                                          );
+                                        }}
+                                      />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                            </div>
+
+                            <FormField
+                              control={form.control}
+                              name={`additionalHistory.${index}.rentAmount`}
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Rent Amount ($)</FormLabel>
+                                  <FormControl>
+                                    <Input
+                                      type="number"
+                                      placeholder="1200"
+                                      {...field}
+                                      onChange={(e) =>
+                                        field.onChange(
+                                          parseFloat(e.target.value) || 0
+                                        )
+                                      }
+                                    />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Add More History Button */}
+                  <div className="flex justify-center">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() =>
+                        append({
+                          address1: "",
+                          address2: "",
+                          city: "",
+                          provinceState: "",
+                          postalZipCode: "",
+                          countryCode: "",
+                          startDate: new Date(),
+                          endDate: new Date(),
+                          rentAmount: 0,
+                        })
+                      }
+                      className="w-full"
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      Add More History
+                    </Button>
+                  </div>
+
+                  <Button
+                    type="submit"
+                    disabled={isLoading}
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                    size="lg"
+                  >
+                    {isLoading ? "Submitting..." : "Submit Back Rent Payments"}
+                  </Button>
+                </form>
+              </Form>
+            </Card>
+          </div>
         </div>
       </div>
-    </AppLayout>
+    </div>
   );
 }
