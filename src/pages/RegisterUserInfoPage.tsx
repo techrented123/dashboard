@@ -945,127 +945,6 @@ export default function RegisterUserInfoPage() {
                         </PasswordRequirement>
                       </div>
                     )}
-
-                    {/* ID Verification Upload - dynamically shows/hides based on email verification status */}
-                    {idVerificationData?.status === "not_found" && (
-                      <div className="space-y-2">
-                        <FormLabel>ID Verification Report (PDF)</FormLabel>
-                        <div
-                          className={cn(
-                            "border-2 border-dashed rounded-lg p-6 text-center transition-colors",
-                            isIdDragOver
-                              ? "border-gray-400 bg-gray-50 dark:bg-slate-800/40"
-                              : "border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500"
-                          )}
-                          onDragOver={(e) => {
-                            e.preventDefault();
-                            setIsIdDragOver(true);
-                          }}
-                          onDragLeave={(e) => {
-                            e.preventDefault();
-                            setIsIdDragOver(false);
-                          }}
-                          onDrop={async (e) => {
-                            e.preventDefault();
-                            setIsIdDragOver(false);
-                            const file = e.dataTransfer.files?.[0];
-                            if (file) {
-                              await validateIdVerificationUpload(file);
-                            }
-                          }}
-                        >
-                          <input
-                            type="file"
-                            accept=".pdf"
-                            onChange={async (e) => {
-                              const file = e.target.files?.[0];
-                              if (file) {
-                                await validateIdVerificationUpload(file);
-                              }
-                            }}
-                            className="hidden"
-                            id="id-verification-upload"
-                          />
-                          {form.watch("idVerificationUpload") ? (
-                            <div className="flex items-center justify-center gap-3">
-                              <FileText className="w-8 h-8 text-green-600" />
-                              <div className="text-left">
-                                <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                                  {form.watch("idVerificationUpload")?.name}
-                                </p>
-                              </div>
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  form.setValue(
-                                    "idVerificationUpload",
-                                    undefined as any
-                                  )
-                                }
-                                className="ml-2 p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full"
-                              >
-                                <X className="w-4 h-4 text-gray-500" />
-                              </button>
-                            </div>
-                          ) : (
-                            <label
-                              htmlFor="id-verification-upload"
-                              className="cursor-pointer flex flex-col items-center gap-2"
-                            >
-                              <Upload className="w-8 h-8 text-gray-400" />
-                              <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">
-                                Drag and drop your ID verification PDF here, or{" "}
-                                <span className="text-blue-600 hover:text-blue-500">
-                                  browse files
-                                </span>
-                              </p>
-                              <p className="text-xs text-gray-500 dark:text-gray-400">
-                                Accepts PDF • Maximum 10MB
-                              </p>
-                            </label>
-                          )}
-                        </div>
-
-                        {/* Upload Status */}
-                        {idVerificationUploadStatus.isVerifying && (
-                          <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400 mt-2">
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                            Verifying document...
-                          </div>
-                        )}
-
-                        {idVerificationUploadStatus.isValid === true && (
-                          <div className="flex items-center gap-2 text-sm text-green-600 dark:text-green-400 mt-2">
-                            <CheckCircle2 className="w-4 h-4" />
-                            Valid ID verification document
-                          </div>
-                        )}
-
-                        {idVerificationUploadStatus.isValid === false && (
-                          <div className="flex items-center gap-2 text-sm text-red-600 dark:text-red-400 mt-2">
-                            <XCircle className="w-4 h-4" />
-                            {idVerificationUploadStatus.message}
-                          </div>
-                        )}
-
-                        {/* Optional: Link to complete new verification */}
-                        <div className="text-xs text-slate-600 dark:text-slate-400 mt-2">
-                          Don’t have the PDF?{" "}
-                          <button
-                            type="button"
-                            className="underline"
-                            onClick={() =>
-                              window.open(
-                                "https://www.rented123.com/id-verification",
-                                "_blank"
-                              )
-                            }
-                          >
-                            Complete new verification
-                          </button>
-                        </div>
-                      </div>
-                    )}
                   </div>
 
                   {/* Rental Information Section */}
@@ -1288,7 +1167,7 @@ export default function RegisterUserInfoPage() {
 
                 <Button
                   type="submit"
-                  className="w-full bg-secondary text-white rounded-xl py-3 font-medium hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-xl py-3 font-medium hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
                 >
                   Continue to Billing
                   <ArrowRight className="w-4 h-4" />
