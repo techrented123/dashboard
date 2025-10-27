@@ -102,6 +102,7 @@ const formSchema = z
     }),
     idVerificationUpload: z.instanceof(File).optional(),
     idVerificationEmailRequired: z.boolean().optional(),
+    howDidYouFindUs: z.string().min(1, "Please select how you found us"),
     termsAndConditions: z.boolean().refine((val) => val === true, {
       message: "You must accept the terms and conditions",
     }),
@@ -1176,6 +1177,37 @@ export default function RegisterUserInfoPage() {
                         </div>
                       </div>
                     </div>
+
+                    {/* How did you find us */}
+                    <FormField
+                      control={form.control}
+                      name="howDidYouFindUs"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>How did you find us?</FormLabel>
+                          <FormControl>
+                            <select
+                              {...field}
+                              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-black dark:text-black ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                              <option value="">Select an option</option>
+                              <option value="Word of Mouth">
+                                Word of Mouth
+                              </option>
+                              <option value="Google">Google</option>
+                              <option value="Social Media">Social Media</option>
+                              <option value="Events / Trade Shows">
+                                Events / Trade Shows
+                              </option>
+                              <option value="Advertisement">
+                                Advertisement
+                              </option>
+                            </select>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
                     {/* Terms and Privacy Policy Checkboxes */}
                     <div className="space-y-4">
