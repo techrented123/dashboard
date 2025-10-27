@@ -75,8 +75,6 @@ async function updateCognitoLeaseUrl(leaseKey: string) {
   }
 }
 
-
-
 // Function to convert email to S3 prefix
 function emailToS3Prefix(email: string | undefined) {
   if (!email) return "";
@@ -521,20 +519,20 @@ export default function RegisterBillingPage() {
           <div className="mb-8">
             <div className="flex items-center justify-center gap-8 mb-4">
               <div className="flex flex-col items-center gap-2">
-                <div className="w-8 h-8 bg-secondary text-white rounded-full flex items-center justify-center text-sm font-medium">
+                <div className="w-8 h-8 bg-green-600 text-white rounded-full flex items-center justify-center text-sm font-medium">
                   ✓
                 </div>
-                <span className="text-sm text-secondary font-medium">
+                <span className="text-sm font-medium text-green-600">
                   User Information
                 </span>
               </div>
               <div className="w-12 h-0.5 bg-secondary"></div>
               <div className="flex flex-col items-center gap-2">
-                <div className="w-8 h-8 bg-secondary text-white rounded-full flex items-center justify-center text-sm font-medium">
+                <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-medium">
                   2
                 </div>
-                <span className="text-sm font-medium text-secondary">
-                  Billing & Plan
+                <span className="text-sm font-medium text-blue-600">
+                  Billing
                 </span>
               </div>
             </div>

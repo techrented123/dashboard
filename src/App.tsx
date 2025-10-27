@@ -24,6 +24,7 @@ import AdminPasswordResetPage from "./pages/AdminPasswordResetPage";
 import AdminPasswordResetConfirmPage from "./pages/AdminPasswordResetConfirmPage";
 import AdminRentReportsPage from "./pages/AdminRentReportsPage";
 import AdminProtectedRoute from "./components/AdminProtectedRoute";
+import { GoogleMapsProvider } from "./lib/google-maps-provider";
 import { useState, useEffect } from "react";
 import { isAuthenticated } from "./lib/auth";
 
@@ -50,129 +51,131 @@ function App() {
   }
 
   return (
-    <Routes>
-      <Route
-        path="/"
-        element={
-          <Navigate to={authenticated ? "/dashboard" : "/login"} replace />
-        }
-      />
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-      <Route
-        path="/confirm-password-reset"
-        element={<ConfirmPasswordResetPage />}
-      />
-      <Route path="/pricing-plans" element={<PricingPlansPage />} />
-      <Route path="/register" element={<RegisterUserInfoPage />} />
-      <Route path="/register/billing" element={<RegisterBillingPage />} />
-      <Route path="/register/confirm" element={<RegisterConfirmPage />} />
-      <Route
-        path="/subscribe"
-        element={
-          <ProtectedRoute requireSubscription={false}>
-            <SubscribePage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/dashboard"
-        element={
-          <ProtectedRoute>
-            <DashboardPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/rent-reporting"
-        element={
-          <ProtectedRoute>
-            <RentReportingPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/rent-reporting-magic-link"
-        element={<RentReportingMagicLinkPage />}
-      />
-      {/* Public routes - completely different URL */}
-      <Route
-        path="/public-purchase/back-rent-report"
-        element={<BackRentReportingPublicPurchasePage />}
-      />
-      <Route path="/check-email" element={<CheckEmailPage />} />
-      <Route
-        path="/public-form/back-rent-report"
-        element={<BackRentReportingPublicPage />}
-      />
-      <Route
-        path="/back-rent-reporting"
-        element={
-          <ProtectedRoute>
-            <BackRentReportingPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/back-rent-reporting/purchase"
-        element={
-          <ProtectedRoute requireSubscription={false}>
-            <BackRentReportingPurchasePage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/billing"
-        element={
-          <ProtectedRoute requireSubscription={false}>
-            <BillingPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/documents"
-        element={
-          <ProtectedRoute requireSubscription={true}>
-            <DocumentsPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/account"
-        element={
-          <ProtectedRoute requireSubscription={true}>
-            <AccountPage />
-          </ProtectedRoute>
-        }
-      />
+    <GoogleMapsProvider>
+      <Routes>
+        <Route
+          path="/"
+          element={
+            <Navigate to={authenticated ? "/dashboard" : "/login"} replace />
+          }
+        />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route
+          path="/confirm-password-reset"
+          element={<ConfirmPasswordResetPage />}
+        />
+        <Route path="/pricing-plans" element={<PricingPlansPage />} />
+        <Route path="/register" element={<RegisterUserInfoPage />} />
+        <Route path="/register/billing" element={<RegisterBillingPage />} />
+        <Route path="/register/confirm" element={<RegisterConfirmPage />} />
+        <Route
+          path="/subscribe"
+          element={
+            <ProtectedRoute requireSubscription={false}>
+              <SubscribePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <DashboardPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/rent-reporting"
+          element={
+            <ProtectedRoute>
+              <RentReportingPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/rent-reporting-magic-link"
+          element={<RentReportingMagicLinkPage />}
+        />
+        {/* Public routes - completely different URL */}
+        <Route
+          path="/public-purchase/back-rent-report"
+          element={<BackRentReportingPublicPurchasePage />}
+        />
+        <Route path="/check-email" element={<CheckEmailPage />} />
+        <Route
+          path="/public-form/back-rent-report"
+          element={<BackRentReportingPublicPage />}
+        />
+        <Route
+          path="/back-rent-reporting"
+          element={
+            <ProtectedRoute>
+              <BackRentReportingPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/back-rent-reporting/purchase"
+          element={
+            <ProtectedRoute requireSubscription={false}>
+              <BackRentReportingPurchasePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/billing"
+          element={
+            <ProtectedRoute requireSubscription={false}>
+              <BillingPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/documents"
+          element={
+            <ProtectedRoute requireSubscription={true}>
+              <DocumentsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/account"
+          element={
+            <ProtectedRoute requireSubscription={true}>
+              <AccountPage />
+            </ProtectedRoute>
+          }
+        />
 
-      {/* Admin Routes */}
-      <Route path="/admin/login" element={<AdminLoginPage />} />
-      <Route
-        path="/admin/password-reset"
-        element={<AdminPasswordResetPage />}
-      />
-      <Route
-        path="/admin/password-reset-confirm"
-        element={<AdminPasswordResetConfirmPage />}
-      />
-      <Route
-        path="/admin/dashboard"
-        element={
-          <AdminProtectedRoute>
-            <AdminRentReportsPage />
-          </AdminProtectedRoute>
-        }
-      />
-      <Route
-        path="/admin/rent-reports"
-        element={
-          <AdminProtectedRoute>
-            <AdminRentReportsPage />
-          </AdminProtectedRoute>
-        }
-      />
-    </Routes>
+        {/* Admin Routes */}
+        <Route path="/admin/login" element={<AdminLoginPage />} />
+        <Route
+          path="/admin/password-reset"
+          element={<AdminPasswordResetPage />}
+        />
+        <Route
+          path="/admin/password-reset-confirm"
+          element={<AdminPasswordResetConfirmPage />}
+        />
+        <Route
+          path="/admin/dashboard"
+          element={
+            <AdminProtectedRoute>
+              <AdminRentReportsPage />
+            </AdminProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/rent-reports"
+          element={
+            <AdminProtectedRoute>
+              <AdminRentReportsPage />
+            </AdminProtectedRoute>
+          }
+        />
+      </Routes>
+    </GoogleMapsProvider>
   );
 }
 

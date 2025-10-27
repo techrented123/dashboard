@@ -10,7 +10,6 @@ import {
   AlertTriangle,
   CheckCircle2,
   XCircle,
-  Info,
   Loader2,
 } from "lucide-react";
 import { useForm } from "react-hook-form";
@@ -29,6 +28,7 @@ import { Input } from "../ui/input";
 import { Button } from "../components/ui/button";
 import { cn, formatPhoneToE164 } from "../lib/utils";
 import { useIdVerification } from "../lib/hooks/useIdVerification";
+import { AddressAutocomplete } from "../components/AddressAutocomplete";
 import logo from "../assets/logo.png";
 
 // Helper component for the password validation checklist
@@ -171,6 +171,7 @@ export default function RegisterUserInfoPage() {
   const [isDragOver, setIsDragOver] = useState(false);
   const [emailValue, setEmailValue] = useState("");
   const [shouldCheckId, setShouldCheckId] = useState(false);
+  const [step, setStep] = useState<1 | 2>(1); // Step 1: Email + ID verification, Step 2: Full form
 
   // State for password validation
   const [passwordValidation, setPasswordValidation] = useState({
@@ -238,6 +239,51 @@ export default function RegisterUserInfoPage() {
       form.setValue("idVerificationUpload", undefined as any);
     }
   }, [idVerificationData?.status, form]);
+
+  // Determine if ID verification is complete
+  const isIdVerified =
+    idVerificationData?.status === "found" ||
+    (idVerificationData?.status === "not_found" &&
+      idVerificationUploadStatus.isValid);
+
+  // Handle Next button click - move to step 2
+  const handleNext = () => {
+    if (isIdVerified) {
+      form.setValue("email", emailValue); // Set the email in the form
+      setStep(2);
+    }
+  };
+
+  // Handle address autocomplete selection
+  const handleAddressSelect = (address: {
+    street?: string;
+    city?: string;
+    province?: string;
+    postalCode?: string;
+    country?: string;
+  }) => {
+    console.log("handleAddressSelect called with:", address);
+    if (address.street) {
+      form.setValue("address", address.street);
+      console.log("Set address to:", address.street);
+    }
+    if (address.city) {
+      form.setValue("city", address.city);
+      console.log("Set city to:", address.city);
+    }
+    if (address.province) {
+      form.setValue("province", address.province);
+      console.log("Set province to:", address.province);
+    }
+    if (address.postalCode) {
+      form.setValue("postalCode", address.postalCode);
+      console.log("Set postalCode to:", address.postalCode);
+    }
+    if (address.country) {
+      form.setValue("country", address.country);
+      console.log("Set country to:", address.country);
+    }
+  };
 
   const onSubmit = async (data: FormValues) => {
     // Check ID verification status before proceeding
@@ -376,212 +422,114 @@ export default function RegisterUserInfoPage() {
       <div className="container-padded">
         <div className="max-w-5xl mx-auto">
           {/* Logo */}
-          <div className="text-center mb-8">
-            <img src={logo} alt="Rented123 Logo" className="h-20 mx-auto" />
-          </div>
 
-          {/* Progress Indicator */}
-          <div className="mb-8">
-            <div className="flex items-center justify-center gap-8 mb-4">
-              <div className="flex flex-col items-center gap-2">
-                <div className="w-8 h-8 bg-secondary text-white rounded-full flex items-center justify-center text-sm font-medium">
-                  1
-                </div>
-                <span className="text-sm font-medium text-secondary">
-                  User Information
-                </span>
-              </div>
-              <div className="w-12 h-0.5 bg-slate-300 dark:bg-slate-600"></div>
-              <div className="flex flex-col items-center gap-2">
-                <div className="w-8 h-8 bg-slate-300 dark:bg-slate-600 text-slate-600 dark:text-slate-400 rounded-full flex items-center justify-center text-sm font-medium">
-                  2
-                </div>
-                <span className="text-sm text-slate-600 dark:text-slate-400">
-                  Billing & Plan
-                </span>
-              </div>
-            </div>
-          </div>
+          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-soft p-8 md:p-12 border dark:border-slate-700">
+            {step === 1 ? (
+              <>
+                {/* Enhanced Step 1 Design */}
+                <div className="max-w-md mx-auto">
+                  {/* Icon Section */}
+                  <div className="text-center mb-8">
+                    <img
+                      src={logo}
+                      alt="Rented123 Logo"
+                      className="h-20 mx-auto"
+                    />
+                  </div>
 
-          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-soft p-8 border dark:border-slate-700">
-            {/* ID Verification Banner */}
-            <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-xl">
-              <div className="flex items-center gap-3">
-                <Info className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0" />
-                <div>
-                  <h3 className="font-medium text-blue-800 dark:text-blue-300 mb-1">
-                    ID Verification Required
-                  </h3>
-                  <p className="text-sm text-blue-700 dark:text-blue-400">
-                    Please complete your ID verification{" "}
-                    <a
-                      href="https://www.rented123.com/id-verification"
-                      target="_blank"
-                      className="text-blue-700 dark:text-blue-400 underline hover:text-blue-800 dark:hover:text-blue-300"
-                    >
-                      here
-                    </a>{" "}
-                    before proceeding. If you've already done this, please
-                    continue below.
+                  {/* Title and Description */}
+                  <div className="text-center mb-8">
+                    <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-3">
+                      Let's Start with ID Verification
+                    </h1>
+                    <p className="text-base text-slate-600 dark:text-slate-400 leading-relaxed mb-2">
+                      Enter the email address you used when completing your ID
+                      verification.
+                    </p>
+                    <p className="text-sm text-slate-500 dark:text-slate-500">
+                      Don't have ID verification yet?{" "}
+                      <a
+                        href="https://www.rented123.com/id-verification"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 underline font-medium"
+                      >
+                        Get it here
+                      </a>
+                    </p>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <>
+                {/* Progress Indicator - Only show for Step 2 */}
+                <div className="mb-8">
+                  <div className="flex items-center justify-center gap-8 mb-4">
+                    <div className="flex flex-col items-center gap-2">
+                      <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-medium">
+                        1
+                      </div>
+                      <span className="text-sm font-medium text-blue-600">
+                        User Information
+                      </span>
+                    </div>
+                    <div className="w-12 h-0.5 bg-slate-300 dark:bg-slate-600"></div>
+                    <div className="flex flex-col items-center gap-2">
+                      <div className="w-8 h-8 bg-slate-300 dark:bg-slate-600 text-slate-600 dark:text-slate-400 rounded-full flex items-center justify-center text-sm font-medium">
+                        2
+                      </div>
+                      <span className="text-sm text-slate-600 dark:text-slate-400">
+                        Billing
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Step 2 Title */}
+                <div className="text-center mb-8">
+                  <h1 className="text-2xl font-semibold text-black dark:text-white mb-2">
+                    Create Your Account
+                  </h1>
+                  <p className="text-sm text-slate-600 dark:text-slate-400">
+                    Let's start with your basic information
                   </p>
                 </div>
-              </div>
-            </div>
-
-            <div className="text-center mb-8">
-              <h1 className="text-2xl font-semibold text-primary-800 dark:text-primary-300 mb-2">
-                Create Your Account
-              </h1>
-              <p className="text-sm text-slate-600 dark:text-slate-400">
-                Let's start with your basic information
-              </p>
-            </div>
+              </>
+            )}
 
             <Form {...form}>
               <form
                 onSubmit={form.handleSubmit(onSubmit)}
                 className="space-y-8"
               >
-                {/* Personal Information Section */}
-                <div className="space-y-4">
-                  <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-200 border-b border-slate-200 dark:border-slate-600 pb-2">
-                    Personal Information
-                  </h2>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="firstName"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>First Name</FormLabel>
-                          <FormControl>
-                            <Input
-                              placeholder="Enter your first name"
-                              {...field}
-                              className={cn(
-                                form.formState.errors.firstName &&
-                                  "border-red-500 focus-visible:ring-red-500"
-                              )}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="lastName"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Last Name</FormLabel>
-                          <FormControl>
-                            <Input
-                              placeholder="Enter your last name"
-                              {...field}
-                              className={cn(
-                                form.formState.errors.lastName &&
-                                  "border-red-500 focus-visible:ring-red-500"
-                              )}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="middleName"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>
-                            Middle Name{" "}
-                            <span className="text-slate-400">(optional)</span>
-                          </FormLabel>
-                          <FormControl>
-                            <Input
-                              placeholder="Enter your middle name"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="birthdate"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Birth Date</FormLabel>
-                          <FormControl>
-                            <Input
-                              type="date"
-                              {...field}
-                              className={cn(
-                                form.formState.errors.birthdate &&
-                                  "border-red-500 focus-visible:ring-red-500"
-                              )}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                </div>
-
-                {/* Contact Information Section */}
-                <div className="space-y-4">
-                  <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-200 border-b border-slate-200 dark:border-slate-600 pb-2">
-                    Contact Information
-                  </h2>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="username"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Username</FormLabel>
-                          <FormControl>
-                            <Input
-                              placeholder="Choose a username"
-                              {...field}
-                              className={cn(
-                                form.formState.errors.username &&
-                                  "border-red-500 focus-visible:ring-red-500"
-                              )}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                {step === 1 ? (
+                  // STEP 1: Email and ID Verification
+                  <div className="max-w-md mx-auto space-y-6">
                     <FormField
                       control={form.control}
                       name="email"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Email</FormLabel>
+                          <FormLabel className="text-base font-semibold text-slate-800 dark:text-slate-200">
+                            Email Address
+                          </FormLabel>
                           <FormControl>
                             <Input
                               type="email"
-                              placeholder="Enter your email"
+                              placeholder="you@example.com"
                               {...field}
                               onChange={(e) => {
                                 field.onChange(e);
                                 setEmailValue(e.target.value);
-                                // Reset check when user types
                                 setShouldCheckId(false);
                               }}
                               onBlur={() => {
-                                // Only check if email looks valid
                                 if (emailValue && emailValue.includes("@")) {
                                   setShouldCheckId(true);
                                 }
                               }}
                               className={cn(
+                                "h-12 text-base",
                                 form.formState.errors.email &&
                                   "border-red-500 focus-visible:ring-red-500"
                               )}
@@ -589,28 +537,70 @@ export default function RegisterUserInfoPage() {
                           </FormControl>
                           <FormMessage />
 
-                          {/* ID Verification Status */}
+                          {/* Enhanced ID Verification Status */}
                           {emailValue && (
-                            <div className="mt-2">
+                            <div className="mt-4">
                               {isCheckingId ? (
-                                <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
-                                  <Loader2 className="w-4 h-4 animate-spin" />
-                                  Checking ID verification...
+                                <div className="flex items-start gap-3 p-4 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-lg">
+                                  <Loader2 className="w-5 h-5 animate-spin text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
+                                  <div>
+                                    <p className="font-medium text-slate-900 dark:text-slate-100">
+                                      Verifying your identity
+                                    </p>
+                                    <p className="text-sm text-slate-600 dark:text-slate-400">
+                                      Please wait while we check your ID
+                                      verification status...
+                                    </p>
+                                  </div>
                                 </div>
                               ) : idVerificationData?.status === "found" ? (
-                                <div className="flex items-center gap-2 text-sm text-green-600 dark:text-green-400">
-                                  <CheckCircle2 className="w-4 h-4" />
-                                  ID verification report found
+                                <div className="flex items-start gap-3 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+                                  <div className="p-1.5 bg-green-100 dark:bg-green-900/40 rounded-full">
+                                    <CheckCircle2 className="w-5 h-5 text-green-600 dark:text-green-400" />
+                                  </div>
+                                  <div className="flex-1">
+                                    <p className="font-semibold text-green-900 dark:text-green-100">
+                                      Identity Verified
+                                    </p>
+                                  </div>
                                 </div>
                               ) : idVerificationData?.status === "not_found" ? (
-                                <div className="flex items-center gap-2 text-sm text-red-600 dark:text-red-400">
-                                  <XCircle className="w-4 h-4" />
-                                  {idVerificationData.message}
+                                <div className="flex p-1 mt-3 items-center justify-between bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+                                  <div className="flex gap-3 ">
+                                    <div className="p-1.5 bg-red-100 dark:bg-red-900/40 rounded-full">
+                                      <XCircle className="w-5 h-5 text-red-600 dark:text-red-400" />
+                                    </div>
+                                    <div className="flex-1">
+                                      <p className="font-semibold text-red-900 dark:text-red-100">
+                                        ID Verification Not Found
+                                      </p>
+                                    </div>
+                                  </div>
+
+                                  <a
+                                    href="mailto:tech@rented123.com;tambi@rented123.com"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition-colors"
+                                  >
+                                    Contact Us
+                                    <ArrowRight className="w-4 h-4" />
+                                  </a>
                                 </div>
                               ) : idVerificationData?.status === "error" ? (
-                                <div className="flex items-center gap-2 text-sm text-orange-600 dark:text-orange-400">
-                                  <AlertTriangle className="w-4 h-4" />
-                                  {idVerificationData.message}
+                                <div className="flex items-start gap-3 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+                                  <div className="p-1.5 bg-amber-100 dark:bg-amber-900/40 rounded-full">
+                                    <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+                                  </div>
+                                  <div className="flex-1">
+                                    <p className="font-semibold text-amber-900 dark:text-amber-100">
+                                      Verification Error
+                                    </p>
+                                    <p className="text-sm text-amber-700 dark:text-amber-300 mt-1">
+                                      {idVerificationData.message ||
+                                        "Please try again or contact support."}
+                                    </p>
+                                  </div>
                                 </div>
                               ) : null}
                             </div>
@@ -618,424 +608,92 @@ export default function RegisterUserInfoPage() {
                         </FormItem>
                       )}
                     />
+
+                    {/* Enhanced Next Button */}
+                    <Button
+                      type="button"
+                      onClick={handleNext}
+                      disabled={!isIdVerified}
+                      className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-xl py-4 text-base font-semibold shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-lg"
+                    >
+                      {isIdVerified ? (
+                        <>
+                          Continue
+                          <ArrowRight className="w-5 h-5" />
+                        </>
+                      ) : (
+                        "Verification Required"
+                      )}
+                    </Button>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="phoneNumber"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>
-                            Phone Number{" "}
-                            <span className="text-slate-400">(optional)</span>
-                          </FormLabel>
-                          <FormControl>
-                            <Input
-                              type="tel"
-                              placeholder="+1 (555) 123-4567"
-                              {...field}
-                              className={cn(
-                                form.formState.errors.phoneNumber &&
-                                  "border-red-500 focus-visible:ring-red-500"
-                              )}
-                            />
-                          </FormControl>
-                          <FormDescription className="text-xs text-slate-500 dark:text-slate-400">
-                            We will remind you to report your rent each month
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                </div>
+                ) : (
+                  // STEP 2: All Form Fields
+                  <>
+                    {/* Hidden email field to preserve email value */}
+                    <input type="hidden" {...form.register("email")} />
 
-                {/* Address Information Section */}
-                <div className="space-y-4">
-                  <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-200 border-b border-slate-200 dark:border-slate-600 pb-2">
-                    Address Information
-                  </h2>
-                  <FormField
-                    control={form.control}
-                    name="address"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Address Line 1</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="Street address"
-                            {...field}
-                            className={cn(
-                              form.formState.errors.address &&
-                                "border-red-500 focus-visible:ring-red-500"
-                            )}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="city"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>City</FormLabel>
-                          <FormControl>
-                            <Input
-                              placeholder="City"
-                              {...field}
-                              className={cn(
-                                form.formState.errors.city &&
-                                  "border-red-500 focus-visible:ring-red-500"
-                              )}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="province"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Province/State</FormLabel>
-                          <FormControl>
-                            <Input
-                              placeholder="Province or State"
-                              {...field}
-                              className={cn(
-                                form.formState.errors.province &&
-                                  "border-red-500 focus-visible:ring-red-500"
-                              )}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="postalCode"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Postal/ZIP Code</FormLabel>
-                          <FormControl>
-                            <Input
-                              placeholder="Postal or ZIP code"
-                              {...field}
-                              className={cn(
-                                form.formState.errors.postalCode &&
-                                  "border-red-500 focus-visible:ring-red-500"
-                              )}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="country"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Country</FormLabel>
-                          <FormControl>
-                            <select
-                              {...field}
-                              className={cn(
-                                "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-black dark:text-black ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
-                                form.formState.errors.country &&
-                                  "border-red-500 focus-visible:ring-red-500"
-                              )}
-                            >
-                              <option value="">Select Country</option>
-                              <option value="Canada">Canada</option>
-                              <option value="United States">
-                                United States
-                              </option>
-                              <option value="Mexico">Mexico</option>
-
-                              <option value="United Kingdom">
-                                United Kingdom
-                              </option>
-                              <option value="Australia">Australia</option>
-                              <option value="Germany">Germany</option>
-                              <option value="France">France</option>
-                              <option value="France">France</option>
-
-                              <option value="Other">Other</option>
-                            </select>
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-
-                  {/* Account Security Section */}
-                  <div className="space-y-4">
-                    <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-200 border-b border-slate-200 dark:border-slate-600 pb-2">
-                      Account Security
-                    </h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <FormField
-                        control={form.control}
-                        name="password"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Password</FormLabel>
-                            <FormControl>
-                              <div className="relative">
-                                <Input
-                                  type={showPassword ? "text" : "password"}
-                                  placeholder="Create a password"
-                                  {...field}
-                                  onChange={(e) => {
-                                    field.onChange(e);
-                                    handlePasswordChange(e.target.value);
-                                  }}
-                                  className={cn(
-                                    "pr-10",
-                                    form.formState.errors.password &&
-                                      "border-red-500 focus-visible:ring-red-500"
-                                  )}
-                                />
-                                <button
-                                  type="button"
-                                  onClick={() => setShowPassword(!showPassword)}
-                                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
-                                >
-                                  {showPassword ? (
-                                    <EyeOff className="w-4 h-4" />
-                                  ) : (
-                                    <Eye className="w-4 h-4" />
-                                  )}
-                                </button>
-                              </div>
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="confirmPassword"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Confirm Password</FormLabel>
-                            <FormControl>
-                              <div className="relative">
-                                <Input
-                                  type={
-                                    showConfirmPassword ? "text" : "password"
-                                  }
-                                  placeholder="Confirm your password"
-                                  {...field}
-                                  className={cn(
-                                    "pr-10",
-                                    form.formState.errors.confirmPassword &&
-                                      "border-red-500 focus-visible:ring-red-500"
-                                  )}
-                                />
-                                <button
-                                  type="button"
-                                  onClick={() =>
-                                    setShowConfirmPassword(!showConfirmPassword)
-                                  }
-                                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
-                                >
-                                  {showConfirmPassword ? (
-                                    <EyeOff className="w-4 h-4" />
-                                  ) : (
-                                    <Eye className="w-4 h-4" />
-                                  )}
-                                </button>
-                              </div>
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-
-                    {/* Password Requirements */}
-                    {form.watch("password") && (
-                      <div className="grid grid-cols-2 gap-x-4 gap-y-1 pt-1">
-                        <PasswordRequirement
-                          isValid={passwordValidation.length}
-                        >
-                          At least 8 characters
-                        </PasswordRequirement>
-                        <PasswordRequirement
-                          isValid={passwordValidation.uppercase}
-                        >
-                          1 uppercase letter
-                        </PasswordRequirement>
-                        <PasswordRequirement
-                          isValid={passwordValidation.lowercase}
-                        >
-                          1 lowercase letter
-                        </PasswordRequirement>
-                        <PasswordRequirement
-                          isValid={passwordValidation.number}
-                        >
-                          1 number
-                        </PasswordRequirement>
-                        <PasswordRequirement
-                          isValid={passwordValidation.specialChar}
-                        >
-                          1 special character
-                        </PasswordRequirement>
-                        <PasswordRequirement
-                          isValid={
-                            form.watch("password") ===
-                              form.watch("confirmPassword") &&
-                            form.watch("confirmPassword") !== ""
-                          }
-                        >
-                          Passwords match
-                        </PasswordRequirement>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Rental Information Section */}
-                  <div className="space-y-4">
-                    <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-200 border-b border-slate-200 dark:border-slate-600 pb-2">
-                      Rental Information
-                    </h2>
-
-                    {/* Lease Agreement Upload */}
-                    <FormField
-                      control={form.control}
-                      name="leaseAgreement"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Lease Agreement</FormLabel>
-                          <FormControl>
-                            <div
-                              className={cn(
-                                "border-2 border-dashed rounded-lg p-6 text-center transition-colors",
-                                isDragOver
-                                  ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
-                                  : "border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500",
-                                form.formState.errors.leaseAgreement &&
-                                  "border-red-500 focus-visible:ring-red-500"
-                              )}
-                              onDragOver={handleDragOver}
-                              onDragLeave={handleDragLeave}
-                              onDrop={handleDrop}
-                            >
-                              {field.value ? (
-                                <div className="flex items-center justify-center gap-3">
-                                  <FileText className="w-8 h-8 text-green-600" />
-                                  <div className="text-left">
-                                    <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                                      {field.value.name}
-                                    </p>
-                                    <p className="text-xs text-gray-500 dark:text-gray-400">
-                                      {(
-                                        field.value.size /
-                                        (1024 * 1024)
-                                      ).toFixed(2)}{" "}
-                                      MB
-                                    </p>
-                                  </div>
-                                  <button
-                                    type="button"
-                                    onClick={removeFile}
-                                    className="ml-2 p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full"
-                                  >
-                                    <X className="w-4 h-4 text-gray-500" />
-                                  </button>
-                                </div>
-                              ) : (
-                                <div>
-                                  <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">
-                                    Drag and drop your lease agreement here, or{" "}
-                                    <label className="text-blue-600 hover:text-blue-500 cursor-pointer">
-                                      browse files
-                                      <input
-                                        type="file"
-                                        accept=".pdf,.doc,.docx,.png,.jpg,.jpeg,.webp"
-                                        onChange={handleFileSelect}
-                                        className="hidden"
-                                      />
-                                    </label>
-                                  </p>
-                                  <p className="text-xs text-gray-500 dark:text-gray-400">
-                                    Accepts PDF, DOC, DOCX, PNG, JPG, JPEG, WEBP
-                                    • Maximum 10MB
-                                  </p>
-                                </div>
-                              )}
-                            </div>
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <FormField
-                        control={form.control}
-                        name="ownership"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>I am a...</FormLabel>
-                            <FormControl>
-                              <div className="space-y-2">
-                                {[
-                                  { value: "tenant", label: "Tenant" },
-                                  { value: "landlord", label: "Landlord" },
-                                  { value: "home_owner", label: "Home Owner" },
-                                  {
-                                    value: "property_manager",
-                                    label: "Property Manager",
-                                  },
-                                ].map((option) => (
-                                  <label
-                                    key={option.value}
-                                    className="flex items-center gap-2"
-                                  >
-                                    <input
-                                      type="radio"
-                                      {...field}
-                                      value={option.value}
-                                      checked={field.value === option.value}
-                                      className="text-secondary focus:ring-secondary-300"
-                                    />
-                                    <span className="text-sm dark:text-slate-300">
-                                      {option.label}
-                                    </span>
-                                  </label>
-                                ))}
-                              </div>
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      {showMonthlyRent && (
+                    {/* Personal Information Section */}
+                    <div className="space-y-4">
+                      <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-200 border-b border-slate-200 dark:border-slate-600 pb-2">
+                        Personal Information
+                      </h2>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <FormField
                           control={form.control}
-                          name="monthlyRent"
+                          name="firstName"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>First Name</FormLabel>
+                              <FormControl>
+                                <Input
+                                  placeholder="Enter your first name"
+                                  {...field}
+                                  className={cn(
+                                    form.formState.errors.firstName &&
+                                      "border-red-500 focus-visible:ring-red-500"
+                                  )}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="lastName"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Last Name</FormLabel>
+                              <FormControl>
+                                <Input
+                                  placeholder="Enter your last name"
+                                  {...field}
+                                  className={cn(
+                                    form.formState.errors.lastName &&
+                                      "border-red-500 focus-visible:ring-red-500"
+                                  )}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <FormField
+                          control={form.control}
+                          name="middleName"
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel>
-                                {form.watch("ownership") === "home_owner"
-                                  ? "Monthly Mortgage"
-                                  : "Monthly Rent"}
+                                Middle Name{" "}
+                                <span className="text-slate-400">
+                                  (optional)
+                                </span>
                               </FormLabel>
                               <FormControl>
                                 <Input
-                                  type="number"
-                                  placeholder="1200"
+                                  placeholder="Enter your middle name"
                                   {...field}
                                 />
                               </FormControl>
@@ -1043,92 +701,565 @@ export default function RegisterUserInfoPage() {
                             </FormItem>
                           )}
                         />
-                      )}
+                        <FormField
+                          control={form.control}
+                          name="birthdate"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Birth Date</FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="date"
+                                  {...field}
+                                  className={cn(
+                                    form.formState.errors.birthdate &&
+                                      "border-red-500 focus-visible:ring-red-500"
+                                  )}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
                     </div>
-                  </div>
-                </div>
 
-                {/* Terms and Privacy Policy Checkboxes */}
-                <div className="space-y-4">
-                  <FormField
-                    control={form.control}
-                    name="termsAndConditions"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                        <FormControl>
-                          <input
-                            type="checkbox"
-                            checked={field.value}
-                            onChange={field.onChange}
-                            className="mt-1 h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                    {/* Contact Information Section */}
+                    <div className="space-y-4">
+                      <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-200 border-b border-slate-200 dark:border-slate-600 pb-2">
+                        Contact Information
+                      </h2>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <FormField
+                          control={form.control}
+                          name="username"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Username</FormLabel>
+                              <FormControl>
+                                <Input
+                                  placeholder="Choose a username"
+                                  {...field}
+                                  className={cn(
+                                    form.formState.errors.username &&
+                                      "border-red-500 focus-visible:ring-red-500"
+                                  )}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="phoneNumber"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>
+                                Phone Number{" "}
+                                <span className="text-slate-400">
+                                  (optional)
+                                </span>
+                              </FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="tel"
+                                  placeholder="+1 (555) 123-4567"
+                                  {...field}
+                                  className={cn(
+                                    form.formState.errors.phoneNumber &&
+                                      "border-red-500 focus-visible:ring-red-500"
+                                  )}
+                                />
+                              </FormControl>
+                              <FormDescription className="text-xs text-slate-500 dark:text-slate-400">
+                                We will remind you to report your rent each
+                                month
+                              </FormDescription>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Address Information Section */}
+                    <div className="space-y-4">
+                      <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-200 border-b border-slate-200 dark:border-slate-600 pb-2">
+                        Address Information
+                      </h2>
+                      <FormField
+                        control={form.control}
+                        name="address"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Address Line 1</FormLabel>
+                            <FormControl>
+                              <AddressAutocomplete
+                                value={field.value}
+                                onChange={field.onChange}
+                                onAddressSelect={handleAddressSelect}
+                                placeholder="Start typing your address..."
+                                className={cn(
+                                  form.formState.errors.address &&
+                                    "border-red-500 focus-visible:ring-red-500"
+                                )}
+                                error={!!form.formState.errors.address}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <FormField
+                          control={form.control}
+                          name="city"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>City</FormLabel>
+                              <FormControl>
+                                <Input
+                                  placeholder="City"
+                                  {...field}
+                                  className={cn(
+                                    form.formState.errors.city &&
+                                      "border-red-500 focus-visible:ring-red-500"
+                                  )}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="province"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Province/State</FormLabel>
+                              <FormControl>
+                                <Input
+                                  placeholder="Province or State"
+                                  {...field}
+                                  className={cn(
+                                    form.formState.errors.province &&
+                                      "border-red-500 focus-visible:ring-red-500"
+                                  )}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <FormField
+                          control={form.control}
+                          name="postalCode"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Postal/ZIP Code</FormLabel>
+                              <FormControl>
+                                <Input
+                                  placeholder="Postal or ZIP code"
+                                  {...field}
+                                  className={cn(
+                                    form.formState.errors.postalCode &&
+                                      "border-red-500 focus-visible:ring-red-500"
+                                  )}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="country"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Country</FormLabel>
+                              <FormControl>
+                                <Input
+                                  placeholder="Country"
+                                  {...field}
+                                  className={cn(
+                                    form.formState.errors.country &&
+                                      "border-red-500 focus-visible:ring-red-500"
+                                  )}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+
+                      {/* Account Security Section */}
+                      <div className="space-y-4">
+                        <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-200 border-b border-slate-200 dark:border-slate-600 pb-2">
+                          Account Security
+                        </h2>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <FormField
+                            control={form.control}
+                            name="password"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Password</FormLabel>
+                                <FormControl>
+                                  <div className="relative">
+                                    <Input
+                                      type={showPassword ? "text" : "password"}
+                                      placeholder="Create a password"
+                                      {...field}
+                                      onChange={(e) => {
+                                        field.onChange(e);
+                                        handlePasswordChange(e.target.value);
+                                      }}
+                                      className={cn(
+                                        "pr-10",
+                                        form.formState.errors.password &&
+                                          "border-red-500 focus-visible:ring-red-500"
+                                      )}
+                                    />
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        setShowPassword(!showPassword)
+                                      }
+                                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+                                    >
+                                      {showPassword ? (
+                                        <EyeOff className="w-4 h-4" />
+                                      ) : (
+                                        <Eye className="w-4 h-4" />
+                                      )}
+                                    </button>
+                                  </div>
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
                           />
-                        </FormControl>
-                        <div className="space-y-1 leading-none">
-                          <FormLabel className="text-sm font-normal">
-                            I agree to the{" "}
-                            <a
-                              href="https://rented123.com/wp-content/uploads/2024/11/Disclosure-of-Referral-Fees-and-Commission.pdf"
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-primary-600 hover:text-primary-700 underline"
-                            >
-                              Terms and Conditions
-                            </a>
-                          </FormLabel>
-                          <FormMessage />
-                        </div>
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="privacyPolicy"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                        <FormControl>
-                          <input
-                            type="checkbox"
-                            checked={field.value}
-                            onChange={field.onChange}
-                            className="mt-1 h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                          <FormField
+                            control={form.control}
+                            name="confirmPassword"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Confirm Password</FormLabel>
+                                <FormControl>
+                                  <div className="relative">
+                                    <Input
+                                      type={
+                                        showConfirmPassword
+                                          ? "text"
+                                          : "password"
+                                      }
+                                      placeholder="Confirm your password"
+                                      {...field}
+                                      className={cn(
+                                        "pr-10",
+                                        form.formState.errors.confirmPassword &&
+                                          "border-red-500 focus-visible:ring-red-500"
+                                      )}
+                                    />
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        setShowConfirmPassword(
+                                          !showConfirmPassword
+                                        )
+                                      }
+                                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+                                    >
+                                      {showConfirmPassword ? (
+                                        <EyeOff className="w-4 h-4" />
+                                      ) : (
+                                        <Eye className="w-4 h-4" />
+                                      )}
+                                    </button>
+                                  </div>
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
                           />
-                        </FormControl>
-                        <div className="space-y-1 leading-none">
-                          <FormLabel className="text-sm font-normal">
-                            I agree to the{" "}
-                            <a
-                              href="https://rented123.com/privacy-policy/"
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-primary-600 hover:text-primary-700 underline"
-                            >
-                              Privacy Policy
-                            </a>{" "}
-                            and{" "}
-                            <a
-                              href="https://rented123.com/wp-content/uploads/2025/01/Rented123.com-fees-and-compensation-Anti-spam-acknowledgement-.docx.pdf"
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-primary-600 hover:text-primary-700 underline"
-                            >
-                              Disclosure of Referral Fees and Commission
-                            </a>
-                          </FormLabel>
-                          <FormMessage />
                         </div>
-                      </FormItem>
-                    )}
-                  />
-                </div>
 
-                <Button
-                  type="submit"
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-xl py-3 font-medium hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
-                >
-                  Continue to Billing
-                  <ArrowRight className="w-4 h-4" />
-                </Button>
+                        {/* Password Requirements */}
+                        {form.watch("password") && (
+                          <div className="grid grid-cols-2 gap-x-4 gap-y-1 pt-1">
+                            <PasswordRequirement
+                              isValid={passwordValidation.length}
+                            >
+                              At least 8 characters
+                            </PasswordRequirement>
+                            <PasswordRequirement
+                              isValid={passwordValidation.uppercase}
+                            >
+                              1 uppercase letter
+                            </PasswordRequirement>
+                            <PasswordRequirement
+                              isValid={passwordValidation.lowercase}
+                            >
+                              1 lowercase letter
+                            </PasswordRequirement>
+                            <PasswordRequirement
+                              isValid={passwordValidation.number}
+                            >
+                              1 number
+                            </PasswordRequirement>
+                            <PasswordRequirement
+                              isValid={passwordValidation.specialChar}
+                            >
+                              1 special character
+                            </PasswordRequirement>
+                            <PasswordRequirement
+                              isValid={
+                                form.watch("password") ===
+                                  form.watch("confirmPassword") &&
+                                form.watch("confirmPassword") !== ""
+                              }
+                            >
+                              Passwords match
+                            </PasswordRequirement>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Rental Information Section */}
+                      <div className="space-y-4">
+                        <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-200 border-b border-slate-200 dark:border-slate-600 pb-2">
+                          Rental Information
+                        </h2>
+
+                        {/* Lease Agreement Upload */}
+                        <FormField
+                          control={form.control}
+                          name="leaseAgreement"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Lease Agreement</FormLabel>
+                              <FormControl>
+                                <div
+                                  className={cn(
+                                    "border-2 border-dashed rounded-lg p-6 text-center transition-colors",
+                                    isDragOver
+                                      ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
+                                      : "border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500",
+                                    form.formState.errors.leaseAgreement &&
+                                      "border-red-500 focus-visible:ring-red-500"
+                                  )}
+                                  onDragOver={handleDragOver}
+                                  onDragLeave={handleDragLeave}
+                                  onDrop={handleDrop}
+                                >
+                                  {field.value ? (
+                                    <div className="flex items-center justify-center gap-3">
+                                      <FileText className="w-8 h-8 text-green-600" />
+                                      <div className="text-left">
+                                        <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                                          {field.value.name}
+                                        </p>
+                                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                                          {(
+                                            field.value.size /
+                                            (1024 * 1024)
+                                          ).toFixed(2)}{" "}
+                                          MB
+                                        </p>
+                                      </div>
+                                      <button
+                                        type="button"
+                                        onClick={removeFile}
+                                        className="ml-2 p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full"
+                                      >
+                                        <X className="w-4 h-4 text-gray-500" />
+                                      </button>
+                                    </div>
+                                  ) : (
+                                    <div>
+                                      <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">
+                                        Drag and drop your lease agreement here,
+                                        or{" "}
+                                        <label className="text-blue-600 hover:text-blue-500 cursor-pointer">
+                                          browse files
+                                          <input
+                                            type="file"
+                                            accept=".pdf,.doc,.docx,.png,.jpg,.jpeg,.webp"
+                                            onChange={handleFileSelect}
+                                            className="hidden"
+                                          />
+                                        </label>
+                                      </p>
+                                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                                        Accepts PDF, DOC, DOCX, PNG, JPG, JPEG,
+                                        WEBP • Maximum 10MB
+                                      </p>
+                                    </div>
+                                  )}
+                                </div>
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <FormField
+                            control={form.control}
+                            name="ownership"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>I am a...</FormLabel>
+                                <FormControl>
+                                  <div className="space-y-2">
+                                    {[
+                                      { value: "tenant", label: "Tenant" },
+                                      { value: "landlord", label: "Landlord" },
+                                      {
+                                        value: "home_owner",
+                                        label: "Home Owner",
+                                      },
+                                      {
+                                        value: "property_manager",
+                                        label: "Property Manager",
+                                      },
+                                    ].map((option) => (
+                                      <label
+                                        key={option.value}
+                                        className="flex items-center gap-2"
+                                      >
+                                        <input
+                                          type="radio"
+                                          {...field}
+                                          value={option.value}
+                                          checked={field.value === option.value}
+                                          className="text-secondary focus:ring-secondary-300"
+                                        />
+                                        <span className="text-sm dark:text-slate-300">
+                                          {option.label}
+                                        </span>
+                                      </label>
+                                    ))}
+                                  </div>
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          {showMonthlyRent && (
+                            <FormField
+                              control={form.control}
+                              name="monthlyRent"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>
+                                    {form.watch("ownership") === "home_owner"
+                                      ? "Monthly Mortgage"
+                                      : "Monthly Rent"}
+                                  </FormLabel>
+                                  <FormControl>
+                                    <Input
+                                      type="number"
+                                      placeholder="1200"
+                                      {...field}
+                                    />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Terms and Privacy Policy Checkboxes */}
+                    <div className="space-y-4">
+                      <FormField
+                        control={form.control}
+                        name="termsAndConditions"
+                        render={({ field }) => (
+                          <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                            <FormControl>
+                              <input
+                                type="checkbox"
+                                checked={field.value}
+                                onChange={field.onChange}
+                                className="mt-1 h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                              />
+                            </FormControl>
+                            <div className="space-y-1 leading-none">
+                              <FormLabel className="text-sm font-normal">
+                                I agree to the{" "}
+                                <a
+                                  href="https://rented123.com/wp-content/uploads/2024/11/Disclosure-of-Referral-Fees-and-Commission.pdf"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-primary-600 hover:text-primary-700 underline"
+                                >
+                                  Terms and Conditions
+                                </a>
+                              </FormLabel>
+                              <FormMessage />
+                            </div>
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="privacyPolicy"
+                        render={({ field }) => (
+                          <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                            <FormControl>
+                              <input
+                                type="checkbox"
+                                checked={field.value}
+                                onChange={field.onChange}
+                                className="mt-1 h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                              />
+                            </FormControl>
+                            <div className="space-y-1 leading-none">
+                              <FormLabel className="text-sm font-normal">
+                                I agree to the{" "}
+                                <a
+                                  href="https://rented123.com/privacy-policy/"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-primary-600 hover:text-primary-700 underline"
+                                >
+                                  Privacy Policy
+                                </a>{" "}
+                                and{" "}
+                                <a
+                                  href="https://rented123.com/wp-content/uploads/2025/01/Rented123.com-fees-and-compensation-Anti-spam-acknowledgement-.docx.pdf"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-primary-600 hover:text-primary-700 underline"
+                                >
+                                  Disclosure of Referral Fees and Commission
+                                </a>
+                              </FormLabel>
+                              <FormMessage />
+                            </div>
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    <Button
+                      type="submit"
+                      className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-xl py-3 font-medium hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
+                    >
+                      Continue to Billing
+                      <ArrowRight className="w-4 h-4" />
+                    </Button>
+                  </>
+                )}
               </form>
             </Form>
 
