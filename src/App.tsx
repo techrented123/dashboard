@@ -12,6 +12,7 @@ import BackRentReportingPurchasePage from "./pages/BackRentReportingPurchasePage
 import BackRentReportingPublicPurchasePage from "./pages/BackRentReportingPublicPurchasePage";
 import BackRentReportingPublicPage from "./pages/BackRentReportingPublicPage";
 import CheckEmailPage from "./pages/CheckEmailPage";
+import PricingPlansPage from "./pages/PricingPlansPage";
 import BillingPage from "./pages/BillingPage";
 import DocumentsPage from "./pages/DocumentsPage";
 import AccountPage from "./pages/AccountPage";
@@ -62,6 +63,7 @@ function App() {
         path="/confirm-password-reset"
         element={<ConfirmPasswordResetPage />}
       />
+      <Route path="/pricing-plans" element={<PricingPlansPage />} />
       <Route path="/register" element={<RegisterUserInfoPage />} />
       <Route path="/register/billing" element={<RegisterBillingPage />} />
       <Route path="/register/confirm" element={<RegisterConfirmPage />} />
