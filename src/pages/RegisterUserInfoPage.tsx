@@ -29,7 +29,6 @@ import { Input } from "../ui/input";
 import { Button } from "../components/ui/button";
 import { cn, formatPhoneToE164 } from "../lib/utils";
 import { useIdVerification } from "../lib/hooks/useIdVerification";
-import { verifyPDF } from "../lib/upload";
 import logo from "../assets/logo.png";
 
 // Helper component for the password validation checklist
@@ -198,7 +197,6 @@ export default function RegisterUserInfoPage() {
   });
 
   // Hover state for ID verification dropzone
-  const [isIdDragOver, setIsIdDragOver] = useState(false);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -240,47 +238,6 @@ export default function RegisterUserInfoPage() {
       form.setValue("idVerificationUpload", undefined as any);
     }
   }, [idVerificationData?.status, form]);
-
-  // Function to validate ID verification PDF upload
-  const validateIdVerificationUpload = async (file: File) => {
-    setIdVerificationUploadStatus({
-      isValid: null,
-      message: "",
-      isVerifying: true,
-    });
-
-    try {
-      const result = await verifyPDF(
-        file,
-        ["ID Verification Result"], // expectedTitles
-        3 // keywordsLength
-      );
-
-      setIdVerificationUploadStatus({
-        isValid: result.isValid,
-        message: result.message,
-        isVerifying: false,
-      });
-
-      // Set form field
-      form.setValue("idVerificationUpload", file);
-
-      // Mark that email requirement is satisfied
-      if (result.isValid) {
-        form.setValue("idVerificationEmailRequired", true);
-      }
-
-      return result.isValid;
-    } catch (error) {
-      console.error("Error validating ID verification upload:", error);
-      setIdVerificationUploadStatus({
-        isValid: false,
-        message: "Could not verify this PDF file",
-        isVerifying: false,
-      });
-      return false;
-    }
-  };
 
   const onSubmit = async (data: FormValues) => {
     // Check ID verification status before proceeding
