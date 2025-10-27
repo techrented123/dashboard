@@ -220,7 +220,6 @@ export default function BackRentReportingPage() {
         },
       });
 
-      console.log("📡 API Response status:", response.status);
 
       if (response.ok) {
         const data = await response.json();
@@ -634,9 +633,8 @@ export default function BackRentReportingPage() {
                   </h3>
                   <div className="mt-2 text-sm text-amber-700 dark:text-amber-300">
                     <p>
-                      This form is for one-time use only. To submit another
-                      12-month period of back rent reporting, you must purchase
-                      the product again.
+                      This form is for one-time use only. Please submit all your back rent payments at once. You can submit up to a 12-month period of back rent reporting.
+                      Once used, this product might no longer be available to you.
                     </p>
                   </div>
                 </div>
@@ -999,12 +997,12 @@ export default function BackRentReportingPage() {
                   <Button
                     type="submit"
                     disabled={isLoading}
-                    className="w-full text-white"
+                    className="w-full text-white bg-blue-600 hover:bg-blue-700"
                     size="lg"
                   >
                     {isLoading
                       ? "Submitting..."
-                      : "Submit Back Rent Payment Proof"}
+                      : "Submit Back Rent Payments"}
                   </Button>
                 </form>
               </Form>
