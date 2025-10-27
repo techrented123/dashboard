@@ -1,4 +1,4 @@
-import { CheckCircle2, Crown } from "lucide-react";
+import { CheckCircle2 } from "lucide-react";
 import { Button } from "../components/ui/button";
 import logo from "../assets/logo.png";
 
@@ -64,19 +64,22 @@ export default function PricingPlansPage() {
           <h1 className="text-4xl font-bold text-slate-900 dark:text-slate-100 mb-4">
             Choose Your Plan
           </h1>
-          <p className="text-xl text-slate-600 dark:text-slate-400">
+          <p className="text-xl text-slate-600 dark:text-slate-400 mb-2">
             Find the perfect membership plan for your rental journey
+          </p>
+          <p className="text-sm text-slate-500 dark:text-slate-400">
+            All plans are eligible for 2 months free
           </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-          {plans.map((plan, index) => (
+          {plans.map((plan) => (
             <div
               key={plan.name}
-              className={`relative rounded-2xl shadow-lg overflow-hidden ${
+              className={`relative rounded-2xl shadow-lg overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-2xl ${
                 plan.highlight
-                  ? "bg-blue-600 text-white border-4 border-blue-500"
-                  : "bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700"
+                  ? "bg-blue-600 text-white border-4 border-blue-500 hover:border-blue-300"
+                  : "bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 hover:border-blue-400"
               }`}
             >
               {plan.highlight && (
@@ -153,6 +156,22 @@ export default function PricingPlansPage() {
               </div>
             </div>
           ))}
+        </div>
+
+        {/* Disclaimer */}
+        <div className="mt-12 text-center">
+          <div className="bg-slate-100 dark:bg-slate-800 rounded-lg p-6 max-w-4xl mx-auto">
+            <p className="text-xs text-slate-600 dark:text-slate-400 mb-2">
+              * Rent credits under the Rented123.com Dream Home Program are
+              non-cash promotional incentives.
+            </p>
+            <p className="text-xs text-slate-600 dark:text-slate-400">
+              * Credits are recorded to reward consistent rent payments and
+              responsible tenancy, and are only redeemable as a closing
+              incentive upon the successful purchase of a qualifying property
+              through an approved Rented123.com Realtor
+            </p>
+          </div>
         </div>
       </div>
     </div>
