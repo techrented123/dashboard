@@ -9,7 +9,6 @@ import {
   User,
   ChevronLeft,
   ChevronRight,
-  Star,
   Crown,
 } from "lucide-react";
 import { useEffect, useState } from "react";
