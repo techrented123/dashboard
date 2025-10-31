@@ -110,6 +110,7 @@ export default function RentReportingMagicLinkPage() {
       try {
         // Decode the masked token
         const tokenData = JSON.parse(atob(maskedToken));
+        //console.log("User sub:", { tokenData });
 
         // Check expiry
         if (Date.now() > tokenData.exp) {
@@ -124,7 +125,6 @@ export default function RentReportingMagicLinkPage() {
         // Set userSub and mark token as valid
         setUserSub(tokenData.userSub);
         setIsValidToken(true);
-
         // Fetch real user data from Cognito via API
         try {
           const response = await fetch(
@@ -138,11 +138,12 @@ export default function RentReportingMagicLinkPage() {
           }
 
           const { userData: fetchedUserData } = await response.json();
+          console.log("Fetched user data:", fetchedUserData);
           setUserData(fetchedUserData);
         } catch (fetchError) {
           console.error("Error fetching user data:", fetchError);
           // Fallback to mock data if API fails
-          setUserData({
+          /*  setUserData({
             userSub: tokenData.userSub,
             phone_number: "+1234567890", // Mock data
             custom: {
@@ -152,7 +153,7 @@ export default function RentReportingMagicLinkPage() {
           showToast(
             "Using default data - some fields may need manual entry",
             "error"
-          );
+          ); */
         }
       } catch (error) {
         console.error("Error validating token:", error);
@@ -318,6 +319,7 @@ export default function RentReportingMagicLinkPage() {
         rentAmount: data.rentAmount,
         name: userData?.given_name + " " + userData?.family_name, //cognito last name
         addressChanged: data.addressChanged,
+        reportId: userSub + "-" + data.paymentDate.toISOString(),
         paymentDate: data.paymentDate.toISOString(),
         receiptS3Key: s3Key, // Include S3 key for later use
         status: status, // 'Late' if after 5th of month, 'Reported' otherwise
