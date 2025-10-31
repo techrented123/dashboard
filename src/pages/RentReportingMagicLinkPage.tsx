@@ -274,7 +274,7 @@ export default function RentReportingMagicLinkPage() {
 
       // Prepare form data for submission
       const metro2Data = {
-        email: userData?.email,
+        "Email Address": userData?.email,
         "Portfolio Type": "O",
         "Account Type": 29,
         "Date Opened": "", //
