@@ -66,7 +66,7 @@ export async function createTrackingSession(
       lastActivity: now,
       step: data.step || "step2",
       address: data.address,
-      source: "silver membership sign up",
+      source: "signup-form",
     };
 
     const response = await fetch(API_ENDPOINT, {

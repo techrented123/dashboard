@@ -10,6 +10,7 @@ import {
 import { useEffect } from "react";
 import { updateUserPlanFromPriceId } from "../lib/plan-update";
 import logo from "../assets/logo.png";
+import { deleteTrackingSession, getSessionId } from "@/lib/user-tracking";
 
 export default function RegisterConfirmPage() {
   const navigate = useNavigate();
@@ -103,6 +104,20 @@ export default function RegisterConfirmPage() {
 
             // Clear stored data and redirect to dashboard
             localStorage.removeItem("registrationUserData");
+
+            // Delete tracking session (non-blocking)
+            try {
+              const trackingId =
+                getSessionId() || localStorage.getItem("userTrackingSessionId");
+              if (trackingId) {
+                await deleteTrackingSession(trackingId);
+                sessionStorage.removeItem("userTrackingSessionId");
+                localStorage.removeItem("userTrackingSessionId");
+              }
+            } catch (e) {
+              console.warn("Failed to delete tracking session (non-fatal):", e);
+            }
+
             navigate("/dashboard");
           } else if (signInResult.kind === "MFA") {
             // Handle MFA case
@@ -359,6 +374,27 @@ export default function RegisterConfirmPage() {
                     "Stripe customer ID updated successfully:",
                     stripeCustomerId
                   );
+                  try {
+                    const trackingId =
+                      getSessionId() ||
+                      localStorage.getItem("userTrackingSessionId");
+                    if (trackingId) {
+                      console.log(
+                        "[Confirm] About to delete tracking:",
+                        trackingId
+                      );
+
+                      const result = await deleteTrackingSession(trackingId);
+                      console.log("[Confirm] Delete result:", result);
+                      sessionStorage.removeItem("userTrackingSessionId");
+                      localStorage.removeItem("userTrackingSessionId");
+                    }
+                  } catch (e) {
+                    console.warn(
+                      "Failed to delete tracking session (non-fatal):",
+                      e
+                    );
+                  }
                 } else {
                   console.error(
                     "Failed to update Stripe customer ID:",
