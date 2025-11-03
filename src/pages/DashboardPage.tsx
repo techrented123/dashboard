@@ -527,18 +527,11 @@ export default function DashboardPage() {
                     },
                   ];
 
-                  // Check if user is Bronze member
-                  const isBronzeMember =
-                    billingData?.subscription?.plan_name === "Bronze";
+                  // Check if user is Bronze member (keeping for potential future use, but not restricting)
 
-                  // Function to handle click - disabled for Bronze members
-                  const handleServiceClick = (href: string, title: string) => {
-                    if (isBronzeMember) {
-                      // Show upgrade message for Bronze members
-                      alert(`Upgrade to Gold to access ${title}`);
-                      return;
-                    }
-                    // Open link for Gold members and non-subscribers
+                  // Function to handle click - now allows all members including Bronze
+                  const handleServiceClick = (href: string) => {
+                    // Open link for all members
                     window.open(href, "_blank", "noopener,noreferrer");
                   };
 
@@ -552,13 +545,9 @@ export default function DashboardPage() {
                           ({ title, description, href, icon: Icon }, idx) => (
                             <div
                               key={idx}
-                              onClick={() => handleServiceClick(href, title)}
-                              className={`group flex items-center justify-between gap-3 rounded-xl border border-slate-200 dark:border-slate-700 px-4 py-3 transition-colors ${
-                                isBronzeMember
-                                  ? "cursor-pointer hover:shadow-sm hover:border-slate-300 dark:hover:border-slate-600 opacity-75"
-                                  : "cursor-pointer hover:shadow-sm hover:border-slate-300 dark:hover:border-slate-600"
-                              }`}
-                              {...(isBronzeMember ? {} : { "data-href": href })}
+                              onClick={() => handleServiceClick(href)}
+                              className="group flex items-center justify-between gap-3 rounded-xl border border-slate-200 dark:border-slate-700 px-4 py-3 transition-colors cursor-pointer hover:shadow-sm hover:border-slate-300 dark:hover:border-slate-600"
+                              data-href={href}
                             >
                               <div className="flex items-center gap-3 min-w-0">
                                 <div className="w-10 h-10 rounded-lg bg-slate-100 dark:bg-slate-700 flex items-center justify-center shrink-0">
