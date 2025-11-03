@@ -102,21 +102,8 @@ export default function RegisterConfirmPage() {
               console.error("Error updating plan in Cognito:", error);
             }
 
-            // Clear stored data and redirect to dashboard
+            // Clear stored data
             localStorage.removeItem("registrationUserData");
-
-            // Delete tracking session (non-blocking)
-            try {
-              const trackingId =
-                getSessionId() || localStorage.getItem("userTrackingSessionId");
-              if (trackingId) {
-                await deleteTrackingSession(trackingId);
-                sessionStorage.removeItem("userTrackingSessionId");
-                localStorage.removeItem("userTrackingSessionId");
-              }
-            } catch (e) {
-              console.warn("Failed to delete tracking session (non-fatal):", e);
-            }
 
             navigate("/dashboard");
           } else if (signInResult.kind === "MFA") {
@@ -176,8 +163,9 @@ export default function RegisterConfirmPage() {
         console.error("Error updating plan in Cognito:", error);
       }
 
-      // Clear stored data and redirect to dashboard
+      // Clear stored data
       localStorage.removeItem("registrationUserData");
+
       navigate("/dashboard");
     } else {
       const errorMessage =
@@ -342,6 +330,20 @@ export default function RegisterConfirmPage() {
     if (confirmResult.success) {
       setSuccess("Email verified successfully! Signing you in...");
 
+      // Delete tracking session after successful email verification
+      try {
+        const trackingId =
+          getSessionId() || localStorage.getItem("userTrackingSessionId");
+        console.log("trackingId before delete", trackingId);
+        if (trackingId) {
+          await deleteTrackingSession(trackingId);
+          sessionStorage.removeItem("userTrackingSessionId");
+          localStorage.removeItem("userTrackingSessionId");
+        }
+      } catch (e) {
+        console.warn("Failed to delete tracking session (non-fatal):", e);
+      }
+
       // --- NEW: Sign-in logic starts here ---
       try {
         // 1. Retrieve the temporarily stored user credentials
@@ -374,27 +376,6 @@ export default function RegisterConfirmPage() {
                     "Stripe customer ID updated successfully:",
                     stripeCustomerId
                   );
-                  try {
-                    const trackingId =
-                      getSessionId() ||
-                      localStorage.getItem("userTrackingSessionId");
-                    if (trackingId) {
-                      console.log(
-                        "[Confirm] About to delete tracking:",
-                        trackingId
-                      );
-
-                      const result = await deleteTrackingSession(trackingId);
-                      console.log("[Confirm] Delete result:", result);
-                      sessionStorage.removeItem("userTrackingSessionId");
-                      localStorage.removeItem("userTrackingSessionId");
-                    }
-                  } catch (e) {
-                    console.warn(
-                      "Failed to delete tracking session (non-fatal):",
-                      e
-                    );
-                  }
                 } else {
                   console.error(
                     "Failed to update Stripe customer ID:",
@@ -407,7 +388,7 @@ export default function RegisterConfirmPage() {
             }
           }
 
-          // If sign-in is successful, clear the stored data and go to the dashboard
+          // Clear stored data and go to dashboard
           localStorage.removeItem("registrationUserData");
           navigate("/dashboard");
           return; // Important: exit the function here

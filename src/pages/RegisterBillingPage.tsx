@@ -12,7 +12,6 @@ import logo from "../assets/logo.png";
 import {
   updateTrackingStep,
   updateTrackingActivity,
-  deleteTrackingSession,
   getSessionId,
   debounce,
 } from "../lib/user-tracking";
@@ -519,14 +518,6 @@ export default function RegisterBillingPage() {
         );
       }
       console.log("Step 5: Checkout session created successfully");
-
-      // Step 5.5: Delete tracking session - registration is complete
-      const sessionId =
-        getSessionId() || localStorage.getItem("userTrackingSessionId");
-      if (sessionId) {
-        await deleteTrackingSession(sessionId);
-        console.log("Tracking session deleted - registration complete");
-      }
 
       // Step 6: Redirect to Stripe Checkout
       // User will be signed in after successful payment via webhook
