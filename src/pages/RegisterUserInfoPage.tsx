@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   ArrowRight,
@@ -30,6 +30,13 @@ import { cn, formatPhoneToE164 } from "../lib/utils";
 import { useIdVerification } from "../lib/hooks/useIdVerification";
 import { AddressAutocomplete } from "../components/AddressAutocomplete";
 import logo from "../assets/logo.png";
+import {
+  createTrackingSession,
+  updateTrackingActivity,
+  updateTrackingStep,
+  getOrCreateSessionId,
+  debounce,
+} from "../lib/user-tracking";
 
 // Helper component for the password validation checklist
 const PasswordRequirement = ({
@@ -247,11 +254,201 @@ export default function RegisterUserInfoPage() {
     (idVerificationData?.status === "not_found" &&
       idVerificationUploadStatus.isValid);
 
+  // Debounced activity tracking function
+  const debouncedUpdateActivity = useRef(
+    debounce(async () => {
+      await updateTrackingActivity();
+    }, 2000)
+  ).current;
+
+  // Debounced update for name fields
+  const debouncedUpdateName = useRef(
+    debounce(async (firstName: string, lastName: string) => {
+      console.log("[Name Update] Triggered with:", { firstName, lastName });
+      if (firstName && lastName) {
+        const fullName = `${firstName} ${lastName}`;
+        console.log(
+          "[Name Update] Both fields filled, calling updateTrackingStep with name:",
+          fullName
+        );
+        const result = await updateTrackingStep("step2", undefined, {
+          name: fullName,
+        });
+        console.log("[Name Update] Result:", result);
+      } else {
+        console.log(
+          "[Name Update] Missing fields - firstName:",
+          firstName,
+          "lastName:",
+          lastName
+        );
+      }
+    }, 1500)
+  ).current;
+
+  // Debounced update for city and phone fields
+  const debouncedUpdateCityAndPhone = useRef(
+    debounce(async (city: string, phoneNumber: string) => {
+      console.log("[City & Phone Update] Triggered with:", {
+        city,
+        phoneNumber,
+      });
+      if (city && phoneNumber) {
+        console.log(
+          "[City & Phone Update] Both fields filled, calling updateTrackingStep..."
+        );
+        const result = await updateTrackingStep("step2", undefined, {
+          address: city, // City is stored as address in the table
+          phone: phoneNumber, // Lambda uses "phone" not "phoneNumber"
+        });
+        console.log("[City & Phone Update] Result:", result);
+      } else {
+        console.log(
+          "[City & Phone Update] Missing fields - city:",
+          city,
+          "phoneNumber:",
+          phoneNumber
+        );
+      }
+    }, 1500)
+  ).current;
+
+  // Track form field changes for activity updates (only when in step 2)
+  useEffect(() => {
+    if (step === 2) {
+      const subscription = form.watch((_value, { name, type }) => {
+        // Trigger debounced activity update on any field change
+        if (name && type === "change") {
+          debouncedUpdateActivity();
+        }
+      });
+      return () => subscription.unsubscribe();
+    }
+  }, [step, form, debouncedUpdateActivity]);
+
+  // Watch for name changes to update tracking
+  useEffect(() => {
+    if (step === 2) {
+      const subscription = form.watch((value, { name, type }) => {
+        // Only trigger on firstName or lastName changes
+        if (
+          (name === "firstName" || name === "lastName") &&
+          type === "change"
+        ) {
+          const firstName = value.firstName || "";
+          const lastName = value.lastName || "";
+          console.log("[Name Watcher] Field changed:", name, {
+            firstName,
+            lastName,
+          });
+
+          // Update when both name fields are filled
+          if (firstName && lastName) {
+            console.log(
+              "[Name Watcher] Both fields filled, triggering debounced update..."
+            );
+            debouncedUpdateName(firstName, lastName);
+          } else {
+            console.log(
+              "[Name Watcher] Waiting for both fields - firstName:",
+              !!firstName,
+              "lastName:",
+              !!lastName
+            );
+          }
+        }
+      });
+      return () => subscription.unsubscribe();
+    }
+  }, [step, form, debouncedUpdateName]);
+
+  // Watch for city and phone number changes to update tracking
+  // This watches actual form values, catching both manual input and autocomplete fills
+  useEffect(() => {
+    if (step === 2) {
+      const city = form.watch("city") || "";
+      const phoneNumber = form.watch("phoneNumber") || "";
+
+      console.log("[City & Phone Watcher] Current values:", {
+        city,
+        phoneNumber,
+        cityLength: city.length,
+        phoneLength: phoneNumber.length,
+      });
+
+      // Update when both city and phone fields have content (checking length for autocomplete detection)
+      if (city.length > 0 && phoneNumber.length > 0) {
+        console.log(
+          "[City & Phone Watcher] Both fields filled, triggering debounced update..."
+        );
+        debouncedUpdateCityAndPhone(city, phoneNumber);
+      } else {
+        console.log(
+          "[City & Phone Watcher] Waiting for both fields - city length:",
+          city.length,
+          "phoneNumber length:",
+          phoneNumber.length
+        );
+      }
+
+      // Also subscribe to form changes to catch any updates
+      const subscription = form.watch((value, { name }) => {
+        // Trigger on city or phoneNumber changes (removed type check to catch programmatic updates)
+        if (name === "city" || name === "phoneNumber") {
+          const currentCity = value.city || "";
+          const currentPhone = value.phoneNumber || "";
+          console.log("[City & Phone Watcher] Field changed:", name, {
+            city: currentCity,
+            phoneNumber: currentPhone,
+            cityLength: currentCity.length,
+            phoneLength: currentPhone.length,
+          });
+
+          // Update when both fields have content (checking length)
+          if (currentCity.length > 0 && currentPhone.length > 0) {
+            console.log(
+              "[City & Phone Watcher] Both fields filled, triggering debounced update..."
+            );
+            debouncedUpdateCityAndPhone(currentCity, currentPhone);
+          } else {
+            console.log(
+              "[City & Phone Watcher] Waiting for both fields - city length:",
+              currentCity.length,
+              "phoneNumber length:",
+              currentPhone.length
+            );
+          }
+        }
+      });
+      return () => subscription.unsubscribe();
+    }
+  }, [
+    step,
+    form,
+    debouncedUpdateCityAndPhone,
+    form.watch("city"),
+    form.watch("phoneNumber"),
+  ]);
+
   // Handle Next button click - move to step 2
-  const handleNext = () => {
+  const handleNext = async () => {
     if (isIdVerified) {
       form.setValue("email", emailValue); // Set the email in the form
       setStep(2);
+
+      // Initialize tracking when user proceeds to step 2
+      if (emailValue && emailValue.includes("@")) {
+        const sessionId = getOrCreateSessionId();
+        // Store sessionId in localStorage for persistence
+        localStorage.setItem("userTrackingSessionId", sessionId);
+
+        // Create tracking session
+        await createTrackingSession({
+          email: emailValue,
+          name: emailValue, // Will be updated when name fields are filled
+          step: "step2",
+        });
+      }
     }
   };
 
@@ -355,6 +552,18 @@ export default function RegisterUserInfoPage() {
       // Remove the File object from data to avoid serialization issues
       delete (data as any).idVerificationUpload;
     }
+
+    // Update tracking: set step to 'billing' and update activity
+    // Include name if available
+    const fullName =
+      data.firstName && data.lastName
+        ? `${data.firstName} ${data.lastName}`
+        : undefined;
+    await updateTrackingStep("billing", undefined, {
+      name: fullName || data.email,
+      address: data.address,
+    });
+    await updateTrackingActivity();
 
     // Store user data and navigate to billing preview
     localStorage.setItem("registrationUserData", JSON.stringify(data));

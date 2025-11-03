@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Edit3, CreditCard, Loader2 } from "lucide-react";
 import {
@@ -9,6 +9,13 @@ import {
 } from "aws-amplify/auth";
 import { getPresignedUrl } from "../lib/documents";
 import logo from "../assets/logo.png";
+import {
+  updateTrackingStep,
+  updateTrackingActivity,
+  deleteTrackingSession,
+  getSessionId,
+  debounce,
+} from "../lib/user-tracking";
 
 // --- PLACEHOLDER DEPENDENCIES (for a complete file) ---
 
@@ -303,6 +310,13 @@ export default function RegisterBillingPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // Debounced activity tracking function
+  const debouncedUpdateActivity = useRef(
+    debounce(async () => {
+      await updateTrackingActivity();
+    }, 2000)
+  ).current;
+
   useEffect(() => {
     const storedData = localStorage.getItem("registrationUserData");
     if (storedData) {
@@ -340,6 +354,20 @@ export default function RegisterBillingPage() {
       }
 
       setUserInfo(userData);
+
+      // Update tracking: user reached billing page
+      const sessionId =
+        getSessionId() || localStorage.getItem("userTrackingSessionId");
+      if (sessionId) {
+        updateTrackingStep("billing", sessionId, {
+          name:
+            userData.firstName && userData.lastName
+              ? `${userData.firstName} ${userData.lastName}`
+              : userData.email,
+          address: userData.address,
+        });
+        updateTrackingActivity(sessionId);
+      }
     } else {
       // If there's no user info, we can't proceed. Send them back.
       navigate("/register");
@@ -385,6 +413,8 @@ export default function RegisterBillingPage() {
     if (plan) {
       setSelectedPlan(plan);
       setShowAllPlans(false);
+      // Track activity when user selects a plan
+      debouncedUpdateActivity();
     }
   };
 
@@ -489,6 +519,14 @@ export default function RegisterBillingPage() {
         );
       }
       console.log("Step 5: Checkout session created successfully");
+
+      // Step 5.5: Delete tracking session - registration is complete
+      const sessionId =
+        getSessionId() || localStorage.getItem("userTrackingSessionId");
+      if (sessionId) {
+        await deleteTrackingSession(sessionId);
+        console.log("Tracking session deleted - registration complete");
+      }
 
       // Step 6: Redirect to Stripe Checkout
       // User will be signed in after successful payment via webhook
