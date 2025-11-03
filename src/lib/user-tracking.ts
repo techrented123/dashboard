@@ -61,7 +61,7 @@ export async function createTrackingSession(
     const payload: TrackingSession = {
       sessionId,
       email: data.email,
-      name: data.name || data.email,
+      fullName: data.name || data.email,
       createdAt: now,
       lastActivity: now,
       step: data.step || "step2",

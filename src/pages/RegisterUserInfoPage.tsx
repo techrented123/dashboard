@@ -190,7 +190,7 @@ export default function RegisterUserInfoPage() {
     specialChar: false,
   });
 
-  // ID verification check - only when user blurs from email field
+  // ID verification check - triggers when valid email is entered (via debounced check)
   const { data: idVerificationData, isLoading: isCheckingId } =
     useIdVerification(emailValue, shouldCheckId);
 
@@ -253,6 +253,18 @@ export default function RegisterUserInfoPage() {
     idVerificationData?.status === "found" ||
     (idVerificationData?.status === "not_found" &&
       idVerificationUploadStatus.isValid);
+
+  // Debounced email validation check - triggers ID verification when valid email is entered
+  const debouncedEmailCheck = useRef(
+    debounce((email: string) => {
+      // Check if email looks valid (has @ and minimum length)
+      if (email && email.includes("@") && email.length > 5) {
+        setShouldCheckId(true);
+      } else {
+        setShouldCheckId(false);
+      }
+    }, 800) // Wait 800ms after user stops typing
+  ).current;
 
   // Debounced activity tracking function
   const debouncedUpdateActivity = useRef(
@@ -730,10 +742,13 @@ export default function RegisterUserInfoPage() {
                               {...field}
                               onChange={(e) => {
                                 field.onChange(e);
-                                setEmailValue(e.target.value);
-                                setShouldCheckId(false);
+                                const newEmail = e.target.value;
+                                setEmailValue(newEmail);
+                                // Trigger debounced check for valid emails
+                                debouncedEmailCheck(newEmail);
                               }}
                               onBlur={() => {
+                                // Also check on blur as fallback
                                 if (emailValue && emailValue.includes("@")) {
                                   setShouldCheckId(true);
                                 }
@@ -748,67 +763,99 @@ export default function RegisterUserInfoPage() {
                           <FormMessage />
 
                           {/* Enhanced ID Verification Status */}
-                          {emailValue && (
-                            <div className="mt-4">
+                          {emailValue && emailValue.includes("@") && (
+                            <div className="mt-4 animate-in fade-in slide-in-from-top-2 duration-300">
                               {isCheckingId ? (
-                                <div className="flex items-start gap-3 p-4 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-lg">
-                                  <Loader2 className="w-5 h-5 animate-spin text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
-                                  <div>
-                                    <p className="font-medium text-slate-900 dark:text-slate-100">
-                                      Verifying your identity
+                                <div className="relative overflow-hidden flex items-center gap-4 p-5 bg-gradient-to-r from-blue-50 via-indigo-50 to-blue-50 dark:from-blue-900/30 dark:via-indigo-900/30 dark:to-blue-900/30 border-2 border-blue-200/60 dark:border-blue-700/60 rounded-xl shadow-md hover:shadow-lg transition-all duration-300">
+                                  <div className="relative flex-shrink-0">
+                                    <div className="absolute inset-0 bg-blue-400/20 rounded-full animate-ping"></div>
+                                    <div className="relative w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center shadow-lg">
+                                      <Loader2 className="w-6 h-6 animate-spin text-white" />
+                                    </div>
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <p className="font-semibold text-base text-slate-900 dark:text-slate-100 mb-1">
+                                      Verifying Your Identity
                                     </p>
-                                    <p className="text-sm text-slate-600 dark:text-slate-400">
-                                      Please wait while we check your ID
-                                      verification status...
+                                    <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+                                      Please wait while we securely check your
+                                      ID verification status...
+                                    </p>
+                                    <div className="mt-3 h-1.5 bg-blue-200/50 dark:bg-blue-800/30 rounded-full overflow-hidden">
+                                      <div className="h-full bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full animate-pulse w-3/4"></div>
+                                    </div>
+                                  </div>
+                                </div>
+                              ) : !shouldCheckId && emailValue.length > 5 ? (
+                                // Show "preparing" state when email looks valid but debounce hasn't fired yet
+                                <div className="relative overflow-hidden flex items-center gap-4 p-2 bg-gradient-to-r from-indigo-50 via-purple-50 to-indigo-50 dark:from-indigo-900/20 dark:via-purple-900/20 dark:to-indigo-900/20 border-2 border-indigo-200/50 dark:border-indigo-700/50 rounded-xl shadow-sm hover:shadow-md transition-all duration-300">
+                                  <div className="relative flex-shrink-0">
+                                    <div className="w-4 h-4 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center shadow-md">
+                                      <Loader2 className="w-4 h-4 animate-spin text-white" />
+                                    </div>
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <p className="font-semibold text-base text-indigo-900 dark:text-indigo-100 mb-1">
+                                      Verifying Identity...
                                     </p>
                                   </div>
                                 </div>
                               ) : idVerificationData?.status === "found" ? (
-                                <div className="flex items-start gap-3 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
-                                  <div className="p-1.5 bg-green-100 dark:bg-green-900/40 rounded-full">
-                                    <CheckCircle2 className="w-5 h-5 text-green-600 dark:text-green-400" />
+                                <div className="relative overflow-hidden flex items-center gap-4 p-2 bg-gradient-to-r from-emerald-50 via-green-50 to-emerald-50 dark:from-emerald-900/25 dark:via-green-900/25 dark:to-emerald-900/25 border-2 border-emerald-300/60 dark:border-emerald-700/60 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 animate-in slide-in-from-left-2">
+                                  <div className="relative flex-shrink-0">
+                                    <div className="absolute inset-0 bg-emerald-400/30 rounded-full animate-ping opacity-75"></div>
+                                    <div className="relative w-4 h-4 bg-gradient-to-br from-emerald-500 to-green-600 rounded-full flex items-center justify-center shadow-xl ring-4 ring-emerald-200/50 dark:ring-emerald-800/50">
+                                      <CheckCircle2 className="w-4 h-4 text-white" />
+                                    </div>
                                   </div>
-                                  <div className="flex-1">
-                                    <p className="font-semibold text-green-900 dark:text-green-100">
+                                  <div className="flex-1 min-w-0">
+                                    <p className="font-semibold text-base text-emerald-900 dark:text-emerald-100 mb-1">
                                       Identity Verified
                                     </p>
                                   </div>
                                 </div>
                               ) : idVerificationData?.status === "not_found" ? (
-                                <div className="flex p-1 mt-3 items-center justify-between bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-                                  <div className="flex gap-3 ">
-                                    <div className="p-1.5 bg-red-100 dark:bg-red-900/40 rounded-full">
-                                      <XCircle className="w-5 h-5 text-red-600 dark:text-red-400" />
+                                <div className="relative overflow-hidden flex flex-col sm:flex-row sm:items-center gap-4 p-5 bg-gradient-to-r from-rose-50 via-red-50 to-rose-50 dark:from-rose-900/25 dark:via-red-900/25 dark:to-rose-900/25 border-2 border-rose-200/60 dark:border-rose-700/60 rounded-xl shadow-lg transition-all duration-300 animate-in slide-in-from-left-2">
+                                  <div className="flex items-center gap-4 flex-1 min-w-0">
+                                    <div className="relative flex-shrink-0">
+                                      <div className="w-12 h-12 bg-gradient-to-br from-rose-500 to-red-600 rounded-full flex items-center justify-center shadow-xl ring-4 ring-rose-200/50 dark:ring-rose-800/50">
+                                        <XCircle className="w-5 h-5 text-white" />
+                                      </div>
                                     </div>
-                                    <div className="flex-1">
-                                      <p className="font-semibold text-red-900 dark:text-red-100">
+                                    <div className="flex-1 min-w-0">
+                                      <p className="font-bold text-lg text-rose-900 dark:text-rose-100 mb-1">
                                         ID Verification Not Found
+                                      </p>
+                                      <p className="text-sm text-rose-700 dark:text-rose-300 leading-relaxed">
+                                        We couldn't find an ID verification
+                                        report for this email address.
                                       </p>
                                     </div>
                                   </div>
-
                                   <a
                                     href="mailto:tech@rented123.com;tambi@rented123.com"
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="inline-flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition-colors"
+                                    className="inline-flex items-center justify-center gap-2 px-5 py-3 bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-700 hover:to-red-700 text-white text-sm font-semibold rounded-lg shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200 whitespace-nowrap"
                                   >
-                                    Contact Us
+                                    Contact Support
                                     <ArrowRight className="w-4 h-4" />
                                   </a>
                                 </div>
                               ) : idVerificationData?.status === "error" ? (
-                                <div className="flex items-start gap-3 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
-                                  <div className="p-1.5 bg-amber-100 dark:bg-amber-900/40 rounded-full">
-                                    <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+                                <div className="relative overflow-hidden flex items-center gap-4 p-5 bg-gradient-to-r from-amber-50 via-orange-50 to-amber-50 dark:from-amber-900/25 dark:via-orange-900/25 dark:to-amber-900/25 border-2 border-amber-200/60 dark:border-amber-700/60 rounded-xl shadow-lg transition-all duration-300 animate-in slide-in-from-left-2">
+                                  <div className="relative flex-shrink-0">
+                                    <div className="w-12 h-12 bg-gradient-to-br from-amber-500 to-orange-600 rounded-full flex items-center justify-center shadow-xl ring-4 ring-amber-200/50 dark:ring-amber-800/50">
+                                      <AlertTriangle className="w-5 h-5 text-white" />
+                                    </div>
                                   </div>
-                                  <div className="flex-1">
-                                    <p className="font-semibold text-amber-900 dark:text-amber-100">
+                                  <div className="flex-1 min-w-0">
+                                    <p className="font-bold text-lg text-amber-900 dark:text-amber-100 mb-1">
                                       Verification Error
                                     </p>
-                                    <p className="text-sm text-amber-700 dark:text-amber-300 mt-1">
+                                    <p className="text-sm text-amber-700 dark:text-amber-300 leading-relaxed">
                                       {idVerificationData.message ||
-                                        "Please try again or contact support."}
+                                        "An error occurred while checking your ID verification. Please try again or contact support."}
                                     </p>
                                   </div>
                                 </div>
@@ -823,10 +870,15 @@ export default function RegisterUserInfoPage() {
                     <Button
                       type="button"
                       onClick={handleNext}
-                      disabled={!isIdVerified}
+                      disabled={!isIdVerified || isCheckingId}
                       className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-xl py-4 text-base font-semibold shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-lg"
                     >
-                      {isIdVerified ? (
+                      {isCheckingId ? (
+                        <>
+                          <Loader2 className="w-5 h-5 animate-spin" />
+                          Verifying...
+                        </>
+                      ) : isIdVerified ? (
                         <>
                           Continue
                           <ArrowRight className="w-5 h-5" />
