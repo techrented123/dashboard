@@ -227,6 +227,7 @@ export default function RegisterUserInfoPage() {
       ownership: "tenant",
       monthlyRent: "",
       leaseAgreement: undefined as any,
+      howDidYouFindUs: "",
       idVerificationUpload: undefined as any,
       idVerificationEmailRequired: false,
       termsAndConditions: false,
@@ -584,6 +585,19 @@ export default function RegisterUserInfoPage() {
     });
     await updateTrackingActivity();
 
+    // Store attribution data for Dashboard to send after successful payment
+    try {
+      const howFoundUs = data.howDidYouFindUs || "";
+      if (howFoundUs && data.email) {
+        localStorage.setItem(
+          "signupAttribution",
+          JSON.stringify({ email: data.email, howFoundUs })
+        );
+      }
+    } catch (e) {
+      console.warn("[Registration] Failed to store signup attribution:", e);
+    }
+
     // Store user data and navigate to billing preview
     localStorage.setItem("registrationUserData", JSON.stringify(data));
     navigate("/register/billing");
@@ -820,7 +834,6 @@ export default function RegisterUserInfoPage() {
                                       <p className="font-semibold text-sm text-rose-900 dark:text-rose-100 mb-1">
                                         ID Verification Not Found
                                       </p>
-                                     
                                     </div>
                                   </div>
                                   <a
@@ -1440,6 +1453,15 @@ export default function RegisterUserInfoPage() {
                           <FormControl>
                             <select
                               {...field}
+                              onChange={(e) => {
+                                field.onChange(e);
+                                const v = (e.target.value || "").trim();
+                                const email = form.getValues("email") || "";
+                                localStorage.setItem(
+                                  "signupAttribution",
+                                  JSON.stringify({ email, howFoundUs: v })
+                                );
+                              }}
                               className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-black dark:text-black ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                             >
                               <option value="">Select an option</option>

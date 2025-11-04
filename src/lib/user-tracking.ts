@@ -248,3 +248,37 @@ export function debounce<T extends (...args: any[]) => any>(
     timeout = setTimeout(() => func(...args), wait);
   };
 }
+
+/**
+ * Sends signup attribution (howFoundUs, email, userId) to analytics Lambda (writes to S3)
+ */
+export async function sendSignupAttribution(payload: {
+  howFoundUs: string;
+  email?: string;
+  userId?: string;
+  date?: string; // ISO timestamp from client
+}): Promise<{ success: boolean; error?: string }> {
+  try {
+    const endpoint =
+      (import.meta as any).env.VITE_ANALYTICS_API_BASE_URL ||
+      "https://l2erq95bad.execute-api.us-west-2.amazonaws.com/signup-attribution";
+
+    const res = await fetch(endpoint, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) {
+      const errText = await res.text();
+      console.warn("[sendSignupAttribution] Failed:", errText);
+      return { success: false, error: errText };
+    }
+
+    return { success: true };
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "Unknown error";
+    console.warn("[sendSignupAttribution] Error:", msg);
+    return { success: false, error: msg };
+  }
+}

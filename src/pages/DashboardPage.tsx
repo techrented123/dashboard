@@ -25,7 +25,11 @@ import {
   SkeletonButton,
 } from "../components/Skeleton";
 import { Button } from "../components/ui/button";
-import { deleteTrackingSession, getSessionId } from "../lib/user-tracking";
+import {
+  deleteTrackingSession,
+  getSessionId,
+  sendSignupAttribution,
+} from "../lib/user-tracking";
 
 export default function DashboardPage() {
   const navigate = useNavigate();
@@ -60,6 +64,31 @@ export default function DashboardPage() {
       } catch (e) {
         console.warn(
           "[Dashboard] Failed to delete tracking session (non-fatal):",
+          e
+        );
+      }
+
+      // Send signup attribution to S3 via Lambda (after successful payment)
+      try {
+        const raw = localStorage.getItem("signupAttribution");
+        if (raw) {
+          const { email, howFoundUs } = JSON.parse(raw || "{}");
+          if (howFoundUs && email) {
+            console.log("[Dashboard] Sending signup attribution:", {
+              email,
+              howFoundUs,
+            });
+            await sendSignupAttribution({
+              email,
+              howFoundUs,
+              date: new Date().toISOString(),
+            });
+          }
+          localStorage.removeItem("signupAttribution");
+        }
+      } catch (e) {
+        console.warn(
+          "[Dashboard] Failed to send signup attribution (non-fatal):",
           e
         );
       }
