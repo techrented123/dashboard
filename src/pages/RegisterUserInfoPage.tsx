@@ -266,6 +266,13 @@ export default function RegisterUserInfoPage() {
     }, 800) // Wait 800ms after user stops typing
   ).current;
 
+  // Hide spinner trigger once we have a result
+  useEffect(() => {
+    if (!isCheckingId && idVerificationData?.status) {
+      setShouldCheckId(false);
+    }
+  }, [isCheckingId, idVerificationData?.status]);
+
   // Debounced activity tracking function
   const debouncedUpdateActivity = useRef(
     debounce(async () => {
@@ -765,7 +772,8 @@ export default function RegisterUserInfoPage() {
                           {/* Enhanced ID Verification Status */}
                           {emailValue && emailValue.includes("@") && (
                             <div className="mt-4 animate-in fade-in slide-in-from-top-2 duration-300">
-                              {isCheckingId ? (
+                              {isCheckingId ||
+                              (shouldCheckId && !idVerificationData) ? (
                                 <div className="relative overflow-hidden flex items-center gap-4 p-5 bg-gradient-to-r from-blue-50 via-indigo-50 to-blue-50 dark:from-blue-900/30 dark:via-indigo-900/30 dark:to-blue-900/30 border-2 border-blue-200/60 dark:border-blue-700/60 rounded-xl shadow-md hover:shadow-lg transition-all duration-300">
                                   <div className="relative flex-shrink-0">
                                     <div className="absolute inset-0 bg-blue-400/20 rounded-full animate-ping"></div>
@@ -786,20 +794,6 @@ export default function RegisterUserInfoPage() {
                                     </div>
                                   </div>
                                 </div>
-                              ) : !shouldCheckId && emailValue.length > 5 ? (
-                                // Show "preparing" state when email looks valid but debounce hasn't fired yet
-                                <div className="relative overflow-hidden flex items-center gap-4 p-2 bg-gradient-to-r from-indigo-50 via-purple-50 to-indigo-50 dark:from-indigo-900/20 dark:via-purple-900/20 dark:to-indigo-900/20 border-2 border-indigo-200/50 dark:border-indigo-700/50 rounded-xl shadow-sm hover:shadow-md transition-all duration-300">
-                                  <div className="relative flex-shrink-0">
-                                    <div className="w-4 h-4 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center shadow-md">
-                                      <Loader2 className="w-4 h-4 animate-spin text-white" />
-                                    </div>
-                                  </div>
-                                  <div className="flex-1 min-w-0">
-                                    <p className="font-semibold text-base text-indigo-900 dark:text-indigo-100 mb-1">
-                                      Verifying Identity...
-                                    </p>
-                                  </div>
-                                </div>
                               ) : idVerificationData?.status === "found" ? (
                                 <div className="relative overflow-hidden flex items-center gap-4 p-2 bg-gradient-to-r from-emerald-50 via-green-50 to-emerald-50 dark:from-emerald-900/25 dark:via-green-900/25 dark:to-emerald-900/25 border-2 border-emerald-300/60 dark:border-emerald-700/60 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 animate-in slide-in-from-left-2">
                                   <div className="relative flex-shrink-0">
@@ -818,25 +812,22 @@ export default function RegisterUserInfoPage() {
                                 <div className="relative overflow-hidden flex flex-col sm:flex-row sm:items-center gap-4 p-5 bg-gradient-to-r from-rose-50 via-red-50 to-rose-50 dark:from-rose-900/25 dark:via-red-900/25 dark:to-rose-900/25 border-2 border-rose-200/60 dark:border-rose-700/60 rounded-xl shadow-lg transition-all duration-300 animate-in slide-in-from-left-2">
                                   <div className="flex items-center gap-4 flex-1 min-w-0">
                                     <div className="relative flex-shrink-0">
-                                      <div className="w-12 h-12 bg-gradient-to-br from-rose-500 to-red-600 rounded-full flex items-center justify-center shadow-xl ring-4 ring-rose-200/50 dark:ring-rose-800/50">
-                                        <XCircle className="w-5 h-5 text-white" />
+                                      <div className="w-8 h-8 bg-gradient-to-br from-rose-500 to-red-600 rounded-full flex items-center justify-center shadow-xl ring-4 ring-rose-200/50 dark:ring-rose-800/50">
+                                        <XCircle className="w-4 h-4 text-white" />
                                       </div>
                                     </div>
                                     <div className="flex-1 min-w-0">
-                                      <p className="font-bold text-lg text-rose-900 dark:text-rose-100 mb-1">
+                                      <p className="font-semibold text-sm text-rose-900 dark:text-rose-100 mb-1">
                                         ID Verification Not Found
                                       </p>
-                                      <p className="text-sm text-rose-700 dark:text-rose-300 leading-relaxed">
-                                        We couldn't find an ID verification
-                                        report for this email address.
-                                      </p>
+                                     
                                     </div>
                                   </div>
                                   <a
                                     href="mailto:tech@rented123.com;tambi@rented123.com"
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="inline-flex items-center justify-center gap-2 px-5 py-3 bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-700 hover:to-red-700 text-white text-sm font-semibold rounded-lg shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200 whitespace-nowrap"
+                                    className="text-rose-900 inline-flex items-center justify-center gap-2 px-3 py-1 underline text-sm font-semibold transform hover:scale-105 transition-all duration-200 whitespace-nowrap"
                                   >
                                     Contact Support
                                     <ArrowRight className="w-4 h-4" />
