@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { useMemo } from "react";
+import { useMemo, useEffect } from "react";
 import ProtectedRoute from "../components/ProtectedRoute";
 import AppLayout from "../components/AppLayout";
 import Card from "../components/Card";
@@ -25,6 +25,7 @@ import {
   SkeletonButton,
 } from "../components/Skeleton";
 import { Button } from "../components/ui/button";
+import { deleteTrackingSession, getSessionId } from "../lib/user-tracking";
 
 export default function DashboardPage() {
   const navigate = useNavigate();
@@ -42,6 +43,30 @@ export default function DashboardPage() {
   const { data: documents = [], isLoading: isLoadingDocuments } =
     useDocuments();
   const { data: billingData, isLoading: isLoadingBilling } = useBillingData();
+
+  // Delete tracking session once on dashboard load (after successful payment)
+  useEffect(() => {
+    const deleteTrackingOnMount = async () => {
+      try {
+        const trackingId =
+          getSessionId() || localStorage.getItem("userTrackingSessionId");
+        if (trackingId) {
+          console.log("[Dashboard] Deleting tracking session:", trackingId);
+          await deleteTrackingSession(trackingId);
+          sessionStorage.removeItem("userTrackingSessionId");
+          localStorage.removeItem("userTrackingSessionId");
+          console.log("[Dashboard] Tracking session deleted successfully");
+        }
+      } catch (e) {
+        console.warn(
+          "[Dashboard] Failed to delete tracking session (non-fatal):",
+          e
+        );
+      }
+    };
+
+    deleteTrackingOnMount();
+  }, []); // Run once on mount
 
   // Memoized calculation for Gold member points
   const goldMemberPoints = useMemo(() => {
