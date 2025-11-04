@@ -10,7 +10,6 @@ import {
 import { useEffect } from "react";
 import { updateUserPlanFromPriceId } from "../lib/plan-update";
 import logo from "../assets/logo.png";
-import { deleteTrackingSession, getSessionId } from "@/lib/user-tracking";
 
 export default function RegisterConfirmPage() {
   const navigate = useNavigate();
@@ -329,20 +328,6 @@ export default function RegisterConfirmPage() {
 
     if (confirmResult.success) {
       setSuccess("Email verified successfully! Signing you in...");
-
-      // Delete tracking session after successful email verification
-      try {
-        const trackingId =
-          getSessionId() || localStorage.getItem("userTrackingSessionId");
-        console.log("trackingId before delete", trackingId);
-        if (trackingId) {
-          await deleteTrackingSession(trackingId);
-          sessionStorage.removeItem("userTrackingSessionId");
-          localStorage.removeItem("userTrackingSessionId");
-        }
-      } catch (e) {
-        console.warn("Failed to delete tracking session (non-fatal):", e);
-      }
 
       // --- NEW: Sign-in logic starts here ---
       try {
