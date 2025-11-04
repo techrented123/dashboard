@@ -267,12 +267,17 @@ export default function RegisterUserInfoPage() {
     }, 800) // Wait 800ms after user stops typing
   ).current;
 
-  // Hide spinner trigger once we have a result
+  // Keep shouldCheckId true until we have a real result (not placeholder)
   useEffect(() => {
-    if (!isCheckingId && idVerificationData?.status) {
+    if (
+      shouldCheckId &&
+      idVerificationData?.status &&
+      idVerificationData.status !== "pending"
+    ) {
+      // Only clear shouldCheckId when we have a real result
       setShouldCheckId(false);
     }
-  }, [isCheckingId, idVerificationData?.status]);
+  }, [shouldCheckId, idVerificationData?.status]);
 
   // Debounced activity tracking function
   const debouncedUpdateActivity = useRef(
@@ -786,8 +791,7 @@ export default function RegisterUserInfoPage() {
                           {/* Enhanced ID Verification Status */}
                           {emailValue && emailValue.includes("@") && (
                             <div className="mt-4 animate-in fade-in slide-in-from-top-2 duration-300">
-                              {isCheckingId ||
-                              (shouldCheckId && !idVerificationData) ? (
+                              {isCheckingId || shouldCheckId ? (
                                 <div className="relative overflow-hidden flex items-center gap-4 p-5 bg-gradient-to-r from-blue-50 via-indigo-50 to-blue-50 dark:from-blue-900/30 dark:via-indigo-900/30 dark:to-blue-900/30 border-2 border-blue-200/60 dark:border-blue-700/60 rounded-xl shadow-md hover:shadow-lg transition-all duration-300">
                                   <div className="relative flex-shrink-0">
                                     <div className="absolute inset-0 bg-blue-400/20 rounded-full animate-ping"></div>
@@ -799,10 +803,7 @@ export default function RegisterUserInfoPage() {
                                     <p className="font-semibold text-base text-slate-900 dark:text-slate-100 mb-1">
                                       Verifying Your Identity
                                     </p>
-                                    <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
-                                      Please wait while we securely check your
-                                      ID verification status...
-                                    </p>
+                                    
                                     <div className="mt-3 h-1.5 bg-blue-200/50 dark:bg-blue-800/30 rounded-full overflow-hidden">
                                       <div className="h-full bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full animate-pulse w-3/4"></div>
                                     </div>
