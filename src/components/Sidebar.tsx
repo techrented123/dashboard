@@ -145,12 +145,12 @@ export default function Sidebar() {
         <button
           onClick={() => setIsCollapsed((c) => !c)}
           aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-          className="hidden md:flex absolute right-0 top-4 translate-x-1/2 items-center justify-center w-7 h-7 rounded-full bg-slate-900/90 text-white border border-slate-600 shadow z-[1000]"
+          className="hidden md:flex absolute right-0 top-4 translate-x-1/2 items-center justify-center w-7 h-7 rounded-full bg-white dark:bg-slate-900/90 text-slate-700 dark:text-white border border-white dark:border-slate-600 shadow z-[1000]"
         >
           {isCollapsed ? (
-            <ChevronRight className="w-4 h-4" />
+            <ChevronRight className="w-4 h-4 text-slate-700 dark:text-white" />
           ) : (
-            <ChevronLeft className="w-4 h-4" />
+            <ChevronLeft className="w-4 h-4 text-slate-700 dark:text-white" />
           )}
         </button>
 
@@ -165,7 +165,7 @@ export default function Sidebar() {
               )
             }
             title={isCollapsed ? "Leave a Review" : undefined}
-            className={`w-full text-white hover:underline transition-all duration-200 flex items-center gap-2 px-3 py-2.5 rounded-xl ${
+            className={`w-full text-slate-700 text-sm dark:text-white hover:underline transition-all duration-200 flex items-center gap-2 px-3 py-2.5 rounded-xl ${
               isCollapsed ? "justify-center" : "justify-start"
             }`}
           >
