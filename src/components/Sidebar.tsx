@@ -13,6 +13,27 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 
+function GradientStar(props: React.SVGProps<SVGSVGElement>) {
+  const id = "sidebar-star-gradient";
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" {...props}>
+      <defs>
+        <linearGradient id={id} x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stopColor="#3b82f6" />
+          <stop offset="50%" stopColor="#22c55e" />
+          <stop offset="100%" stopColor="#f59e0b" />
+        </linearGradient>
+      </defs>
+      <path
+        d="M12 17.27L18.18 21 16.54 13.97 22 9.24l-7.19-.62L12 2 9.19 8.62 2 9.24l5.46 4.73L5.82 21z"
+        fill={`url(#${id})`}
+        stroke={`url(#${id})`}
+        strokeWidth="1.2"
+      />
+    </svg>
+  );
+}
+
 const links = [
   { href: "/dashboard", label: "Dashboard", Icon: Home },
   { href: "/rent-reporting", label: "Rent Reporting", Icon: ClipboardCheck },
@@ -71,22 +92,22 @@ export default function Sidebar() {
       <aside
         className={`
         fixed md:static top-0 left-0 z-40
-        h-full md:h-[calc(100vh-56px)] 
+        h-full md:h-full
         bg-white dark:bg-slate-800 border-r dark:border-slate-700
         transform transition-transform duration-300 ease-in-out
         ${isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
-        md:block shrink-0 md:sticky md:top-14 transition-all duration-200 ${
+        md:block shrink-0 transition-all duration-200 ${
           isCollapsed ? "md:w-16" : "md:w-64"
         }
+        flex flex-col overflow-hidden
       `}
       >
         {/* Mobile header space */}
-        <div className="h-14 md:hidden border-b dark:border-slate-700"></div>
+        <div className="h-14 md:hidden border-b dark:border-slate-700 shrink-0"></div>
 
-        {/* Desktop collapse toggle moved inline with first nav item */}
-
+        {/* Navigation - takes available space */}
         <nav
-          className={`p-3 space-y-3 transition-all duration-200 ${
+          className={`flex-1 p-3 space-y-3 transition-all duration-200 overflow-y-auto min-h-0 ${
             isCollapsed ? "md:w-16" : "md:w-64"
           }`}
         >
@@ -119,7 +140,7 @@ export default function Sidebar() {
                   <button
                     onClick={() => setIsCollapsed(true)}
                     aria-label="Collapse sidebar"
-                    className="hidden md:flex absolute -right-6 top-[10%] -translate-y-1/2 items-center justify-center w-6 h-6 rounded-full bg-white border dark:bg-slate-800 dark:border-slate-600 shadow"
+                    className="hidden md:flex absolute z-[1000] -right-2 top-[10%] -translate-y-1/2 items-center justify-center w-6 h-6 rounded-full bg-white border dark:bg-slate-800 dark:border-slate-600 shadow"
                   >
                     <ChevronLeft className="w-3.5 h-3.5" />
                   </button>
@@ -128,7 +149,7 @@ export default function Sidebar() {
                   <button
                     onClick={() => setIsCollapsed(false)}
                     aria-label="Expand sidebar"
-                    className="hidden md:flex absolute -right-5 top-[10%] -translate-y-1/2 items-center justify-center w-6 h-6 rounded-full bg-white border dark:bg-slate-800 dark:border-slate-600 shadow"
+                    className="hidden md:flex absolute right-2 top-[10%] -translate-y-1/2 items-center justify-center w-6 h-6 rounded-full bg-white border dark:bg-slate-800 dark:border-slate-600 shadow z-50"
                   >
                     <ChevronRight className="w-3.5 h-3.5 " />
                   </button>
@@ -137,6 +158,26 @@ export default function Sidebar() {
             );
           })}
         </nav>
+
+        {/* Leave a Review Button at Bottom - always at bottom */}
+        <div className="p-2 border-t dark:border-slate-700 shrink-0 mt-auto absolute bottom-0 left-0 right-0">
+          <button
+            onClick={() =>
+              window.open(
+                "https://share.google/VgHmnoUpKuObrx4E9",
+                "_blank",
+                "noopener,noreferrer"
+              )
+            }
+            title={isCollapsed ? "Leave a Review" : undefined}
+            className={`w-full text-white hover:underline transition-all duration-200 flex items-center gap-2 px-3 py-2.5 rounded-xl ${
+              isCollapsed ? "justify-center" : "justify-start"
+            }`}
+          >
+            <GradientStar className="w-5 h-5 shrink-0" />
+            {!isCollapsed && <span>Leave a Review</span>}
+          </button>
+        </div>
       </aside>
     </>
   );

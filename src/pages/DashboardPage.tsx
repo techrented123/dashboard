@@ -121,9 +121,7 @@ export default function DashboardPage() {
             <h1 className="text-2xl font-bold text-brand dark:text-primary-300 mb-2">
               Dashboard
             </h1>
-            <p className="text-base text-slate-600 dark:text-slate-400 font-medium">
-              Welcome back! Here's your overview
-            </p>
+         
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
             <div className="lg:col-span-2 space-y-8">
