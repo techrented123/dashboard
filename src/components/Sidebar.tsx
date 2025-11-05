@@ -96,10 +96,10 @@ export default function Sidebar() {
         bg-white dark:bg-slate-800 border-r dark:border-slate-700
         transform transition-transform duration-300 ease-in-out
         ${isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
-        md:block shrink-0 transition-all duration-200 ${
+        md:block md:relative shrink-0 transition-all duration-200 ${
           isCollapsed ? "md:w-16" : "md:w-64"
         }
-        flex flex-col overflow-hidden
+        flex flex-col overflow-visible
       `}
       >
         {/* Mobile header space */}
@@ -111,9 +111,8 @@ export default function Sidebar() {
             isCollapsed ? "md:w-16" : "md:w-64"
           }`}
         >
-          {links.map(({ href, label, Icon, isPremium }, index) => {
+          {links.map(({ href, label, Icon, isPremium }) => {
             const active = location.pathname === href;
-            const isFirst = index === 0;
             return (
               <div key={href} className="relative">
                 <Link
@@ -136,28 +135,24 @@ export default function Sidebar() {
                     </span>
                   )}
                 </Link>
-                {isFirst && !isCollapsed && (
-                  <button
-                    onClick={() => setIsCollapsed(true)}
-                    aria-label="Collapse sidebar"
-                    className="hidden md:flex absolute z-[1000] -right-2 top-[10%] -translate-y-1/2 items-center justify-center w-6 h-6 rounded-full bg-white border dark:bg-slate-800 dark:border-slate-600 shadow"
-                  >
-                    <ChevronLeft className="w-3.5 h-3.5" />
-                  </button>
-                )}
-                {isFirst && isCollapsed && (
-                  <button
-                    onClick={() => setIsCollapsed(false)}
-                    aria-label="Expand sidebar"
-                    className="hidden md:flex absolute right-2 top-[10%] -translate-y-1/2 items-center justify-center w-6 h-6 rounded-full bg-white border dark:bg-slate-800 dark:border-slate-600 shadow z-50"
-                  >
-                    <ChevronRight className="w-3.5 h-3.5 " />
-                  </button>
-                )}
+                {/* Arrow buttons moved outside nav; no per-item overlay */}
               </div>
             );
           })}
         </nav>
+
+        {/* Global collapse/expand control anchored to sidebar edge */}
+        <button
+          onClick={() => setIsCollapsed((c) => !c)}
+          aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+          className="hidden md:flex absolute right-0 top-4 translate-x-1/2 items-center justify-center w-7 h-7 rounded-full bg-slate-900/90 text-white border border-slate-600 shadow z-[1000]"
+        >
+          {isCollapsed ? (
+            <ChevronRight className="w-4 h-4" />
+          ) : (
+            <ChevronLeft className="w-4 h-4" />
+          )}
+        </button>
 
         {/* Leave a Review Button at Bottom - always at bottom */}
         <div className="p-2 border-t dark:border-slate-700 shrink-0 mt-auto absolute bottom-0 left-0 right-0">
