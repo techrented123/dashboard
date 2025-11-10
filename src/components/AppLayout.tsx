@@ -11,7 +11,21 @@ interface AppLayoutProps {
 export default function AppLayout({ children }: AppLayoutProps) {
   const location = useLocation();
   const hideBanner = location.pathname.startsWith("/billing");
-  const showChatbot = ["/dashboard", "/support"].includes(location.pathname);
+
+  const chatbotAllowedPaths = [
+    "/dashboard",
+    "/support",
+    "/documents",
+    "/rent-reporting",
+    "/back-rent-reporting",
+    "/account",
+    // Add more paths here as needed
+  ];
+
+  const showChatbot = chatbotAllowedPaths.some((path) =>
+    location.pathname.startsWith(path)
+  );
+
   console.log("showChatbot", showChatbot, location.pathname);
   return (
     <div className="h-screen bg-slate-50 dark:bg-slate-900 flex flex-col overflow-hidden">
