@@ -146,12 +146,24 @@ export const AddressAutocomplete = ({
       onLoad={(ref) => {
         console.log("Autocomplete loaded with ref:", ref);
         autocompleteRef.current = ref;
+        // Bias results toward Canada while still allowing US results
+        try {
+          const canadaBounds = new google.maps.LatLngBounds(
+            new google.maps.LatLng(41.6751050889, -141.0), // SW approx of Canada
+            new google.maps.LatLng(83.6381, -52.6194) // NE approx of Canada
+          );
+          ref.setBounds(canadaBounds);
+          ref.setOptions({ bounds: canadaBounds, strictBounds: false });
+        } catch (e) {
+          console.warn("Could not set Canada-biased bounds:", e);
+        }
         loadHandler(inputRef.current);
       }}
       onPlaceChanged={handleOnPlaceChanged}
       options={{
         componentRestrictions: { country: ["ca", "us"] },
         fields: ["address_components", "formatted_address", "name"],
+        strictBounds: false,
       }}
     >
       <input
