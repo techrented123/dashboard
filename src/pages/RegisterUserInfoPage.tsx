@@ -671,7 +671,7 @@ export default function RegisterUserInfoPage() {
         <div className="max-w-5xl mx-auto">
           {/* Logo */}
 
-          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-soft p-8 md:p-12 border dark:border-slate-700">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-soft p-8 md:p-12 border dark:border-slate-700 mt-7">
             {step === 1 ? (
               <>
                 {/* Enhanced Step 1 Design */}
@@ -687,7 +687,7 @@ export default function RegisterUserInfoPage() {
 
                   {/* Title and Description */}
                   <div className="text-center mb-8">
-                    <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-3">
+                    <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-3 mt-3">
                       Let's Start with ID Verification
                     </h1>
                     <p className="text-base text-slate-600 dark:text-slate-400 leading-relaxed mb-2">

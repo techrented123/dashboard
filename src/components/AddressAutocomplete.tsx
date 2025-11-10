@@ -1,5 +1,5 @@
 import { useCallback, useRef } from "react";
-import { useJsApiLoader, StandaloneSearchBox } from "@react-google-maps/api";
+import { useJsApiLoader, Autocomplete } from "@react-google-maps/api";
 import { cn } from "../lib/utils";
 
 interface AddressAutocompleteProps {
@@ -30,6 +30,7 @@ export const AddressAutocomplete = ({
   error = false,
 }: AddressAutocompleteProps) => {
   const inputRef = useRef<InputRef | null>();
+  const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
 
   const { isLoaded } = useJsApiLoader({
     id: "google-map-script",
@@ -38,23 +39,15 @@ export const AddressAutocomplete = ({
     region: "ca",
   });
 
-  const handleOnPlacesChanged = useCallback(() => {
-    console.log("🟢 places_changed event fired!");
+  const handleOnPlaceChanged = useCallback(() => {
+    console.log("🟢 place_changed event fired!");
+    const place = autocompleteRef.current?.getPlace();
+    console.log("Selected place:", place);
 
-    let places;
-    if (inputRef.current) {
-      places = inputRef.current.getPlaces();
-    }
-
-    console.log("Places result:", places);
-
-    if (!places || !places[0]) {
-      console.log("❌ No places found");
+    if (!place) {
+      console.log("❌ No place returned from Autocomplete");
       return;
     }
-
-    const place = places[0];
-    console.log("Selected place:", place);
 
     const addressComponents = place.address_components;
 
@@ -149,9 +142,17 @@ export const AddressAutocomplete = ({
   }
 
   return (
-    <StandaloneSearchBox
-      onLoad={loadHandler}
-      onPlacesChanged={handleOnPlacesChanged}
+    <Autocomplete
+      onLoad={(ref) => {
+        console.log("Autocomplete loaded with ref:", ref);
+        autocompleteRef.current = ref;
+        loadHandler(inputRef.current);
+      }}
+      onPlaceChanged={handleOnPlaceChanged}
+      options={{
+        componentRestrictions: { country: ["ca", "us"] },
+        fields: ["address_components", "formatted_address", "name"],
+      }}
     >
       <input
         type="text"
@@ -164,6 +165,6 @@ export const AddressAutocomplete = ({
           className
         )}
       />
-    </StandaloneSearchBox>
+    </Autocomplete>
   );
 };
