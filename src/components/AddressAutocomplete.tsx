@@ -33,7 +33,7 @@ export const AddressAutocomplete = ({
 
   const { isLoaded } = useJsApiLoader({
     id: "google-map-script",
-    googleMapsApiKey: "AIzaSyBpwVIGGL--8Rb8boLBeYANil7eovl8ND8",
+    googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "", // Using environment variable
     libraries: ["places"],
     region: "ca",
   });
