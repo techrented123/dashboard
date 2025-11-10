@@ -26,7 +26,6 @@ export default function AppLayout({ children }: AppLayoutProps) {
     location.pathname.startsWith(path)
   );
 
-  console.log("showChatbot", showChatbot, location.pathname);
   return (
     <div className="h-screen bg-slate-50 dark:bg-slate-900 flex flex-col overflow-hidden">
       {!hideBanner && <SubscriptionBanner />}
