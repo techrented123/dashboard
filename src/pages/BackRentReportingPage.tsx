@@ -268,7 +268,7 @@ export default function BackRentReportingPage() {
         await checkUserPurchase();
       } else if (!loadingUser) {
         console.log("❌ No user available, redirecting to login");
-        navigate("/login");
+        navigate("/back-rent-reporting/purchase");
       }
     };
 
