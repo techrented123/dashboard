@@ -2,6 +2,7 @@ import Topbar from "./Topbar";
 import Sidebar from "./Sidebar";
 import SubscriptionBanner from "./SubscriptionBanner";
 import { useLocation } from "react-router-dom";
+import ChatbaseWidget from "./ChatbotSnippet";
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -10,7 +11,8 @@ interface AppLayoutProps {
 export default function AppLayout({ children }: AppLayoutProps) {
   const location = useLocation();
   const hideBanner = location.pathname.startsWith("/billing");
-
+  const showChatbot = ["/dashboard", "/support"].includes(location.pathname);
+  console.log("showChatbot", showChatbot, location.pathname);
   return (
     <div className="h-screen bg-slate-50 dark:bg-slate-900 flex flex-col overflow-hidden">
       {!hideBanner && <SubscriptionBanner />}
@@ -22,6 +24,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
           <div className="max-w-8xl mx-auto px-2 sm:px-4 lg:px-6 space-y-6">
             {children}
           </div>
+          {showChatbot && <ChatbaseWidget />}
         </main>
       </div>
     </div>

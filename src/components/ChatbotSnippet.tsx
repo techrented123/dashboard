@@ -1,65 +1,66 @@
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 
-const CHATBASE_EMBED_SRC = "https://www.chatbase.co/embed.min.js";
+interface ChatbaseProxy {
+  q: any[];
+  (action: string, ...args: any[]): any;
+  getState?: () => string;
+}
 
-/**
- * ChatbotSnippet for plain React (Vite) apps.
- * - Reads chatbot id from Vite env: VITE_CHATBOTID or VITE_CHATBOT_ID
- * - Sets window.chatbaseConfig before loading the embed script
- * - Avoids duplicate script injection across renders
- */
-type ChatbotSnippetProps = {
-  chatbotId?: string;
-};
-
-const ChatbotSnippet: React.FC<ChatbotSnippetProps> = ({ chatbotId }) => {
+export default function ChatbaseWidget() {
   useEffect(() => {
-    const idFromEnv =
-      (import.meta as any).env?.VITE_CHATBOTID ||
-      (import.meta as any).env?.VITE_CHATBOT_ID;
-    const resolvedId = chatbotId || idFromEnv || "";
+    // Skip if it already exists
+    (function () {
+      const currentState = window?.chatbase?.getState?.();
+      if (!window?.chatbase || currentState !== "initialized") {
+        const chatbaseFunction = (...args: any[]) => {
+          if (!window.chatbase?.q) {
+            (window.chatbase as ChatbaseProxy).q = [];
+          }
+          (window.chatbase as ChatbaseProxy).q.push(args);
+        };
 
-    // Expose config on window for the embed script
-    try {
-      (window as any).chatbaseConfig = {
-        chatbotId: resolvedId,
-        domain: window.location.hostname,
-      };
-      console.log("[ChatbotSnippet] Using chatbotId:", resolvedId);
-    } catch {}
+        // Add the q property to the function
+        (chatbaseFunction as ChatbaseProxy).q = [];
 
-    // Inject embed script once
-    const existing =
-      document.getElementById("chatbase-embed") ||
-      document.getElementById("chatbase-embed-script");
-    if (!existing && resolvedId) {
-      const script = document.createElement("script");
-      // Use official id that some loaders look for
-      script.id = "chatbase-embed";
-      script.src = CHATBASE_EMBED_SRC;
-      script.async = true;
-      script.defer = true;
-      script.crossOrigin = "anonymous";
-      // Provide chatbot id via attributes as a fallback some versions use
-      script.setAttribute("data-chatbot-id", resolvedId);
-      script.setAttribute("data-cbid", resolvedId);
-      script.onload = () => {
-        console.log("[ChatbotSnippet] Chatbase loaded");
+        // Create proxy
+        window.chatbase = new Proxy(chatbaseFunction as ChatbaseProxy, {
+          get(target: ChatbaseProxy, prop: string) {
+            if (prop === "q") {
+              return target.q;
+            }
+            return (...args: any[]) => target(prop, ...args);
+          },
+        });
+      }
+
+      const onLoad = function () {
+        const script = document.createElement("script");
+        script.src = "https://www.chatbase.co/embed.min.js";
+        script.id = "hogdd5dYuMeYuJvcXp8ve";
+        script.setAttribute("data-domain", "www.chatbase.co");
+        document.body.appendChild(script);
       };
-      script.onerror = () => {
-        console.warn("[ChatbotSnippet] Failed to load Chatbase script");
-      };
-      document.body.appendChild(script);
-    }
-    if (!resolvedId) {
-      console.warn(
-        "[ChatbotSnippet] Missing chatbot ID. Set VITE_CHATBOTID, or pass chatbotId prop, or use ?chatbotId=..."
+
+      if (document.readyState === "complete") {
+        onLoad();
+      } else {
+        window.addEventListener("load", onLoad);
+      }
+    })();
+
+    // Cleanup function
+    return () => {
+      const script = document.querySelector(
+        'script[src="https://www.chatbase.co/embed.min.js"]'
       );
-    }
+      if (script) script.remove();
+
+      const iframe = document.querySelector('iframe[src*="chatbase.co"]');
+      if (iframe) iframe.remove();
+
+      if (window.chatbase) delete window.chatbase;
+    };
   }, []);
 
-  // No visible UI
   return null;
-};
-
-export default ChatbotSnippet;
+}
