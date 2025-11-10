@@ -803,7 +803,7 @@ export default function RegisterUserInfoPage() {
                                     <p className="font-semibold text-base text-slate-900 dark:text-slate-100 mb-1">
                                       Verifying Your Identity
                                     </p>
-                                    
+
                                     <div className="mt-3 h-1.5 bg-blue-200/50 dark:bg-blue-800/30 rounded-full overflow-hidden">
                                       <div className="h-full bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full animate-pulse w-3/4"></div>
                                     </div>
@@ -1509,7 +1509,16 @@ export default function RegisterUserInfoPage() {
                                   className="text-primary-600 hover:text-primary-700 underline"
                                 >
                                   Terms and Conditions
-                                </a>
+                                </a>{" "}
+                                and{" "}
+                                <a
+                                  href="https://rented123.com/wp-content/uploads/2025/01/Rented123.com-fees-and-compensation-Anti-spam-acknowledgement-.docx.pdf"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-primary-600 hover:text-primary-700 underline"
+                                >
+                                  Disclosure of Referral Fees and Commission
+                                </a>{" "}
                               </FormLabel>
                               <FormMessage />
                             </div>
@@ -1543,12 +1552,12 @@ export default function RegisterUserInfoPage() {
                                 </a>{" "}
                                 and{" "}
                                 <a
-                                  href="https://rented123.com/wp-content/uploads/2025/01/Rented123.com-fees-and-compensation-Anti-spam-acknowledgement-.docx.pdf"
+                                  href="https://rented123.com/wp-content/uploads/2025/11/Rented123.com-Silver-and-Gold-acknoeldgements-for-member-signup.docx.pdf"
                                   target="_blank"
                                   rel="noopener noreferrer"
                                   className="text-primary-600 hover:text-primary-700 underline"
                                 >
-                                  Disclosure of Referral Fees and Commission
+                                  Acknowledgements for Member Signup
                                 </a>
                               </FormLabel>
                               <FormMessage />
