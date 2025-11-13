@@ -70,3 +70,42 @@ export async function redirectToCheckout(sessionId: string) {
     throw error;
   }
 }
+
+// ID Verification-only checkout creator (anonymous; no auth; minimal payload)
+export async function createIdVerificationCheckoutSession(from: string) {
+  try {
+    const origin = window.location.origin;
+    const priceId = (import.meta as any).env
+      ?.VITE_STRIPE_ID_VERIFICATION_PRICE_ID;
+    if (!priceId) {
+      throw new Error("Missing VITE_STRIPE_ID_VERIFICATION_PRICE_ID");
+    }
+
+    const checkoutData = {
+      priceId,
+      successUrl: `${origin}/id-verification/process`,
+      cancelUrl: `${origin}/id-verification/purchase?from=${encodeURIComponent(
+        from
+      )}`,
+      metadata: { productId: "id-verification" },
+    };
+
+    const response = await fetch(
+      "https://leeuzck5cd.execute-api.us-west-2.amazonaws.com/create-checkout-session",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" }, // No Authorization header
+        body: JSON.stringify(checkoutData),
+      }
+    );
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || "Failed to create checkout session");
+    }
+
+    return { success: true, ...(await response.json()) };
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+}
