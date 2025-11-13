@@ -11,6 +11,9 @@ import BackRentReportingPage from "./pages/BackRentReportingPage";
 import BackRentReportingPurchasePage from "./pages/BackRentReportingPurchasePage";
 import BackRentReportingPublicPurchasePage from "./pages/BackRentReportingPublicPurchasePage";
 import BackRentReportingPublicPage from "./pages/BackRentReportingPublicPage";
+import IDVerificationPurchasePage from "./pages/IDVerificationPurchasePage";
+import RegisterIdVerificationPage from "./pages/RegisterIdVerificationPage";
+import IdVerificationProcessPage from "./pages/IdVerificationProcessPage";
 import CheckEmailPage from "./pages/CheckEmailPage";
 import PricingPlansPage from "./pages/PricingPlansPage";
 import BillingPage from "./pages/BillingPage";
@@ -67,6 +70,10 @@ function App() {
         />
         <Route path="/pricing-plans" element={<PricingPlansPage />} />
         <Route path="/register" element={<RegisterUserInfoPage />} />
+        <Route
+          path="/register/id-verification"
+          element={<RegisterIdVerificationPage />}
+        />
         <Route path="/register/billing" element={<RegisterBillingPage />} />
         <Route path="/register/confirm" element={<RegisterConfirmPage />} />
         <Route
@@ -114,6 +121,14 @@ function App() {
               <BackRentReportingPage />
             </ProtectedRoute>
           }
+        />
+        <Route
+          path="/id-verification/purchase"
+          element={<IDVerificationPurchasePage />}
+        />
+        <Route
+          path="/id-verification/process"
+          element={<IdVerificationProcessPage />}
         />
         <Route
           path="/back-rent-reporting/purchase"
