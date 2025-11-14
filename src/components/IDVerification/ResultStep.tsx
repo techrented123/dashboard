@@ -6,10 +6,6 @@ import {
   FileText,
   RotateCcw,
   AlertTriangle,
-  User,
-  Calendar,
-  Shield,
-  Eye,
   ArrowRight,
 } from "lucide-react";
 import {
@@ -42,17 +38,9 @@ const ResultStep: React.FC<ResultStepProps> = ({
   const navigate = useNavigate();
   const { email: contextEmail } = useEmail();
   const [isAutoEmailSent, setIsAutoEmailSent] = useState(false); // Track if auto-email was sent
-  const [autoEmailError, setAutoEmailError] = useState<string | null>(null); // Track auto-send errors
-  const [isManualEmailLoading, setIsManualEmailLoading] = useState(false);
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState(""); // Store toast message
 
-  // Manual email state (for sending to another person)
-  const [recipientName, setRecipientName] = useState("");
-  const [recipientEmail, setRecipientEmail] = useState("");
-  const [manualEmailError, setManualEmailError] = useState("");
-
-  const [showPdfPreview, setShowPdfPreview] = useState(false);
   const [emailDetails, setEmailDetails] = useState({
     first_name: "",
     last_name: "",
@@ -60,70 +48,8 @@ const ResultStep: React.FC<ResultStepProps> = ({
   });
   const [pdfDoc, setPdfDoc] = useState<jsPDF | null>();
 
-  const [serverErrorMessage, setServerErrorMessage] = useState<null | string>(
-    null
-  );
+  const serverErrorMessage: string | null = null;
   const alertRef = React.useRef<ModalAlertHandle>(null);
-
-  // Email validation function
-  const validateEmail = (email: string): boolean => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-  };
-
-  // Handle manual email sending to another person
- /*  const handleManualEmailSend = async () => {
-    setManualEmailError("");
-
-    // Validate inputs
-    if (!recipientName.trim()) {
-      setManualEmailError("Please enter the recipient's name");
-      return;
-    }
-
-    if (!recipientEmail.trim()) {
-      setManualEmailError("Please enter the recipient's email address");
-      return;
-    }
-
-    if (!validateEmail(recipientEmail)) {
-      setManualEmailError("Please enter a valid email address");
-      return;
-    }
-
-    setIsManualEmailLoading(true);
-
-    try {
-      const emails = [recipientEmail];
-
-      const response = await emailPDF(
-        {
-          last_name: emailDetails.last_name,
-          first_name: emailDetails.first_name,
-        },
-        emailDetails.blob,
-        emails,
-        "third-party" // Specify this is a third-party email
-      );
-      if (!response.ok) {
-        throw new Error("Could not send email");
-      }
-
-      // Show success toast instead of disabling form
-      setToastMessage(
-        `Verification report sent successfully to ${recipientEmail}`
-      );
-      setShowToast(true);
-
-      // Clear form fields so they can send to more people
-      setRecipientName("");
-      setRecipientEmail("");
-    } catch (e) {
-      setManualEmailError("Could not send email. Please try again.");
-    } finally {
-      setIsManualEmailLoading(false);
-    }
-  }; */
 
   const handleDownload = async () => {
     // Download the PDF locally
@@ -169,9 +95,6 @@ const ResultStep: React.FC<ResultStepProps> = ({
           setShowToast(true); // Show toast notification
         } catch (error) {
           console.error("Failed to auto-send email:", error);
-          setAutoEmailError(
-            "Failed to send email automatically. Please send it manually."
-          );
           setToastMessage(
             "Failed to send email automatically. Please try sending it manually."
           );
@@ -219,8 +142,8 @@ const ResultStep: React.FC<ResultStepProps> = ({
             {!serverErrorMessage ? (
               <div className="max-w-lg mx-auto">
                 <p className="text-gray-600 mb-3 ">
-                  Your identity has been successfully verified. You can now
-                  continue to the next step.
+                  Your identity has been successfully verified and an email has
+                  been sent to you. You can now continue to the next step.
                 </p>
               </div>
             ) : (
@@ -241,7 +164,7 @@ const ResultStep: React.FC<ResultStepProps> = ({
             <button
               onClick={progressToNextStep}
               disabled={!isSuccess}
-              className="disabled:cursor-not-allowed disabled:bg-none flex-1 flex items-center justify-center space-x-2  bg-green-500 text-white py-3 px-4 rounded-lg font-semibold hover:blue-700 transition-all duration-300 shadow-lg"
+              className="disabled:cursor-not-allowed disabled:bg-none flex-1 flex items-center justify-center space-x-2  bg-blue-500 text-white py-3 px-4 rounded-lg font-semibold hover:blue-700 transition-all duration-300 shadow-lg"
             >
               <ArrowRight className="w-5 h-5" />
               <span>Continue</span>
@@ -252,9 +175,9 @@ const ResultStep: React.FC<ResultStepProps> = ({
               You can also download the verification report for your records.
             </p>
           </div>
-          {/* PDF Preview Card */}
+          {/* PDF Download Card */}
           <div className="bg-white border-2 border-gray-200 rounded-xl p-6 shadow-lg">
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
               <div className="flex items-center space-x-3">
                 <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
                   <FileText className="w-6 h-6 text-blue-600" />
@@ -269,79 +192,9 @@ const ResultStep: React.FC<ResultStepProps> = ({
                 </div>
               </div>
               <button
-                onClick={() => setShowPdfPreview(!showPdfPreview)}
-                className="flex items-center space-x-2 text-blue-600 hover:text-blue-700 transition-colors"
-              >
-                <Eye className="w-4 h-4" />
-                <span className="text-sm">
-                  {showPdfPreview ? "Hide" : "Preview"}
-                </span>
-              </button>
-            </div>
-
-            {showPdfPreview && (
-              <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 mb-4">
-                <div className="space-y-4">
-                  <div className="text-center border-b border-gray-300 pb-4">
-                    <h4 className="text-lg font-bold text-gray-900">
-                      IDENTITY VERIFICATION REPORT
-                    </h4>
-                  </div>
-
-                  <div className="grid md:grid-cols-2 gap-4">
-                    <div className="space-y-3">
-                      <div className="flex items-center space-x-2">
-                        <User className="w-4 h-4 text-blue-600" />
-                        <span className="text-sm font-medium">
-                          Identity Verification
-                        </span>
-                        <CheckCircle className="w-4 h-4 text-green-600" />
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Shield className="w-4 h-4 text-blue-600" />
-                        <span className="text-sm font-medium">
-                          Document Authentication
-                        </span>
-                        <CheckCircle className="w-4 h-4 text-green-600" />
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Calendar className="w-4 h-4 text-blue-600" />
-                        <span className="text-sm font-medium">
-                          Biometric Match
-                        </span>
-                        <CheckCircle className="w-4 h-4 text-green-600" />
-                      </div>
-                    </div>
-
-                    <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-                      <div className="text-center">
-                        <div className="text-2xl font-bold text-green-700">
-                          98.7%
-                        </div>
-                        <div className="text-sm text-green-600">
-                          Confidence Score
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                    <p className="text-xs text-blue-700">
-                      This report confirms successful identity verification
-                      completed on {new Date().toLocaleDateString()} at{" "}
-                      {new Date().toLocaleTimeString()}. All security checks
-                      passed with high confidence scores.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            <div className="flex space-x-3">
-              <button
                 onClick={handleDownload}
                 disabled={!isSuccess}
-                className="disabled:cursor-not-allowed disabled:bg-none flex-1 flex items-center justify-center space-x-2  bg-blue-500 text-white py-3 px-4 rounded-lg font-semibold hover:blue-700 transition-all duration-300 shadow-lg"
+                className="disabled:cursor-not-allowed disabled:bg-none flex items-center justify-center space-x-2 bg-blue-500 text-white py-3 px-4 rounded-lg font-semibold hover:blue-700 transition-all duration-300 shadow-lg"
               >
                 <Download className="w-5 h-5" />
                 <span>Download PDF</span>

@@ -4,7 +4,9 @@ import logo from "../assets/logo.png";
 
 export default function PricingPlansPage() {
   const handleGetStarted = (plan: string) => {
-    window.location.href = `/register?plan=${plan}`;
+    if (plan === "bronze") {
+      window.location.href = `/register?plan=${plan}`;
+    } else window.location.href = `/register/id-verification?plan=${plan}`;
   };
 
   const plans = [
