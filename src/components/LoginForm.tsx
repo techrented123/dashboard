@@ -227,7 +227,10 @@ export default function LoginForm({
           </Link>
           <p className="text-sm text-slate-600 dark:text-slate-400">
             Don't have an account?{" "}
-            <Link to="/register" className="text-secondary hover:underline">
+            <Link
+              to="/register/id-verification"
+              className="text-secondary hover:underline"
+            >
               Sign up
             </Link>
           </p>

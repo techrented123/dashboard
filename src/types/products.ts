@@ -38,6 +38,21 @@ export const PRODUCTS: Product[] = [
       "Impact your credit score",
     ],
   },
+  {
+    id: "prod_IDV",
+    name: "ID Verification",
+    description:
+      "Verify your identity to unlock Silver and Gold membership plans.",
+    price: 19.99,
+    stripePriceId:
+      import.meta.env.VITE_STRIPE_ID_VERIFICATION_PRICE_ID ||
+      "price_dummy_id_verification",
+    features: [
+      "One-time identity verification",
+      "Required for Silver and Gold",
+      "Fast verification turnaround",
+    ],
+  },
 ];
 
 export function getProductById(productId: string): Product | undefined {

@@ -10,6 +10,7 @@ import {
   getPhotoFromIndexedDB,
   clearAllPhotosFromIndexedDB,
 } from "../lib/photoStorage";
+import { EmailProvider } from "@/lib/context/EmailContext";
 
 // Local types (adjust as needed)
 type UserData = {
@@ -31,18 +32,6 @@ function useIsMobile(): boolean {
     return () => window.removeEventListener("resize", onResize);
   }, []);
   return isMobile;
-}
-
-// Local stubs for missing actions. Replace with real API calls if available.
-async function getToken(
-  token: string
-): Promise<{ token: string; product?: string } | null> {
-  try {
-    // Placeholder: replace with real validation request if you have one
-    return { token, product: "idscan" };
-  } catch {
-    return null;
-  }
 }
 
 async function updateToken(token: string): Promise<boolean> {
@@ -232,6 +221,7 @@ function App() {
         );
       case 4:
         return (
+          <EmailProvider> 
           <ResultStep
             isSuccess={verificationResult || false}
             onRestart={restartVerification}
@@ -241,6 +231,7 @@ function App() {
             }}
             activeToken={activeToken}
           />
+          </EmailProvider>
         );
       default:
         return (
@@ -348,7 +339,7 @@ function App() {
     verificationData,
   ]);
 
- /*  React.useEffect(() => {
+  /*  React.useEffect(() => {
     const isVerified =
       typeof window !== "undefined"
         ? localStorage.getItem("rented123_token_verified") === "true"
@@ -375,17 +366,9 @@ function App() {
   return (
     <div className="min-h-[80vh] md:min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
       <div className="container mx-auto px-4 py-8">
-        {verifyingToken ? (
-          <div className="max-w-4xl mx-auto">
-            <div className="bg-white rounded-2xl shadow-xl p-8 md:p-12 min-h-[400px] flex items-center justify-center">
-              <span className="text-gray-700 text-sm md:text-base font-medium">
-                Verifying token...
-              </span>
-            </div>
-          </div>
-        ) : showQRCode ? (
+        {showQRCode ? (
           <QRCode
-            url={`https://services.idscan.rented123.com/?token=${activeToken}`}
+            url={`https://services.idscan.rented123.com/`}
             token={activeToken}
           />
         ) : (
