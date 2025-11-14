@@ -12,41 +12,6 @@ function emailToS3Prefix(email: string | undefined) {
     .replace(/[^a-zA-Z0-9_]/g, "_"); // Same logic as your app
 }
 
-export const emailPDF = async (
-  userDetails: {
-    last_name: string;
-    first_name: string;
-  },
-  doc: Blob | undefined,
-  recipientEmail: string | string[],
-  emailType?: "third-party" // Add optional email type parameter
-) => {
-  // Handle both single email string and array of emails
-  const emails = Array.isArray(recipientEmail)
-    ? recipientEmail
-    : [recipientEmail];
-  const primaryEmail = emails[0];
-
-  // Await the S3 URL properly
-  const s3Url = await saveToS3(
-    doc as Blob,
-    `${emailToS3Prefix(primaryEmail)}/${userDetails.last_name}_${
-      userDetails.first_name
-    }_verification_report.pdf`
-  );
-
-  return await fetch("/api/send-email/", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      userDetails,
-      pdfUrl: s3Url,
-      recipientEmail: emails,
-      emailType, // Pass email type to the API
-    }),
-  });
-};
-
 export const sendFailedVerificationNotification = async (userDetails: {
   first_name: string;
   last_name: string;
@@ -359,37 +324,6 @@ export const generateVerificationReport = async (
     console.log(err);
     return { doc: null, s3Url: "", first_name: "", last_name: "" };
   }
-};
-
-const saveToS3 = async (PDFfile: Blob, fileName: string) => {
-  const base64 = await new Promise<string>((resolve, reject) => {
-    const reader = new FileReader();
-    reader.readAsDataURL(PDFfile);
-    reader.onloadend = () => {
-      const base64data =
-        typeof reader.result === "string" ? reader.result.split(",")[1] : "";
-      resolve(base64data);
-    };
-    reader.onerror = reject;
-  });
-
-  const response = await fetch("/api/store-pdf", {
-    method: "POST",
-    body: JSON.stringify({
-      PDFfile: base64,
-      fileName,
-    }),
-    headers: { "Content-Type": "application/json" },
-  });
-
-  if (!response.ok) {
-    const errorData = await response.json();
-    console.error("PDF upload error:", errorData);
-    throw new Error("Upload failed");
-  }
-
-  const data = await response.json();
-  return data.location;
 };
 
 export const storePDFAndSendEmail = async (

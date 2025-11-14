@@ -13,7 +13,6 @@ import {
   ArrowRight,
 } from "lucide-react";
 import {
-  emailPDF,
   generateVerificationReport,
   storePDFAndSendEmail,
 } from "../../lib/IdVerificationActions";
@@ -73,7 +72,7 @@ const ResultStep: React.FC<ResultStepProps> = ({
   };
 
   // Handle manual email sending to another person
-  const handleManualEmailSend = async () => {
+ /*  const handleManualEmailSend = async () => {
     setManualEmailError("");
 
     // Validate inputs
@@ -124,7 +123,7 @@ const ResultStep: React.FC<ResultStepProps> = ({
     } finally {
       setIsManualEmailLoading(false);
     }
-  };
+  }; */
 
   const handleDownload = async () => {
     // Download the PDF locally
