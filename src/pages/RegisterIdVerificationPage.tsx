@@ -43,7 +43,7 @@ export default function RegisterIdVerificationPage() {
   const { data: idVerificationData, isLoading: isCheckingId } =
     useIdVerification(emailValue, shouldCheckId);
 
-  const onSubmit = (data: EmailForm) => {
+  const onSubmit = () => {
     // If verified, allow navigation to register form
     if (idVerificationData?.status === "found") {
       navigate("/register");
@@ -133,24 +133,13 @@ export default function RegisterIdVerificationPage() {
                         </div>
                       </div>
                     ) : idVerificationData?.status === "not_found" ? (
-                      <div className="relative overflow-hidden flex items-center gap-4 p-4 bg-gradient-to-r from-rose-50 via-red-50 to-rose-50 dark:from-rose-900/25 dark:via-red-900/25 dark:to-rose-900/25 border-2 border-rose-200/60 dark:border-rose-700/60 rounded-xl shadow">
-                        <div className="relative flex-shrink-0">
-                          <div className="w-8 h-8 bg-gradient-to-br from-rose-500 to-red-600 rounded-full flex items-center justify-center shadow">
-                            <XCircle className="w-4 h-4 text-white" />
-                          </div>
-                        </div>
+                      <div className="relative overflow-hidden flex items-start">
                         <div className="flex-1 min-w-0">
-                          <p className="font-semibold text-sm text-rose-900 dark:text-rose-100">
-                            ID Verification Not Found
+                          <p className="font-semibold text-sm text-red-900 dark:text-rose-100">
+                            ID Verification Not Found. Click below to start
+                            verification.
                           </p>
                         </div>
-                        <a
-                          href={`/id-verification/process`}
-                          className="inline-flex items-center justify-center gap-2 px-3 py-1 rounded-md bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 transition-colors whitespace-nowrap"
-                        >
-                          Purchase ID Verification
-                          <ArrowRight className="w-4 h-4" />
-                        </a>
                       </div>
                     ) : idVerificationData?.status === "error" ? (
                       <div className="relative overflow-hidden flex items-center gap-4 p-4 bg-gradient-to-r from-amber-50 via-orange-50 to-amber-50 dark:from-amber-900/25 dark:via-orange-900/25 dark:to-amber-900/25 border-2 border-amber-200/60 dark:border-amber-700/60 rounded-xl shadow">
@@ -179,6 +168,18 @@ export default function RegisterIdVerificationPage() {
                   Continue to Registration
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
+                <div className="text-center">
+                  <p className="text-sm text-slate-500 dark:text-slate-400 mb-2">
+                    or{" "}
+                  </p>
+                  <Button
+                    type="button"
+                    onClick={() => navigate(`/id-verification/purchase`)}
+                    className="w-full bg-white border-blue-600 border hover:bg-blue-600 text-blue-600 hover:text-white rounded-xl py-3 font-medium disabled:opacity-50"
+                  >
+                    Start Verification
+                  </Button>
+                </div>
               </form>
             </Form>
           </div>

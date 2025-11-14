@@ -1,5 +1,4 @@
 import React, { useState, useCallback, useEffect } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
 import ProgressBar from "../components/IDVerification/ProgressBar";
 import IdUploadStep from "../components/IDVerification/IdUpload";
 import SelfieStep from "../components/IDVerification/SelfieStep";
@@ -10,7 +9,9 @@ import {
   getPhotoFromIndexedDB,
   clearAllPhotosFromIndexedDB,
 } from "../lib/photoStorage";
-import { EmailProvider } from "@/lib/context/EmailContext";
+import { EmailProvider, useEmail } from "../lib/context/EmailContext";
+import EmailCollection from "../components/IDVerification/EmailCollection";
+import logo from "../assets/logo.png";
 
 // Local types (adjust as needed)
 type UserData = {
@@ -73,7 +74,7 @@ function QRCode(props: { url: string; token: string }) {
   );
 }
 
-function App() {
+function IdVerificationProcessContent() {
   // Initialize step from localStorage or default to 1
   const [currentStep, setCurrentStep] = useState(() => {
     if (typeof window !== "undefined") {
@@ -96,12 +97,8 @@ function App() {
   const [tokenUpdated, setTokenUpdated] = useState(false);
 
   const isMobileDevice = useIsMobile();
-  const [searchParams] = useSearchParams();
-  const token = searchParams.get("token");
-  const navigate = useNavigate();
+  const [activeToken] = useState("");
   const [showQRCode, setShowQRCode] = React.useState(false);
-  const [activeToken, setActiveToken] = useState("");
-  const [verifyingToken, setVerifyingToken] = React.useState(true);
 
   const totalSteps = 3;
 
@@ -221,7 +218,6 @@ function App() {
         );
       case 4:
         return (
-          <EmailProvider> 
           <ResultStep
             isSuccess={verificationResult || false}
             onRestart={restartVerification}
@@ -231,7 +227,6 @@ function App() {
             }}
             activeToken={activeToken}
           />
-          </EmailProvider>
         );
       default:
         return (
@@ -366,6 +361,9 @@ function App() {
   return (
     <div className="min-h-[80vh] md:min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
       <div className="container mx-auto px-4 py-8">
+        <div className="text-center mb-8">
+          <img src={logo} alt="Rented123" className="h-16 inline-block" />
+        </div>
         {showQRCode ? (
           <QRCode
             url={`https://services.idscan.rented123.com/`}
@@ -421,4 +419,31 @@ function App() {
   );
 }
 
-export default App;
+export default function IdVerificationProcessPage() {
+  return (
+    <EmailProvider>
+      <IdVerificationGate />
+    </EmailProvider>
+  );
+}
+
+function IdVerificationGate() {
+  const { email } = useEmail();
+  const [hasCollectedEmail, setHasCollectedEmail] = useState(Boolean(email));
+
+  useEffect(() => {
+    setHasCollectedEmail(Boolean(email));
+  }, [email]);
+
+  if (!hasCollectedEmail) {
+    return (
+      <EmailCollection
+        onComplete={() => {
+          setHasCollectedEmail(true);
+        }}
+      />
+    );
+  }
+
+  return <IdVerificationProcessContent />;
+}
