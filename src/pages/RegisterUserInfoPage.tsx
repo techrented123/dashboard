@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   ArrowRight,
   Eye,
@@ -173,7 +173,9 @@ export default function RegisterUserInfoPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
   const [step] = useState<1 | 2>(2); // Registration only; IDV moved to its own page
-
+  const [searchParams] = useSearchParams();
+  const plan = searchParams.get("plan") || "silver";
+  console.log({ plan });
   // State for password validation
   const [passwordValidation, setPasswordValidation] = useState({
     length: false,
@@ -513,7 +515,7 @@ export default function RegisterUserInfoPage() {
 
     // Store user data and navigate to billing preview
     localStorage.setItem("registrationUserData", JSON.stringify(data));
-    navigate("/register/billing");
+    navigate(`/register/billing?plan=${plan}`);
   };
 
   // Handler for password validation

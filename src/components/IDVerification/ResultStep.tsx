@@ -60,7 +60,7 @@ const ResultStep: React.FC<ResultStepProps> = ({
 
   const progressToNextStep = async () => {
     // Download the PDF locally
-    navigate("/register");
+    navigate("/register/?plan=silver");
   };
   const preparePDF = React.useCallback(async () => {
     const { doc, blob, first_name, last_name } =

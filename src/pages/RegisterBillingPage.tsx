@@ -1,5 +1,5 @@
-import { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect, useRef, useMemo } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { ArrowLeft, Edit3, CreditCard, Loader2 } from "lucide-react";
 import {
   signUp,
@@ -39,7 +39,11 @@ const PLANS = [
     stripeId: import.meta.env.VITE_STRIPE_GOLD_PRICE_ID,
   },
 ];
-const getPlanFromUrl = () => PLANS[0]; // Default to first plan
+const getPlanFromUrl = (planParam: string | null) => {
+  const normalized = planParam?.toLowerCase().trim();
+  const match = PLANS.find((plan) => plan.id === normalized);
+  return match || PLANS[0];
+};
 
 // Placeholder for your UI components
 const PlanCard = ({
@@ -303,8 +307,31 @@ export async function createCheckoutSession(checkoutData: any) {
 
 export default function RegisterBillingPage() {
   const navigate = useNavigate();
-  const [selectedPlan, setSelectedPlan] = useState(getPlanFromUrl());
+  const [searchParams] = useSearchParams();
+  const planParam = searchParams.get("plan");
+  const constrainedPlans = useMemo(() => {
+    const normalized = planParam?.toLowerCase().trim();
+    if (
+      normalized === "bronze" ||
+      normalized === "silver" ||
+      normalized === "gold"
+    ) {
+      return PLANS.filter((plan) => plan.id === normalized);
+    }
+    return PLANS;
+  }, [planParam]);
+  const [selectedPlan, setSelectedPlan] = useState(
+    () => constrainedPlans.find((plan) => plan.id === planParam) || PLANS[0]
+  );
   const [showAllPlans, setShowAllPlans] = useState(false);
+  useEffect(() => {
+    if (constrainedPlans.length) {
+      setSelectedPlan(constrainedPlans[0]);
+    }
+    if (constrainedPlans.length <= 1 && showAllPlans) {
+      setShowAllPlans(false);
+    }
+  }, [constrainedPlans, showAllPlans]);
   const [userInfo, setUserInfo] = useState<any>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -408,7 +435,7 @@ export default function RegisterBillingPage() {
   }, [userInfo]);
 
   const handlePlanSelect = (planId: string) => {
-    const plan = PLANS.find((p) => p.id === planId);
+    const plan = constrainedPlans.find((p) => p.id === planId);
     if (plan) {
       setSelectedPlan(plan);
       setShowAllPlans(false);
@@ -602,7 +629,7 @@ export default function RegisterBillingPage() {
               </div>
               {showAllPlans ? (
                 <div className="space-y-4">
-                  {PLANS.map((plan) => (
+                  {constrainedPlans.map((plan) => (
                     <PlanCard
                       key={plan.id}
                       plan={plan}
@@ -626,12 +653,14 @@ export default function RegisterBillingPage() {
                           </span>
                         </div>
                       </div>
-                      <button
-                        onClick={() => setShowAllPlans(true)}
-                        className="flex items-center gap-2 text-sm text-secondary hover:underline"
-                      >
-                        <Edit3 className="w-4 h-4" /> Change Plan
-                      </button>
+                      {/* {constrainedPlans.length > 1 && (
+                        <button
+                          onClick={() => setShowAllPlans(true)}
+                          className="flex items-center gap-2 text-sm text-secondary hover:underline"
+                        >
+                          <Edit3 className="w-4 h-4" /> Change Plan
+                        </button>
+                      )} */}
                     </div>
                     <div className="bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 rounded-xl p-3">
                       <p className="text-sm text-green-700 dark:text-green-400 font-medium">
